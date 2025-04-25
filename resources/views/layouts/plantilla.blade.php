@@ -83,6 +83,15 @@
         .text-muted { color: #6c757d !important; }
         .font-semibold { font-weight: 500; }
         .font-extrabold { font-weight: 700; }
+
+        .sidebar-link:hover {
+            background-color: #28a745; /* verde */
+            color: white;
+        }
+
+        .sidebar-link:hover .hide-menu {
+            color: white; /* que el texto también se vuelva blanco */
+        }
     </style>
     
     <div class="preloader">
@@ -293,17 +302,18 @@
                 <nav class="sidebar-nav">
                     <ul id="sidebarnav">
 
-                        <li class="nav-small-cap"><span class="hide-menu" style="color: #727272;">Principal</span></li>
+                        <li class="nav-small-cap"><span class="hide-menu">Principal</span></li>
 
                         <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
                                 aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu" style="color: #000; font-weight:500;">Dashboard</span></a></li>
+                                    class="hide-menu">Dashboard</span></a></li>
                         <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
                                 aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu" style="color: #000; font-weight:500;">Usuarios</span></a></li>
+                                    class="hide-menu" style="color: #000;">Usuarios</span></a></li>
                         <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
                                 aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu" style="color: #000; font-weight:500;">Caja</span></a></li>
+                                    class="hide-menu" style="color: #000;">Caja</span></a></li>
+                                    
                         <li class="list-divider"></li>
                         <li class="nav-small-cap"><span class="hide-menu">Punto de Venta</span></li>
 
