@@ -304,39 +304,59 @@
 
                         <li class="nav-small-cap"><span class="hide-menu">Principal</span></li>
 
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
-                                aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu">Dashboard</span></a></li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
-                                aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu" style="color: #000;">Usuarios</span></a></li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="index.html"
-                                aria-expanded="false"><i data-feather="home" class="feather-icon"></i><span
-                                    class="hide-menu" style="color: #000;">Caja</span></a></li>
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
+                                <i data-feather="home" class="feather-icon"></i>
+                                <span class="hide-menu">Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
+                                <i data-feather="users" class="feather-icon"></i>
+                                <span class="hide-menu">Usuarios</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
+                                <i data-feather="credit-card" class="feather-icon"></i>
+                                <span class="hide-menu">Caja</span>
+                            </a>
+                        </li>
                                     
                         <li class="list-divider"></li>
+
                         <li class="nav-small-cap"><span class="hide-menu">Punto de Venta</span></li>
 
-                        <li class="sidebar-item"> <a class="sidebar-link" href="ticket-list.html"
-                                aria-expanded="false"><i data-feather="tag" class="feather-icon"></i><span
-                                    class="hide-menu">Clientes
-                                </span></a>
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i data-feather="user" class="feather-icon"></i>
+                                <span class="hide-menu">Clientes</span>
+                            </a>
                         </li>
-                        <li class="sidebar-item"> <a class="sidebar-link" href="ticket-list.html"
-                                aria-expanded="false"><i data-feather="tag" class="feather-icon"></i><span
-                                    class="hide-menu">Proveedores
-                                </span></a>
+
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i data-feather="truck" class="feather-icon"></i>
+                                <span class="hide-menu">Proveedores</span>
+                            </a>
                         </li>
-                        <li class="sidebar-item"> <a class="sidebar-link" href="ticket-list.html"
-                                aria-expanded="false"><i data-feather="tag" class="feather-icon"></i><span
-                                    class="hide-menu">Categorias
-                                </span></a>
+
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i data-feather="layers" class="feather-icon"></i>
+                                <span class="hide-menu">Categorias</span>
+                            </a>
                         </li>
-                        <li class="sidebar-item"> <a class="sidebar-link" href="ticket-list.html"
-                                aria-expanded="false"><i data-feather="tag" class="feather-icon"></i><span
-                                    class="hide-menu">Productos
-                                </span></a>
+
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i data-feather="package" class="feather-icon"></i>
+                                <span class="hide-menu">Productos</span>
+                            </a>
                         </li>
+
                         <li class="list-divider"></li>
                         <li class="nav-small-cap"><span class="hide-menu">Components</span></li>
                         
