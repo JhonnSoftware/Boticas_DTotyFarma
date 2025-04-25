@@ -22,5 +22,5 @@ Route::get('/plantilla', function () {
 });
 
 Route::get('/clientes', function(){
-    return view('clientes');
+    return view('clientes.clientes');
 });
