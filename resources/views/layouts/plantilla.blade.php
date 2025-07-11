@@ -21,96 +21,96 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
 
 <body>
-    
+
     <style>
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border: none;
-        }
-        .card-body {
-            padding: 20px;
-        }
-        .metric-title {
-            font-size: 16px;
-            color: #6c757d;
-            margin-bottom: 5px;
-        }
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #343a40;
-            margin-bottom: 5px;
-        }
-        .metric-change {
-            font-size: 14px;
-            color: #28a745; /* Verde para positivo */
-        }
-        .metric-change.negative {
-            color: #dc3545; /* Rojo para negativo */
-        }
-        .metric-change.zero {
-            color: #6c757d; /* Gris para cero */
-        }
-        .card {
-            border-radius: 10px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .stats-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 20%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .stats-icon.purple { background-color: #6f42c1; }
-        .stats-icon.blue { background-color: #0d6efd; }
-        .stats-icon.green { background-color: #198754; }
-        .stats-icon.red { background-color: #dc3545; }
-        .text-muted { color: #6c757d !important; }
-        .font-semibold { font-weight: 500; }
-        .font-extrabold { font-weight: 700; }
-
-        .sidebar-link:hover {
-            background-color: #28a745; /* verde */
-            color: white;
+        /* Transición suave para todos los elementos del enlace */
+        .sidebar-link {
+            transition: all 0.3s ease;
         }
 
-        .sidebar-link:hover .hide-menu {
-            color: white; /* que el texto también se vuelva blanco */
+        /* Íconos y texto dentro del enlace */
+        .sidebar-link i,
+        .sidebar-link .hide-menu {
+            transition: color 0.3s ease, stroke 0.3s ease;
+        }
+
+        /* Ítem activo */
+        .sidebar-item.active>.sidebar-link {
+            background-color: #e6f0ff;
+            color: #1a73e8 !important;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        /* Cambiar color texto e ícono activo */
+        .sidebar-item.active>.sidebar-link i,
+        .sidebar-item.active>.sidebar-link .hide-menu {
+            color: #1a73e8 !important;
+        }
+
+        /* Forzar cambio de color stroke en path dentro del SVG */
+        .sidebar-item.active>.sidebar-link i svg path {
+            stroke: #1a73e8 !important;
+        }
+
+        /* Hover en ítem */
+        .sidebar-item:hover>.sidebar-link {
+            background-color: #e6f0ff;
+            color: #1a73e8 !important;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        /* Cambiar color texto e ícono al pasar mouse */
+        .sidebar-item:hover>.sidebar-link i,
+        .sidebar-item:hover>.sidebar-link .hide-menu {
+            color: #1a73e8 !important;
+        }
+
+        /* Forzar cambio de color stroke en path dentro del SVG al pasar mouse */
+        .sidebar-item:hover>.sidebar-link i svg path {
+            stroke: #1a73e8 !important;
+        }
+
+        /* Color inicial del ícono */
+        .sidebar-nav .feather-icon {
+            color: #007bff;
+            stroke: currentColor;
+        }
+
+        /* Color inicial del texto */
+        .sidebar-nav .sidebar-link {
+            color: #007bff;
+        }
+
+        .sidebar-nav .sidebar-link .feather-icon {
+            stroke: currentColor;
         }
     </style>
-    
+
+
+
     <div class="preloader">
         <div class="lds-ripple">
             <div class="lds-pos"></div>
             <div class="lds-pos"></div>
         </div>
     </div>
-    
+
     <div id="main-wrapper" data-theme="light" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
         data-sidebar-position="fixed" data-header-position="fixed" data-boxed-layout="full">
-        
+
         <header class="topbar" data-navbarbg="skin6">
             <nav class="navbar top-navbar navbar-expand-md">
                 <div class="navbar-header" data-logobg="skin6">
                     <!-- This is for the sidebar toggle which is visible on mobile only -->
                     <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)"><i
                             class="ti-menu ti-close"></i></a>
-              
+
                     <div class="navbar-brand">
                         <!-- Logo icon -->
                         <a href="index.html">
@@ -130,15 +130,15 @@
                             </span>
                         </a>
                     </div>
-                    
+
                     <a class="topbartoggler d-block d-md-none waves-effect waves-light" href="javascript:void(0)"
                         data-toggle="collapse" data-target="#navbarSupportedContent"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i
                             class="ti-more"></i></a>
                 </div>
-    
+
                 <div class="navbar-collapse collapse" id="navbarSupportedContent">
-                  
+
                     <ul class="navbar-nav float-left mr-auto ml-3 pl-1">
                         <!-- Notification -->
                         <li class="nav-item dropdown">
@@ -215,7 +215,7 @@
                                 </ul>
                             </div>
                         </li>
-                      
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -242,9 +242,9 @@
                             </a>
                         </li>
                     </ul>
-                   
+
                     <ul class="navbar-nav float-right">
-                        
+
                         <li class="nav-item d-none d-md-block">
                             <a class="nav-link" href="javascript:void(0)">
                                 <form>
@@ -256,7 +256,7 @@
                                 </form>
                             </a>
                         </li>
-                      
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
@@ -289,12 +289,12 @@
                                         Profile</a></div>
                             </div>
                         </li>
-                        
+
                     </ul>
                 </div>
             </nav>
         </header>
-        
+
         <aside class="left-sidebar" data-sidebarbg="skin6">
             <!-- Sidebar scroll-->
             <div class="scroll-sidebar" data-sidebarbg="skin6">
@@ -304,287 +304,203 @@
 
                         <li class="nav-small-cap"><span class="hide-menu">Principal</span></li>
 
-                        <li class="sidebar-item"> 
-                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
-                                <i data-feather="home" class="feather-icon"></i>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i class="fa fa-home"></i>
                                 <span class="hide-menu">Dashboard</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> 
-                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
-                                <i data-feather="users" class="feather-icon"></i>
+                        <li class="list-divider"></li>
+
+                        <li class="nav-small-cap"><span class="hide-menu">Gestión de usuarios</span></li>
+
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i class="fa fa-users"></i>
                                 <span class="hide-menu">Usuarios</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> 
-                            <a class="sidebar-link sidebar-link" href="index.html" aria-expanded="false">
-                                <i data-feather="credit-card" class="feather-icon"></i>
-                                <span class="hide-menu">Caja</span>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i class="fa fa-shield-alt"></i>
+                                <span class="hide-menu">Roles y Permisos</span>
                             </a>
                         </li>
-                                    
+
                         <li class="list-divider"></li>
 
-                        <li class="nav-small-cap"><span class="hide-menu">Punto de Venta</span></li>
+                        <li class="nav-small-cap"><span class="hide-menu">Punto de Venta (POS)</span></li>
 
-                        <li class="sidebar-item"> 
+                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
+                                aria-expanded="false"><i data-feather="shopping-cart" class="feather-icon"></i>
+                                <span class="hide-menu">Ventas </span></a>
+
+                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
+                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
+                                            class="hide-menu"> Nueva Venta
+                                        </span></a>
+                                </li>
+                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
+                                            class="hide-menu"> Historial de ventas
+                                        </span></a>
+                                </li>
+                                <li class="sidebar-item"><a href="form-checkbox-radio.html"
+                                        class="sidebar-link"><span class="hide-menu"> Devoluciones
+                                        </span></a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="sidebar-item">
                             <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
-                                <i data-feather="user" class="feather-icon"></i>
+                                <i class="fa fa-user"></i>
                                 <span class="hide-menu">Clientes</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> 
+                        <li class="list-divider"></li>
+
+                        <li class="nav-small-cap"><span class="hide-menu">Compras</span></li>
+
+                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
+                                aria-expanded="false"><i data-feather="shopping-bag" class="feather-icon"></i>
+                                <span class="hide-menu">Compras </span></a>
+                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
+                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
+                                            class="hide-menu"> Nueva Compra
+                                        </span></a>
+                                </li>
+                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
+                                            class="hide-menu"> Historial de compras
+                                        </span></a>
+                                </li>
+                                <li class="sidebar-item"><a href="form-checkbox-radio.html"
+                                        class="sidebar-link"><span class="hide-menu"> Devoluciones
+                                        </span></a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="sidebar-item">
                             <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
-                                <i data-feather="truck" class="feather-icon"></i>
+                                <i class="fa fa-truck"></i>
                                 <span class="hide-menu">Proveedores</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> 
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
-                                <i data-feather="layers" class="feather-icon"></i>
-                                <span class="hide-menu">Categorias</span>
-                            </a>
-                        </li>
+                        <li class="list-divider"></li>
 
-                        <li class="sidebar-item"> 
+                        <li class="nav-small-cap"><span class="hide-menu">Inventario</span></li>
+
+                        <li class="sidebar-item">
                             <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
-                                <i data-feather="package" class="feather-icon"></i>
+                                <i class="fa fa-box"></i>
                                 <span class="hide-menu">Productos</span>
                             </a>
                         </li>
 
-                        <li class="list-divider"></li>
-                        <li class="nav-small-cap"><span class="hide-menu">Components</span></li>
-                        
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i class="fa fa-layer-group"></i>
+                                <span class="hide-menu">Categorias</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="file-text" class="feather-icon"></i><span
-                                    class="hide-menu">Forms </span></a>
+                                aria-expanded="false"><i data-feather="shuffle" class="feather-icon"></i>
+                                <span class="hide-menu">Movimientos</span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
                                 <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Form Inputs
+                                            class="hide-menu"> Ingresos
                                         </span></a>
                                 </li>
                                 <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Form Grids
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="form-checkbox-radio.html" class="sidebar-link"><span
-                                            class="hide-menu"> Checkboxes &
-                                            Radios
+                                            class="hide-menu"> Salidas
                                         </span></a>
                                 </li>
                             </ul>
                         </li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="app-chat.html"
-                                aria-expanded="false"><i data-feather="message-square" class="feather-icon"></i><span
-                                    class="hide-menu">Chat</span></a></li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="app-calendar.html"
-                                aria-expanded="false"><i data-feather="calendar" class="feather-icon"></i><span
-                                    class="hide-menu">Calendar</span></a></li>
+
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                                <i data-feather="alert-triangle" class="feather-icon"></i>
+                                <span class="hide-menu">Alertas</span>
+                            </a>
+                        </li>
 
                         <li class="list-divider"></li>
-                        <li class="nav-small-cap"><span class="hide-menu">Components</span></li>
+
+                        <li class="nav-small-cap"><span class="hide-menu">Finanzas</span></li>
+
                         <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="file-text" class="feather-icon"></i><span
-                                    class="hide-menu">Forms </span></a>
+                                aria-expanded="false"><i data-feather="dollar-sign" class="feather-icon"></i>
+                                <span class="hide-menu">Caja</span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
                                 <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Form Inputs
+                                            class="hide-menu"> Apertura / Cierre de caja
                                         </span></a>
                                 </li>
                                 <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Form Grids
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="form-checkbox-radio.html" class="sidebar-link"><span
-                                            class="hide-menu"> Checkboxes &
-                                            Radios
+                                            class="hide-menu"> Ingresos y egresos
                                         </span></a>
                                 </li>
                             </ul>
                         </li>
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="grid" class="feather-icon"></i><span
-                                    class="hide-menu">Tables </span></a>
-                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="table-basic.html" class="sidebar-link"><span
-                                            class="hide-menu"> Basic Table
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="table-dark-basic.html" class="sidebar-link"><span
-                                            class="hide-menu"> Dark Basic Table
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="table-sizing.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Sizing Table
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="table-layout-coloured.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Coloured
-                                            Table Layout
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="table-datatable-basic.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Basic
-                                            Datatables
-                                            Layout
-                                        </span></a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="bar-chart" class="feather-icon"></i><span
-                                    class="hide-menu">Charts </span></a>
-                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="chart-morris.html" class="sidebar-link"><span
-                                            class="hide-menu"> Morris Chart
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="chart-chart-js.html" class="sidebar-link"><span
-                                            class="hide-menu"> ChartJs
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="chart-knob.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Knob Chart
-                                        </span></a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="box" class="feather-icon"></i><span
-                                    class="hide-menu">UI Elements </span></a>
-                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="ui-buttons.html" class="sidebar-link"><span
-                                            class="hide-menu"> Buttons
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="ui-modals.html" class="sidebar-link"><span
-                                            class="hide-menu"> Modals </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="ui-tab.html" class="sidebar-link"><span
-                                            class="hide-menu"> Tabs </span></a></li>
-                                <li class="sidebar-item"><a href="ui-tooltip-popover.html" class="sidebar-link"><span
-                                            class="hide-menu"> Tooltip &
-                                            Popover</span></a></li>
-                                <li class="sidebar-item"><a href="ui-notification.html" class="sidebar-link"><span
-                                            class="hide-menu">Notification</span></a></li>
-                                <li class="sidebar-item"><a href="ui-progressbar.html" class="sidebar-link"><span
-                                            class="hide-menu">Progressbar</span></a></li>
-                                <li class="sidebar-item"><a href="ui-typography.html" class="sidebar-link"><span
-                                            class="hide-menu">Typography</span></a></li>
-                                <li class="sidebar-item"><a href="ui-bootstrap.html" class="sidebar-link"><span
-                                            class="hide-menu">Bootstrap
-                                            UI</span></a></li>
-                                <li class="sidebar-item"><a href="ui-breadcrumb.html" class="sidebar-link"><span
-                                            class="hide-menu">Breadcrumb</span></a></li>
-                                <li class="sidebar-item"><a href="ui-list-media.html" class="sidebar-link"><span
-                                            class="hide-menu">List
-                                            Media</span></a></li>
-                                <li class="sidebar-item"><a href="ui-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Grid </span></a></li>
-                                <li class="sidebar-item"><a href="ui-carousel.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Carousel</span></a></li>
-                                <li class="sidebar-item"><a href="ui-scrollspy.html" class="sidebar-link"><span
-                                            class="hide-menu">
-                                            Scrollspy</span></a></li>
-                                <li class="sidebar-item"><a href="ui-toasts.html" class="sidebar-link"><span
-                                            class="hide-menu"> Toasts</span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="ui-spinner.html" class="sidebar-link"><span
-                                            class="hide-menu"> Spinner </span></a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="ui-cards.html"
-                                aria-expanded="false"><i data-feather="sidebar" class="feather-icon"></i><span
-                                    class="hide-menu">Cards
-                                </span></a>
-                        </li>
-                        <li class="list-divider"></li>
-                        <li class="nav-small-cap"><span class="hide-menu">Authentication</span></li>
 
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="authentication-login1.html"
-                                aria-expanded="false"><i data-feather="lock" class="feather-icon"></i><span
-                                    class="hide-menu">Login
-                                </span></a>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i data-feather="bar-chart" class="feather-icon"></i>
+                                <span class="hide-menu">Reportes Financieros</span>
+                            </a>
                         </li>
+
+                        <li class="list-divider"></li>
+
+                        <li class="nav-small-cap"><span class="hide-menu">Configuración del sistema</span></li>
+
+                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
+                                aria-expanded="false"><i data-feather="settings" class="feather-icon"></i>
+                                <span class="hide-menu">Parametros</span></a>
+                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
+                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
+                                            class="hide-menu"> Tipo de documento
+                                        </span></a>
+                                </li>
+                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
+                                            class="hide-menu"> Metodo de pago
+                                        </span></a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i data-feather="briefcase" class="feather-icon"></i>
+                                <span class="hide-menu">Datos de empresa</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                                <i class="fa fa-coins"></i>
+                                <span class="hide-menu">Monedas / Impuestos</span>
+                            </a>
+                        </li>
+
+                        <li class="list-divider"></li>
+
                         <li class="sidebar-item"> <a class="sidebar-link sidebar-link"
-                                href="authentication-register1.html" aria-expanded="false"><i data-feather="lock"
-                                    class="feather-icon"></i><span class="hide-menu">Register
-                                </span></a>
-                        </li>
-
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="feather" class="feather-icon"></i><span
-                                    class="hide-menu">Icons
-                                </span></a>
-                            <ul aria-expanded="false" class="collapse first-level base-level-line">
-                                <li class="sidebar-item"><a href="icon-fontawesome.html" class="sidebar-link"><span
-                                            class="hide-menu"> Fontawesome Icons </span></a></li>
-
-                                <li class="sidebar-item"><a href="icon-simple-lineicon.html" class="sidebar-link"><span
-                                            class="hide-menu"> Simple Line Icons </span></a></li>
-                            </ul>
-                        </li>
-
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="crosshair" class="feather-icon"></i><span
-                                    class="hide-menu">Multi
-                                    level
-                                    dd</span></a>
-                            <ul aria-expanded="false" class="collapse first-level base-level-line">
-                                <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                            class="hide-menu"> item 1.1</span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                            class="hide-menu"> item 1.2</span></a>
-                                </li>
-                                <li class="sidebar-item"> <a class="has-arrow sidebar-link" href="javascript:void(0)"
-                                        aria-expanded="false"><span class="hide-menu">Menu 1.3</span></a>
-                                    <ul aria-expanded="false" class="collapse second-level base-level-line">
-                                        <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                                    class="hide-menu"> item
-                                                    1.3.1</span></a></li>
-                                        <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                                    class="hide-menu"> item
-                                                    1.3.2</span></a></li>
-                                        <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                                    class="hide-menu"> item
-                                                    1.3.3</span></a></li>
-                                        <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                                    class="hide-menu"> item
-                                                    1.3.4</span></a></li>
-                                    </ul>
-                                </li>
-                                <li class="sidebar-item"><a href="javascript:void(0)" class="sidebar-link"><span
-                                            class="hide-menu"> item
-                                            1.4</span></a></li>
-                            </ul>
-                        </li>
-                        <li class="list-divider"></li>
-                        <li class="nav-small-cap"><span class="hide-menu">Extra</span></li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="docs/docs.html"
-                                aria-expanded="false"><i data-feather="edit-3" class="feather-icon"></i><span
-                                    class="hide-menu">Documentation</span></a></li>
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link" href="authentication-login1.html"
-                                aria-expanded="false"><i data-feather="log-out" class="feather-icon"></i><span
-                                    class="hide-menu">Logout</span></a></li>
+                                href="authentication-login1.html" aria-expanded="false"><i data-feather="log-out"
+                                    class="feather-icon"></i><span class="hide-menu">Salir</span></a></li>
                     </ul>
                 </nav>
-        
+
             </div>
-      
+
         </aside>
-        
+
         <div class="page-wrapper">
             @yield('content')
         </div>
@@ -594,27 +510,36 @@
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="{{ url('dist/css/style.css') }}" rel="stylesheet"> <link href="{{ url('dist/css/style.css') }}" rel="stylesheet">
-    <script src="{{ url('assets/libs/jquery/dist/jquery.min.js')}}"></script>
-    <script src="{{ url('assets/libs/popper.js/dist/umd/popper.min.js')}}"></script>
-    <script src="{{ url('assets/libs/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="{{ url('dist/css/style.css') }}" rel="stylesheet">
+    <script src="{{ url('assets/libs/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url('assets/libs/popper.js/dist/umd/popper.min.js') }}"></script>
+    <script src="{{ url('assets/libs/bootstrap/dist/js/bootstrap.min.js') }}"></script>
     <!-- apps -->
-    <script src="{{ url('dist/js/app-style-switcher.js')}}"></script>
-    <script src="{{ url('dist/js/feather.min.js')}}"></script>
-    <script src="{{ url('assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js')}}"></script>
-    <script src="{{ url('dist/js/sidebarmenu.js')}}"></script>
+    <script src="{{ url('dist/js/app-style-switcher.js') }}"></script>
+    <script src="{{ url('dist/js/feather.min.js') }}"></script>
+    <script src="{{ url('assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js') }}"></script>
+    <script src="{{ url('dist/js/sidebarmenu.js') }}"></script>
 
     <!--Custom JavaScript -->
-    <script src="{{ url('dist/js/custom.min.js')}}"></script>
+    <script src="{{ url('dist/js/custom.min.js') }}"></script>
     <!--This page JavaScript -->
-    <script src="{{ url('assets/extra-libs/c3/d3.min.js')}}"></script>
-    <script src="{{ url('assets/extra-libs/c3/c3.min.js')}}"></script>
-    <script src="{{ url('assets/libs/chartist/dist/chartist.min.js')}}"></script>
-    <script src="{{ url('assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js')}}"></script>
-    <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js')}}"></script>
-    <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js')}}"></script>
-    <script src="{{ url('dist/js/pages/dashboards/dashboard1.min.js')}}"></script>
+    <script src="{{ url('assets/extra-libs/c3/d3.min.js') }}"></script>
+    <script src="{{ url('assets/extra-libs/c3/c3.min.js') }}"></script>
+    <script src="{{ url('assets/libs/chartist/dist/chartist.min.js') }}"></script>
+    <script src="{{ url('assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js') }}"></script>
+    <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js') }}"></script>
+    <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js') }}"></script>
+    <script src="{{ url('dist/js/pages/dashboards/dashboard1.min.js') }}"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            feather.replace(); // Esto asegura que se ejecuta después de que la página cargue completamente
+        });
+    </script>
+
+    @yield('scripts')
+
 </body>
 
 </html>
