@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
-    <title>Lista de clientes</title>
+    <title>Boticas D'Toty Farma</title>
     <!-- Custom CSS -->
     <link href="assets/extra-libs/c3/c3.min.css" rel="stylesheet">
     <link href="assets/libs/chartist/dist/chartist.min.css" rel="stylesheet">
@@ -90,9 +90,25 @@
         .sidebar-nav .sidebar-link .feather-icon {
             stroke: currentColor;
         }
+
+        .sidebar-item.selected {
+            background-color: transparent !important;
+            color: inherit !important;
+            font-weight: normal !important;
+        }
+
+        .sidebar-item.selected>.sidebar-link {
+            background-color: transparent !important;
+            color: inherit !important;
+            font-weight: normal !important;
+            border-radius: 0 !important;
+        }
+
+        .sidebar-item.selected>.sidebar-link i,
+        .sidebar-item.selected>.sidebar-link .hide-menu {
+            color: inherit !important;
+        }
     </style>
-
-
 
     <div class="preloader">
         <div class="lds-ripple">
@@ -305,7 +321,7 @@
                         <li class="nav-small-cap"><span class="hide-menu">Principal</span></li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('dashboard.index') }}" aria-expanded="false">
                                 <i class="fa fa-home"></i>
                                 <span class="hide-menu">Dashboard</span>
                             </a>
@@ -316,7 +332,7 @@
                         <li class="nav-small-cap"><span class="hide-menu">Gestión de usuarios</span></li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('usuarios.index') }}" aria-expanded="false">
                                 <i class="fa fa-users"></i>
                                 <span class="hide-menu">Usuarios</span>
                             </a>
@@ -338,15 +354,15 @@
                                 <span class="hide-menu">Ventas </span></a>
 
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Nueva Venta
+                                <li class="sidebar-item"><a href="{{ route('ventas.index') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Nueva Venta
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
+                                <li class="sidebar-item"><a href="{{ route('ventas.historial') }}" class="sidebar-link"><span
                                             class="hide-menu"> Historial de ventas
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="form-checkbox-radio.html"
+                                <li class="sidebar-item"><a href="{{ route('devoluciones.index') }}"
                                         class="sidebar-link"><span class="hide-menu"> Devoluciones
                                         </span></a>
                                 </li>
@@ -354,7 +370,7 @@
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('clientes.index') }}" aria-expanded="false">
                                 <i class="fa fa-user"></i>
                                 <span class="hide-menu">Clientes</span>
                             </a>
@@ -384,7 +400,7 @@
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('proveedores.index') }}" aria-expanded="false">
                                 <i class="fa fa-truck"></i>
                                 <span class="hide-menu">Proveedores</span>
                             </a>
@@ -395,14 +411,14 @@
                         <li class="nav-small-cap"><span class="hide-menu">Inventario</span></li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('productos.index') }}" aria-expanded="false">
                                 <i class="fa fa-box"></i>
                                 <span class="hide-menu">Productos</span>
                             </a>
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('categorias.index') }}" aria-expanded="false">
                                 <i class="fa fa-layer-group"></i>
                                 <span class="hide-menu">Categorias</span>
                             </a>
@@ -438,11 +454,11 @@
                                 aria-expanded="false"><i data-feather="dollar-sign" class="feather-icon"></i>
                                 <span class="hide-menu">Caja</span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
+                                <li class="sidebar-item"><a href="{{ route('caja.apertura.form') }}" class="sidebar-link"><span
                                             class="hide-menu"> Apertura / Cierre de caja
                                         </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
+                                </li> 
+                                <li class="sidebar-item"><a href="{{ route('caja.listado') }}" class="sidebar-link"><span
                                             class="hide-menu"> Ingresos y egresos
                                         </span></a>
                                 </li>
@@ -464,12 +480,12 @@
                                 aria-expanded="false"><i data-feather="settings" class="feather-icon"></i>
                                 <span class="hide-menu">Parametros</span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Tipo de documento
+                                <li class="sidebar-item"><a href="{{ route('documentos.index') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Tipo de documento
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Metodo de pago
+                                <li class="sidebar-item"><a href="{{ route('tipopagos.index') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Metodo de pago
                                         </span></a>
                                 </li>
                             </ul>
@@ -491,9 +507,14 @@
 
                         <li class="list-divider"></li>
 
-                        <li class="sidebar-item"> <a class="sidebar-link sidebar-link"
-                                href="authentication-login1.html" aria-expanded="false"><i data-feather="log-out"
-                                    class="feather-icon"></i><span class="hide-menu">Salir</span></a></li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="javascript:void(0);"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i data-feather="log-out" class="feather-icon"></i>
+                                <span class="hide-menu">Salir</span>
+                            </a>
+                        </li>
+
                     </ul>
                 </nav>
 
@@ -538,8 +559,12 @@
         });
     </script>
 
+
     @yield('scripts')
 
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+        @csrf
+    </form>
 </body>
 
 </html>

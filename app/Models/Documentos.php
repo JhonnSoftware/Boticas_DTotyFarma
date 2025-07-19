@@ -15,4 +15,8 @@ class Documentos extends Model
         'nombre',
         'estado',
     ];
+
+    public function ventas(){
+        return $this->hasMany(Ventas::class, 'id_documento');
+    }
 }

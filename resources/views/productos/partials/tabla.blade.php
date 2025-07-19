@@ -3,7 +3,7 @@
         <td class="border-top-0 px-2 py-4">
             <div class="d-flex no-block align-items-center">
                 <div class="mr-3">
-                    <img src="{{ url('imagenes/cliente_02.png') }}" alt="user" class="rounded-circle" width="45"
+                    <img src="{{ url('imagenes/producto_icon1.png') }}" alt="user" class="rounded-circle" width="45"
                         height="45" />
                 </div>
                 <div class="">

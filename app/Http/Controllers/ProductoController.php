@@ -28,8 +28,15 @@ class ProductoController extends Controller
         $productos = $query->get();
         $proveedores = Proveedores::all();
         $categorias = Categorias::all();
+        $productosStockBajo = Productos::whereColumn('cantidad', '<', 'stock_minimo')->get();
 
-        return view('productos.index', compact('productos', 'proveedores', 'categorias'));
+        // Obtener último producto registrado
+        $ultimoProducto = Productos::latest('id')->first();
+        $nextId = $ultimoProducto ? $ultimoProducto->id + 1 : 1;
+        // Formatear el nuevo código
+        $nuevoCodigo = 'P000-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
+        return view('productos.index', compact('productos', 'proveedores', 'categorias', 'productosStockBajo', 'nuevoCodigo'));
     }
 
     public function buscar(Request $request)
@@ -171,5 +178,11 @@ class ProductoController extends Controller
         $producto->update($datos);
 
         return redirect()->route('productos.index')->with('success', 'Producto actualizado correctamente.');
+    }
+
+    public function detalle()
+    {
+        $productos = Productos::with('categoria', 'proveedor')->get(); // ← Eager loading
+        return view('productos.detalleProductos', compact('productos'));
     }
 }

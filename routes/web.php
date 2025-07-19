@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CategoriaController;
@@ -9,6 +10,9 @@ use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\TipoPagoController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\VentasController;
+use App\Http\Controllers\DevolucionesController;
+use App\Http\Controllers\CajaController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,9 +32,8 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
-Route::get('/plantilla', function () {
-    return view('home');
+Route::controller(DashboardController::class)->group(function () {
+    Route::get('dashboard', 'index')->name('dashboard.index');
 });
 
 Route::controller(UsuarioController::class)->group(function () {
@@ -93,8 +96,29 @@ Route::controller(ProductoController::class)->group(function () {
     Route::put('productos/{id}/desactivar', 'desactivar')->name('productos.desactivar');
     Route::put('productos/{id}/activar', 'activar')->name('productos.activar');
     Route::put('productos/{id}', 'actualizar')->name('productos.actualizar');
+    Route::get('detalleProductos', 'detalle')->name('productos.detalle');
 });
 
+Route::controller(VentasController::class)->group(function () {
+    Route::get('ventas', 'index')->name('ventas.index');
+    Route::post('ventas', 'store')->name('ventas.store');
+    Route::get('historial_ventas', 'historial')->name('ventas.historial');
+    Route::get('ventas/voucher/{id}', 'voucher')->name('ventas.voucher');
+    Route::get('ventas/buscar', 'buscar')->name('ventas.buscar');
+});
+
+Route::controller(DevolucionesController::class)->group(function () {
+    Route::get('devoluciones', 'index')->name('devoluciones.index');
+    Route::post('devoluciones', 'store')->name('devoluciones.store');
+    Route::get('devoluciones/buscar', 'buscar')->name('devoluciones.buscar');
+});
+
+Route::controller(CajaController::class)->group(function () {
+    Route::get('apertura', 'aperturaForm')->name('caja.apertura.form');
+    Route::post('apertura', 'aperturaStore')->name('caja.apertura.store');
+    Route::post('cierre', 'cierreStore')->name('caja.cierre.store');
+    Route::get('listarCajas', 'listarCajas')->name('caja.listado');
+});
 
 
 

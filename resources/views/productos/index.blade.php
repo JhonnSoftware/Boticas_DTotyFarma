@@ -5,6 +5,34 @@
 @section('content')
 
     <style>
+        .modal-content {
+            animation: slideFadeIn 0.4s ease;
+        }
+
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(-20px);
+        }
+
+        .modal.fade.show .modal-dialog {
+            transform: translateY(0);
+        }
+
+        /* Botón vibrante */
+        .btn-primary {
+            background: linear-gradient(to right, #0A7ABF, #25A6D9);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(90deg, #ffe259 0%, #ffa751 100%);
+        }
+
         .entries-info {
             color: #6c757d;
             font-size: 14px;
@@ -55,7 +83,33 @@
         }
     </style>
 
+    <!-- Botón y panel colapsable -->
+
     <div class="container-fluid">
+
+        <a href="{{ route('productos.detalle') }}" class="text-decoration-none">
+            <div class="card border-right shadow-sm hover-shadow" style="transition: 0.2s; border-radius: 20px;">
+                <div class="card-body">
+                    <div class="d-flex d-lg-flex d-md-block align-items-center">
+                        <div>
+                            <div class="d-inline-flex align-items-center">
+                                <h2 class="text-dark mb-1 font-weight-medium" style="font-size: 24px;">Ver Detalles</h2>
+                                <span
+                                    class="badge bg-warning font-12 text-dark font-weight-medium badge-pill ms-2 d-lg-block d-md-none">
+                                    2 productos con stock bajo
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ms-auto mt-md-3 mt-lg-0">
+                            <span class="opacity-7 text-muted"><i data-feather="eye"></i></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </a>
+
+
         <div class="row">
             <div class="col-12">
                 <div class="card" style="border-radius: 20px;">
@@ -114,7 +168,7 @@
                                             <td class="border-top-0 px-2 py-4">
                                                 <div class="d-flex no-block align-items-center">
                                                     <div class="mr-3">
-                                                        <img src="{{ url('imagenes/cliente_02.png') }}" alt="user"
+                                                        <img src="{{ url('imagenes/producto_icon1.png') }}" alt="user"
                                                             class="rounded-circle" width="45" height="45" />
                                                     </div>
                                                     <div class="">
@@ -425,7 +479,7 @@
                             <div class="col-md-6">
                                 <label for="codigo" class="form-label">Código</label>
                                 <input type="text" class="form-control rounded-3" id="codigo" name="codigo"
-                                    required>
+                                    value="{{ $nuevoCodigo }}" readonly>
                             </div>
 
                             <!-- Descripción -->
@@ -433,6 +487,9 @@
                                 <label for="descripcion" class="form-label">Descripción</label>
                                 <input type="text" class="form-control rounded-3" id="descripcion" name="descripcion"
                                     required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la descripción del producto.
+                                </div>
                             </div>
 
                             <!-- Presentación -->
@@ -440,6 +497,9 @@
                                 <label for="presentacion" class="form-label">Presentación</label>
                                 <input type="text" class="form-control rounded-3" id="presentacion"
                                     name="presentacion" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la presentacion del producto.
+                                </div>
                             </div>
 
                             <!-- Laboratorio -->
@@ -447,6 +507,9 @@
                                 <label for="laboratorio" class="form-label">Laboratorio</label>
                                 <input type="text" class="form-control rounded-3" id="laboratorio" name="laboratorio"
                                     required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la laboratorio del producto.
+                                </div>
                             </div>
 
                             <!-- Lote -->
@@ -454,6 +517,9 @@
                                 <label for="lote" class="form-label">Lote</label>
                                 <input type="number" class="form-control rounded-3" id="lote" name="lote"
                                     required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el lote del producto.
+                                </div>
                             </div>
 
                             <!-- Cantidad -->
@@ -461,6 +527,9 @@
                                 <label for="cantidad" class="form-label">Cantidad</label>
                                 <input type="number" class="form-control rounded-3" id="cantidad" name="cantidad"
                                     min="0" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la cantidad del producto.
+                                </div>
                             </div>
 
                             <!-- Stock mínimo -->
@@ -468,6 +537,9 @@
                                 <label for="stock_minimo" class="form-label">Stock mínimo</label>
                                 <input type="number" class="form-control rounded-3" id="stock_minimo"
                                     name="stock_minimo" min="0" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el stock minimo del producto.
+                                </div>
                             </div>
 
                             <!-- Descuento -->
@@ -475,6 +547,9 @@
                                 <label for="descuento" class="form-label">Descuento (%)</label>
                                 <input type="number" step="0.01" class="form-control rounded-3" id="descuento"
                                     name="descuento" min="0" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el descuento del producto.
+                                </div>
                             </div>
 
                             <!-- Fecha de vencimiento -->
@@ -482,6 +557,9 @@
                                 <label for="fecha_vencimiento" class="form-label">Fecha de vencimiento</label>
                                 <input type="date" class="form-control rounded-3" id="fecha_vencimiento"
                                     name="fecha_vencimiento" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la fecha de vencimiento del producto.
+                                </div>
                             </div>
 
                             <!-- Precio compra -->
@@ -489,6 +567,9 @@
                                 <label for="precio_compra" class="form-label">Precio de compra (S/)</label>
                                 <input type="number" step="0.01" class="form-control rounded-3" id="precio_compra"
                                     name="precio_compra" min="0" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el precio de compra del producto.
+                                </div>
                             </div>
 
                             <!-- Precio venta -->
@@ -496,6 +577,9 @@
                                 <label for="precio_venta" class="form-label">Precio de venta (S/)</label>
                                 <input type="number" step="0.01" class="form-control rounded-3" id="precio_venta"
                                     name="precio_venta" min="0" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el precio de venta del producto.
+                                </div>
                             </div>
 
                             <!-- Proveedor -->
@@ -507,6 +591,9 @@
                                         <option value="{{ $proveedor->id }}">{{ $proveedor->nombre }}</option>
                                     @endforeach
                                 </select>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el proveedor del producto.
+                                </div>
                             </div>
 
                             <!-- Categoría -->
@@ -518,6 +605,9 @@
                                         <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
                                     @endforeach
                                 </select>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese la categoria del producto.
+                                </div>
                             </div>
 
                             <!-- Imagen -->
@@ -547,6 +637,69 @@
         </div>
     </div>
 
+    @if ($productosStockBajo->count() > 0)
+        <!-- Modal estilizado de advertencia -->
+        <div class="modal fade" id="modalStockBajo" tabindex="-1" aria-labelledby="stockBajoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                    <!-- Encabezado con degradado azul -->
+                    <div class="modal-header text-white py-4"
+                        style="background: linear-gradient(135deg, #0A7ABF, #25A6D9);">
+                        <h5 class="modal-title fw-bold d-flex align-items-center mb-0" id="stockBajoLabel">
+                            <i class="fas fa-exclamation-circle me-2 fs-4"></i>
+                            Productos con Stock Bajo
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Cerrar"></button>
+                    </div>
+
+                    <!-- Cuerpo del modal -->
+                    <div class="modal-body px-4 py-4"
+                        style="background-color: #F2F2F2; max-height: 60vh; overflow-y: auto;">
+                        <p class="text-secondary mb-4">
+                            Se han identificado productos con stock por debajo del mínimo permitido. Revisa los siguientes
+                            elementos:
+                        </p>
+
+                        <div class="row g-3">
+                            @foreach ($productosStockBajo as $producto)
+                                <div class="col-12">
+                                    <div class="alert border-0 shadow-sm rounded-4 d-flex justify-content-between align-items-center p-3"
+                                        style="background-color: #ffffff; border-left: 6px solid #6EBF49;">
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold" style="color: #6EBF49;">
+                                                <i class="fas fa-capsules me-1"></i>{{ $producto->descripcion }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                Stock actual: <strong>{{ $producto->cantidad }}</strong> | Mínimo
+                                                requerido:
+                                                <strong>{{ $producto->stock_minimo }}</strong>
+                                            </small>
+                                        </div>
+                                        <span class="badge px-3 py-2 rounded-pill shadow-sm"
+                                            style="background-color: #D9534F; color: white;">
+                                            ⚠ Bajo Stock
+                                        </span>
+
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Botón -->
+                    <div class="px-4 pb-4 text-end bg-white mt-3">
+                        <a href="{{ route('productos.detalle') }}"
+                            class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-eye me-1"></i> Ver todos los productos
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    @endif
 
 @endsection
 
@@ -596,7 +749,6 @@
     </script>
 
     <script>
-        
         function confirmarDesactivacion(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
@@ -629,6 +781,16 @@
             });
         }
     </script>
+
+    @if ($productosStockBajo->count() > 0)
+        <script>
+            window.addEventListener('DOMContentLoaded', () => {
+                const modal = new bootstrap.Modal(document.getElementById('modalStockBajo'));
+                modal.show();
+            });
+        </script>
+    @endif
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -757,6 +919,25 @@
             // Inicializar paginación
             showPage(1);
         });
+    </script>
+
+    <script>
+        // Bootstrap 5: Validación personalizada
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
     </script>
 
 @endsection

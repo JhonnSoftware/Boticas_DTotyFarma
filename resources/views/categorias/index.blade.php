@@ -211,50 +211,53 @@
         </div>
     </div>
 
-    <div class="modal fade" id="nuevoCategoria" tabindex="-1" aria-labelledby="nuevoCategoriaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content shadow border-0 rounded-4 overflow-hidden">
+    <div class="modal fade" id="nuevoCategoria" tabindex="-1" aria-labelledby="nuevoCategoriaLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow border-0 rounded-4 overflow-hidden">
 
-            <!-- Encabezado -->
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold" id="nuevoCategoriaLabel">
-                    <i class="bi bi-folder-plus me-2"></i> Nueva Categoría
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <!-- Encabezado -->
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold" id="nuevoCategoriaLabel">
+                        <i class="bi bi-folder-plus me-2"></i> Nueva Categoría
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+
+                <!-- Cuerpo -->
+                <div class="modal-body p-4">
+                    <form action="{{ route('categorias.store') }}" method="POST" class="needs-validation" novalidate>
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label fw-semibold">Nombre de la categoría</label>
+                            <input type="text" class="form-control form-control-lg rounded-3" id="nombre"
+                                name="nombre" placeholder="Ej: Analgésicos" required>
+                            <div class="invalid-feedback">Por favor, ingresa un nombre válido.</div>
+                        </div>
+
+                        <input type="hidden" name="estado" value="Activo">
+
+                        <!-- Footer -->
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                                data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-success rounded-pill px-4">
+                                <i class="bi bi-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
-
-            <!-- Cuerpo -->
-            <div class="modal-body p-4">
-                <form action="{{ route('categorias.store') }}" method="POST" class="needs-validation" novalidate>
-                    @csrf
-
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label fw-semibold">Nombre de la categoría</label>
-                        <input type="text" class="form-control form-control-lg rounded-3" id="nombre" name="nombre" placeholder="Ej: Analgésicos" required>
-                        <div class="invalid-feedback">Por favor, ingresa un nombre válido.</div>
-                    </div>
-
-                    <input type="hidden" name="estado" value="Activo">
-
-                    <!-- Footer -->
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-1"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-success rounded-pill px-4">
-                            <i class="bi bi-save me-1"></i> Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-
         </div>
     </div>
-</div>
 
 
 @endsection
-
 
 @section('scripts')
 
