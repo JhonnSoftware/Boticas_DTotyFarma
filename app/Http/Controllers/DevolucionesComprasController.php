@@ -4,38 +4,37 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Devoluciones;
+use App\Models\DevolucionesCompras;
 use App\Models\Productos;
-use App\Models\Ventas;
+use App\Models\Compras;
 use App\Models\Movimientos;
 
-class DevolucionesController extends Controller
+class DevolucionesComprasController extends Controller
 {
     public function index()
     {
-        $devoluciones = Devoluciones::with(['venta.cliente', 'producto', 'usuario'])->latest()->get();
-        return view('devoluciones.index', compact('devoluciones'));
+        $devoluciones = DevolucionesCompras::with(['compra.proveedor', 'producto', 'usuario'])->latest()->get();
+        return view('devolucionesCompras.index', compact('devoluciones'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'venta_id' => 'required|exists:ventas,id',
+            'id_compra' => 'required|exists:compras,id',
             'motivo' => 'required|string|max:255',
             'id_producto' => 'required|exists:productos,id',
             'cantidad' => 'required|integer|min:1',
         ]);
 
-        $venta = Ventas::findOrFail($request->venta_id);
+        $compra = Compras::findOrFail($request->id_compra);
 
-        // Validamos si ya está devuelta o anulada
-        if ($venta->estado !== 'Activo') {
-            return redirect()->back()->with('error', 'Esta venta no puede ser devuelta.');
+        if ($compra->estado !== 'Activo') {
+            return redirect()->back()->with('error', 'Esta compra no puede ser devuelta.');
         }
 
         // Registrar devolución
-        Devoluciones::create([
-            'id_venta' => $request->venta_id,
+        DevolucionesCompras::create([
+            'id_compra' => $request->id_compra,
             'id_producto' => $request->id_producto,
             'usuario_id' => Auth::id(),
             'motivo' => $request->motivo,
@@ -43,51 +42,47 @@ class DevolucionesController extends Controller
             'fecha' => now(),
         ]);
 
-        // ✅ Aumentar stock (cantidad) del producto devuelto
         $producto = Productos::find($request->id_producto);
 
         if ($producto) {
             $stockAnterior = $producto->cantidad;
-            $producto->cantidad += $request->cantidad;
+            $producto->cantidad -= $request->cantidad;
             $producto->save();
 
-            // Registrar el movimiento en el Kardex
+            // Registrar movimiento en el Kardex
             Movimientos::create([
                 'id_producto'     => $producto->id,
-                'tipo_movimiento' => 'Entrada',
+                'tipo_movimiento' => 'Salida',
                 'origen'          => 'Devolución',
-                'documento_ref'   => $venta->codigo,
+                'documento_ref'   => $compra->codigo,
                 'fecha'           => now(),
-                'cantidad'        => $request->cantidad,
+                'cantidad'        => -$request->cantidad, // salida = cantidad negativa
                 'stock_anterior'  => $stockAnterior,
                 'stock_actual'    => $producto->cantidad,
-                'observacion'     => 'Devolución por motivo: ' . $request->motivo,
+                'observacion'     => 'Devolución a proveedor: ' . $request->motivo,
                 'usuario_id'      => Auth::id(),
             ]);
         }
 
-        // Cambiar el estado de la venta
-        $venta->estado = 'Devuelto';
-        $venta->save();
+        // Cambiar estado
+        $compra->estado = 'Devuelto';
+        $compra->save();
 
-        return redirect()->route('ventas.historial')->with('success', 'Venta devuelta correctamente.');
+        return redirect()->route('compras.historial')->with('success', 'Compra devuelta correctamente.');
     }
-
-
 
     public function buscar(Request $request)
     {
         $buscar = $request->input('buscar');
 
-        $devoluciones = Devoluciones::with(['venta.cliente', 'producto', 'usuario'])
+        $devoluciones = DevolucionesCompras::with(['compra.proveedor', 'producto', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
                 $query->where(function ($q) use ($buscar) {
-                    $q->whereHas('venta', function ($q) use ($buscar) {
+                    $q->whereHas('compra', function ($q) use ($buscar) {
                         $q->where('codigo', 'LIKE', "%$buscar%")
                             ->orWhere('fecha', 'LIKE', "%$buscar%")
-                            ->orWhereHas('cliente', function ($q) use ($buscar) {
-                                $q->where('nombre', 'LIKE', "%$buscar%")
-                                    ->orWhere('apellidos', 'LIKE', "%$buscar%");
+                            ->orWhereHas('proveedor', function ($q) use ($buscar) {
+                                $q->where('nombre', 'LIKE', "%$buscar%");
                             });
                     })
                         ->orWhereHas('producto', function ($q) use ($buscar) {
@@ -102,6 +97,6 @@ class DevolucionesController extends Controller
             ->orderBy('fecha', 'desc')
             ->get();
 
-        return view('devoluciones.partials.tabla', compact('devoluciones'));
+        return view('devolucionesCompras.partials.tabla', compact('devoluciones'));
     }
 }

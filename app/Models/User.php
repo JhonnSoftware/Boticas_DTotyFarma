@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'rol',
+        'foto',
     ];
 
     /**
@@ -46,5 +47,10 @@ class User extends Authenticatable
     public function ventas()
     {
         return $this->hasMany(Ventas::class, 'usuario_id');
+    }
+
+    public function permisos()
+    {
+        return $this->hasMany(Permisos::class, 'usuario_id');
     }
 }

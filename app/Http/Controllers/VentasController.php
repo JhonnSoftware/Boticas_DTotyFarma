@@ -8,6 +8,7 @@ use App\Models\Clientes;
 use App\Models\Productos;
 use App\Models\TipoPagos;
 use App\Models\Documentos;
+use App\Models\Movimientos;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -103,8 +104,22 @@ class VentasController extends Controller
             // Actualizar stock del producto
             $producto = Productos::find($id_producto);
             if ($producto) {
+                $stockAnterior = $producto->cantidad;
                 $producto->cantidad -= $cantidad;
                 $producto->save();
+
+                Movimientos::create([
+                    'id_producto'     => $producto->id,
+                    'tipo_movimiento' => 'Salida',
+                    'origen'          => 'Venta',
+                    'documento_ref'   => $venta->codigo,
+                    'fecha'           => now(),
+                    'cantidad'        => -$cantidad, // salida = cantidad negativa
+                    'stock_anterior'  => $stockAnterior,
+                    'stock_actual'    => $producto->cantidad,
+                    'observacion'     => 'Venta registrada',
+                    'usuario_id'      => Auth::id(),
+                ]);
             }
         }
 

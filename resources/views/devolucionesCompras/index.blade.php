@@ -1,6 +1,6 @@
 @extends('layouts.plantilla')
 
-@section('title', 'Historial de Devoluciones Ventas')
+@section('title', 'Historial de Devoluciones Compras')
 
 @section('content')
     <style>
@@ -65,7 +65,7 @@
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
                                 <div class="input-group">
-                                    <form action="{{ route('devoluciones.buscar') }}" method="GET" class="input-group">
+                                    <form action="{{ route('devolucionesCompras.buscar') }}" method="GET" class="input-group">
                                         <input type="text" name="buscar" id="inputBusqueda" class="form-control"
                                             placeholder="Buscar por producto, usuario, motivo o fecha..."
                                             value="{{ request('buscar') }}"
@@ -82,8 +82,8 @@
                             <table class="table no-wrap v-middle mb-0">
                                 <thead style="background: #f8f9fc;">
                                     <tr class="border-0">
-                                        <th class="border-0 font-14 font-weight-medium text-black px-2">Código de Venta</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Cliente</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black px-2">Código de Compra</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black">Proveedor</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Producto Devuelto</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Motivo</th>
@@ -91,13 +91,12 @@
                                         <th class="border-0 font-14 font-weight-medium text-black">Registrado por</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tablaHistorialDevoluciones">
+                                <tbody id="tablaHistorialDevolucionesCompras">
                                     @forelse ($devoluciones as $devolucion)
                                         <tr>
-                                            <td>{{ $devolucion->venta->codigo }}</td>
+                                            <td>{{ $devolucion->compra->codigo }}</td>
                                             <td>
-                                                {{ $devolucion->venta->cliente->nombre ?? 'N/A' }}
-                                                {{ $devolucion->venta->cliente->apellidos ?? '' }}
+                                                {{ $devolucion->compra->proveedor->nombre ?? 'N/A' }}
                                             </td>
                                             <td>{{ $devolucion->producto->descripcion ?? '—' }}</td>
                                             <td>{{ $devolucion->cantidad }}</td>
@@ -131,7 +130,6 @@
         </div>
     </div>
 
-
 @endsection
 
 @section('scripts')
@@ -141,13 +139,13 @@
                 var buscar = $(this).val();
 
                 $.ajax({
-                    url: "{{ route('devoluciones.buscar') }}",
+                    url: "{{ route('devolucionesCompras.buscar') }}",
                     type: "GET",
                     data: {
                         buscar: buscar
                     },
                     success: function(data) {
-                        $('#tablaHistorialDevoluciones').html(data);
+                        $('#tablaHistorialDevolucionesCompras').html(data);
                     }
                 });
             });

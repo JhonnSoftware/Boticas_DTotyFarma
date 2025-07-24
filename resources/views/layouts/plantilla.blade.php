@@ -162,75 +162,49 @@
                                 id="bell" role="button" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                                 <span><i data-feather="bell" class="svg-icon"></i></span>
-                                <span class="badge badge-primary notify-no rounded-circle">5</span>
+                                @if ($cantidad > 0)
+                                    <span class="badge badge-danger notify-no rounded-circle">{{ $cantidad }}</span>
+                                @endif
                             </a>
                             <div class="dropdown-menu dropdown-menu-left mailbox animated bounceInDown">
                                 <ul class="list-style-none">
                                     <li>
-                                        <div class="message-center notifications position-relative">
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)"
-                                                class="message-item d-flex align-items-center border-bottom px-3 py-2">
-                                                <div class="btn btn-danger rounded-circle btn-circle"><i
-                                                        data-feather="airplay" class="text-white"></i></div>
-                                                <div class="w-75 d-inline-block v-middle pl-2">
-                                                    <h6 class="message-title mb-0 mt-1">Luanch Admin</h6>
-                                                    <span class="font-12 text-nowrap d-block text-muted">Just see
-                                                        the my new
-                                                        admin!</span>
-                                                    <span class="font-12 text-nowrap d-block text-muted">9:30 AM</span>
+                                        <div class="message-center notifications position-relative"
+                                            style="max-height: 300px; overflow-y: auto;">
+                                            @forelse ($alertas as $alerta)
+                                                <a href="{{ route('alertas.index') }}"
+                                                    class="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                    <span class="btn btn-primary rounded-circle btn-circle">
+                                                        <i data-feather="alert-circle" class="text-white"></i>
+                                                    </span>
+                                                    <div class="w-75 d-inline-block v-middle pl-2">
+                                                        <h6 class="message-title mb-0 mt-1">{{ $alerta->titulo }}</h6>
+                                                        <span
+                                                            class="font-12 text-nowrap d-block text-muted text-truncate">
+                                                            {{ \Illuminate\Support\Str::limit($alerta->mensaje, 40) }}
+                                                        </span>
+                                                        <span
+                                                            class="font-12 text-nowrap d-block text-muted">{{ $alerta->created_at->format('d/m/Y h:i A') }}</span>
+                                                    </div>
+                                                </a>
+                                            @empty
+                                                <div class="text-center p-3">
+                                                    <small class="text-muted">No hay alertas</small>
                                                 </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)"
-                                                class="message-item d-flex align-items-center border-bottom px-3 py-2">
-                                                <span class="btn btn-success text-white rounded-circle btn-circle"><i
-                                                        data-feather="calendar" class="text-white"></i></span>
-                                                <div class="w-75 d-inline-block v-middle pl-2">
-                                                    <h6 class="message-title mb-0 mt-1">Event today</h6>
-                                                    <span
-                                                        class="font-12 text-nowrap d-block text-muted text-truncate">Just
-                                                        a reminder that you have event</span>
-                                                    <span class="font-12 text-nowrap d-block text-muted">9:10 AM</span>
-                                                </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)"
-                                                class="message-item d-flex align-items-center border-bottom px-3 py-2">
-                                                <span class="btn btn-info rounded-circle btn-circle"><i
-                                                        data-feather="settings" class="text-white"></i></span>
-                                                <div class="w-75 d-inline-block v-middle pl-2">
-                                                    <h6 class="message-title mb-0 mt-1">Settings</h6>
-                                                    <span
-                                                        class="font-12 text-nowrap d-block text-muted text-truncate">You
-                                                        can customize this template
-                                                        as you want</span>
-                                                    <span class="font-12 text-nowrap d-block text-muted">9:08 AM</span>
-                                                </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)"
-                                                class="message-item d-flex align-items-center border-bottom px-3 py-2">
-                                                <span class="btn btn-primary rounded-circle btn-circle"><i
-                                                        data-feather="box" class="text-white"></i></span>
-                                                <div class="w-75 d-inline-block v-middle pl-2">
-                                                    <h6 class="message-title mb-0 mt-1">Pavan kumar</h6> <span
-                                                        class="font-12 text-nowrap d-block text-muted">Just
-                                                        see the my admin!</span>
-                                                    <span class="font-12 text-nowrap d-block text-muted">9:02 AM</span>
-                                                </div>
-                                            </a>
+                                            @endforelse
                                         </div>
                                     </li>
                                     <li>
-                                        <a class="nav-link pt-3 text-center text-dark" href="javascript:void(0);">
-                                            <strong>Check all notifications</strong>
+                                        <a class="nav-link pt-3 text-center text-dark"
+                                            href="{{ route('alertas.index') }}">
+                                            <strong>Ver todas las alertas</strong>
                                             <i class="fa fa-angle-right"></i>
                                         </a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
+
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -276,11 +250,17 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
-                                <img src="assets/images/users/profile-pic.jpg" alt="user" class="rounded-circle"
-                                    width="40">
-                                <span class="ml-2 d-none d-lg-inline-block"><span>Hello,</span> <span
-                                        class="text-dark">Jason Doe</span> <i data-feather="chevron-down"
-                                        class="svg-icon"></i></span>
+                                @if (Auth::user()->foto && \Storage::exists('public/usuarios/' . Auth::user()->foto))
+                                    <img src="{{ url('storage/usuarios/' . Auth::user()->foto) }}"
+                                        alt="Foto de perfil" class="rounded-circle" width="40">
+                                @else
+                                    <img src="{{ url('imagenes/usuario_icon.jpg') }}" alt="Foto por defecto"
+                                        class="rounded-circle" width="40">
+                                @endif
+
+                                <span class="ml-2 d-none d-lg-inline-block"><span>Bienvenido,</span> <span
+                                        class="text-dark">{{ Auth::user()->name }}</span> <i
+                                        data-feather="chevron-down" class="svg-icon"></i></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
                                 <a class="dropdown-item" href="javascript:void(0)"><i data-feather="user"
@@ -338,8 +318,8 @@
                             </a>
                         </li>
 
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                        <li class="sidebar-item"> 
+                            <a class="sidebar-link" href="{{ route('usuarios.permisos') }}" aria-expanded="false">
                                 <i class="fa fa-shield-alt"></i>
                                 <span class="hide-menu">Roles y Permisos</span>
                             </a>
@@ -358,8 +338,8 @@
                                         class="sidebar-link"><span class="hide-menu"> Nueva Venta
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="{{ route('ventas.historial') }}" class="sidebar-link"><span
-                                            class="hide-menu"> Historial de ventas
+                                <li class="sidebar-item"><a href="{{ route('ventas.historial') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Historial de ventas
                                         </span></a>
                                 </li>
                                 <li class="sidebar-item"><a href="{{ route('devoluciones.index') }}"
@@ -384,15 +364,15 @@
                                 aria-expanded="false"><i data-feather="shopping-bag" class="feather-icon"></i>
                                 <span class="hide-menu">Compras </span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Nueva Compra
+                                <li class="sidebar-item"><a href="{{ route('compras.index') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Nueva Compra
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Historial de compras
+                                <li class="sidebar-item"><a href="{{ route('compras.historial') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Historial de compras
                                         </span></a>
                                 </li>
-                                <li class="sidebar-item"><a href="form-checkbox-radio.html"
+                                <li class="sidebar-item"><a href="{{ route('devolucionesCompras.index') }}"
                                         class="sidebar-link"><span class="hide-menu"> Devoluciones
                                         </span></a>
                                 </li>
@@ -424,23 +404,15 @@
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> <a class="sidebar-link has-arrow" href="javascript:void(0)"
-                                aria-expanded="false"><i data-feather="shuffle" class="feather-icon"></i>
-                                <span class="hide-menu">Movimientos</span></a>
-                            <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="form-inputs.html" class="sidebar-link"><span
-                                            class="hide-menu"> Ingresos
-                                        </span></a>
-                                </li>
-                                <li class="sidebar-item"><a href="form-input-grid.html" class="sidebar-link"><span
-                                            class="hide-menu"> Salidas
-                                        </span></a>
-                                </li>
-                            </ul>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" href="{{ route('movimientos.index') }}" aria-expanded="false">
+                                <i data-feather="shuffle" class="feather-icon"></i>
+                                <span class="hide-menu">Movimientos</span>
+                            </a>
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="ticket-list.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('alertas.index') }}" aria-expanded="false">
                                 <i data-feather="alert-triangle" class="feather-icon"></i>
                                 <span class="hide-menu">Alertas</span>
                             </a>
@@ -454,12 +426,12 @@
                                 aria-expanded="false"><i data-feather="dollar-sign" class="feather-icon"></i>
                                 <span class="hide-menu">Caja</span></a>
                             <ul aria-expanded="false" class="collapse  first-level base-level-line">
-                                <li class="sidebar-item"><a href="{{ route('caja.apertura.form') }}" class="sidebar-link"><span
-                                            class="hide-menu"> Apertura / Cierre de caja
+                                <li class="sidebar-item"><a href="{{ route('caja.apertura.form') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Apertura / Cierre de caja
                                         </span></a>
-                                </li> 
-                                <li class="sidebar-item"><a href="{{ route('caja.listado') }}" class="sidebar-link"><span
-                                            class="hide-menu"> Ingresos y egresos
+                                </li>
+                                <li class="sidebar-item"><a href="{{ route('caja.listado') }}"
+                                        class="sidebar-link"><span class="hide-menu"> Ingresos y egresos
                                         </span></a>
                                 </li>
                             </ul>
@@ -492,16 +464,10 @@
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ route('dashboard.datosEmpresa') }}"
+                                aria-expanded="false">
                                 <i data-feather="briefcase" class="feather-icon"></i>
                                 <span class="hide-menu">Datos de empresa</span>
-                            </a>
-                        </li>
-
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
-                                <i class="fa fa-coins"></i>
-                                <span class="hide-menu">Monedas / Impuestos</span>
                             </a>
                         </li>
 
@@ -532,6 +498,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="{{ url('dist/css/style.css') }}" rel="stylesheet">
     <script src="{{ url('assets/libs/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ url('assets/libs/popper.js/dist/umd/popper.min.js') }}"></script>

@@ -170,7 +170,7 @@
                 <div class="mb-3">
                     <label for="email" class="form-label">Correo electrónico</label>
                     <input type="email" class="form-control" id="email" name="email"
-                        placeholder="ejemplo@correo.com" required autocomplete="email" />
+                        placeholder="Ingrese su correo" required autocomplete="email" />
                     <div id="emailHelp" class="form-text">Usa tu correo electrónico registrado.</div>
                 </div>
 
