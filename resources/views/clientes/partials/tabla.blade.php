@@ -25,7 +25,6 @@
             </span>
         </td>
         <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-            <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
 
             <a href="#" class="text-success" data-bs-toggle="modal"
                 data-bs-target="#editarCliente{{ $cliente->id }}">
@@ -61,49 +60,92 @@
     <!-- Modal de edición -->
     <div class="modal fade" id="editarCliente{{ $cliente->id }}" tabindex="-1"
         aria-labelledby="editarClienteLabel{{ $cliente->id }}" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editarClienteLabel{{ $cliente->id }}">
-                        Editar Cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow"
+                style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+
+                <!-- Encabezado -->
+                <div class="modal-header text-white py-3 px-4" style="background-color: #0A7ABF;">
+                    <h5 class="modal-title fw-semibold mb-0" id="editarClienteLabel{{ $cliente->id }}">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Cliente
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
                 </div>
-                <form action="{{ route('clientes.actualizar', $cliente->id) }}" method="POST">
+
+                <!-- Formulario -->
+                <form action="{{ route('clientes.actualizar', $cliente->id) }}" method="POST" novalidate>
                     @csrf
                     @method('PUT')
-                    <div class="modal-body">
-                        <div class="form-group mb-3">
-                            <label for="dni{{ $cliente->id }}">DNI</label>
-                            <input type="text" class="form-control" id="dni{{ $cliente->id }}" name="dni"
-                                value="{{ $cliente->dni }}" required maxlength="8">
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="nombre{{ $cliente->id }}">Nombre</label>
-                            <input type="text" class="form-control" id="nombre{{ $cliente->id }}" name="nombre"
-                                value="{{ $cliente->nombre }}" required>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="apellidos{{ $cliente->id }}">Apellidos</label>
-                            <input type="text" class="form-control" id="apellidos{{ $cliente->id }}"
-                                name="apellidos" value="{{ $cliente->apellidos }}" required>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="telefono{{ $cliente->id }}">Teléfono</label>
-                            <input type="text" class="form-control" id="telefono{{ $cliente->id }}" name="telefono"
-                                value="{{ $cliente->telefono }}">
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="direccion{{ $cliente->id }}">Dirección</label>
-                            <input type="text" class="form-control" id="direccion{{ $cliente->id }}"
-                                name="direccion" value="{{ $cliente->direccion }}">
+
+                    <!-- Cuerpo -->
+                    <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
+                        <div class="row g-3">
+                            <!-- DNI -->
+                            <div class="col-md-6">
+                                <label for="dni{{ $cliente->id }}" class="form-label fw-semibold text-dark">DNI <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-2" id="dni{{ $cliente->id }}"
+                                    name="dni" value="{{ $cliente->dni }}" maxlength="8" pattern="\d{8}"
+                                    inputmode="numeric" required>
+                                <div id="dniError{{ $cliente->id }}" class="invalid-feedback d-none">
+                                    El DNI debe tener 8 dígitos numéricos.
+                                </div>
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-md-6">
+                                <label for="nombre{{ $cliente->id }}" class="form-label fw-semibold text-dark">Nombre
+                                    <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-2" id="nombre{{ $cliente->id }}"
+                                    name="nombre" value="{{ $cliente->nombre }}" required>
+                                <div id="nombreError{{ $cliente->id }}" class="invalid-feedback d-none">
+                                    Por favor, ingresa el nombre del cliente.
+                                </div>
+                            </div>
+
+                            <!-- Apellidos -->
+                            <div class="col-md-6">
+                                <label for="apellidos{{ $cliente->id }}"
+                                    class="form-label fw-semibold text-dark">Apellidos</label>
+                                <input type="text" class="form-control rounded-2" id="apellidos{{ $cliente->id }}"
+                                    name="apellidos" value="{{ $cliente->apellidos }}">
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div class="col-md-6">
+                                <label for="telefono{{ $cliente->id }}"
+                                    class="form-label fw-semibold text-dark">Teléfono</label>
+                                <input type="text" class="form-control rounded-2" id="telefono{{ $cliente->id }}"
+                                    name="telefono" value="{{ $cliente->telefono }}" maxlength="9" pattern="\d{9}"
+                                    inputmode="numeric">
+                            </div>
+
+                            <!-- Dirección -->
+                            <div class="col-12">
+                                <label for="direccion{{ $cliente->id }}"
+                                    class="form-label fw-semibold text-dark">Dirección</label>
+                                <input type="text" class="form-control rounded-2"
+                                    id="direccion{{ $cliente->id }}" name="direccion"
+                                    value="{{ $cliente->direccion }}">
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar
-                            Cambios</button>
+
+                    <!-- Footer -->
+                    <div class="modal-footer mt-3 border-0 px-4 d-flex justify-content-end bg-white"
+                        style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                        <button type="button" class="btn btn-outline-secondary rounded-2 px-4 me-2"
+                            data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn text-white rounded-2 px-4"
+                            style="background-color: #25A6D9;">
+                            Guardar Cambios
+                        </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('dni', 8);
             $table->string('nombre');
-            $table->string('apellidos');
+            $table->string('apellidos')->nullable();
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
             $table->string('estado')->default('Activo');

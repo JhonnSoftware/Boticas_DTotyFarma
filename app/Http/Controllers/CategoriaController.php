@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Categorias;
+use Illuminate\Validation\Rule;
 
 class CategoriaController extends Controller
 {
@@ -33,7 +34,7 @@ class CategoriaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:100',
+            'nombre' => 'required|string|max:100|unique:categorias,nombre',
             'estado' => 'required|in:Activo,Inactivo',
         ]);
 
@@ -43,6 +44,22 @@ class CategoriaController extends Controller
         ]);
 
         return redirect()->route('categorias.index')->with('success', 'Categoria registrada exitosamente.');
+    }
+
+    public function actualizar(Request $request, $id)
+    {
+        $request->validate([
+          
+            'nombre' => ['required', 'string', 'max:100' , Rule::unique('categorias', 'nombre')->ignore($id)],
+        ]);
+
+        $cliente = Categorias::findOrFail($id);
+
+        $cliente->update([
+            'nombre' => $request->nombre,
+        ]);
+
+        return redirect()->route('categorias.index')->with('success', 'Categoria actualizada correctamente.');
     }
 
     public function activar($id)
@@ -63,18 +80,4 @@ class CategoriaController extends Controller
         return redirect()->route('categorias.index')->with('success', 'Categoria desactivada correctamente.');
     }
 
-    public function actualizar(Request $request, $id)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:100',
-        ]);
-
-        $cliente = Categorias::findOrFail($id);
-
-        $cliente->update([
-            'nombre' => $request->nombre,
-        ]);
-
-        return redirect()->route('categorias.index')->with('success', 'Categoria actualizada correctamente.');
-    }
 }

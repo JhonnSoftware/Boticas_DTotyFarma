@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Devoluciones extends Model
+class DevolucionesVentas extends Model
 {
     use HasFactory;
 
-    protected $table = 'devoluciones';
+    protected $table = 'devoluciones_ventas';
 
     protected $fillable = ['id_venta', 'id_producto', 'usuario_id', 'cantidad', 'motivo', 'fecha'];
 

@@ -4,16 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Devoluciones;
+use App\Models\DevolucionesVentas;
 use App\Models\Productos;
 use App\Models\Ventas;
 use App\Models\Movimientos;
 
-class DevolucionesController extends Controller
+class DevolucionesVentasController extends Controller
 {
     public function index()
     {
-        $devoluciones = Devoluciones::with(['venta.cliente', 'producto', 'usuario'])->latest()->get();
+        $devoluciones = DevolucionesVentas::with(['venta.cliente', 'producto', 'usuario'])->latest()->get();
         return view('devoluciones.index', compact('devoluciones'));
     }
 
@@ -34,7 +34,7 @@ class DevolucionesController extends Controller
         }
 
         // Registrar devolución
-        Devoluciones::create([
+        DevolucionesVentas::create([
             'id_venta' => $request->venta_id,
             'id_producto' => $request->id_producto,
             'usuario_id' => Auth::id(),
@@ -79,7 +79,7 @@ class DevolucionesController extends Controller
     {
         $buscar = $request->input('buscar');
 
-        $devoluciones = Devoluciones::with(['venta.cliente', 'producto', 'usuario'])
+        $devoluciones = DevolucionesVentas::with(['venta.cliente', 'producto', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
                 $query->where(function ($q) use ($buscar) {
                     $q->whereHas('venta', function ($q) use ($buscar) {

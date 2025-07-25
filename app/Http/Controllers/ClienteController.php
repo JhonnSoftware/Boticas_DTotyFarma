@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Clientes;
+use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
@@ -37,12 +38,15 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'dni' => 'required|digits:8',
+            'dni' => 'required|digits:8|unique:clientes,dni',
             'nombre' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'telefono' => 'nullable|string|max:20',
+            'apellidos' => 'nullable|string|max:100',
+            'telefono' => 'nullable|digits:9',
             'direccion' => 'nullable|string|max:255',
             'estado' => 'required|in:Activo,Inactivo',
+        ],[
+            'dni.unique' => 'Ya existe un cliente con este DNI.',
+            'telefono.digits' => 'El número de teléfono debe tener exactamente 9 dígitos.',
         ]);
 
         Clientes::create([
@@ -57,6 +61,32 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')->with('success', 'Cliente registrado exitosamente.');
     }
 
+    public function actualizar(Request $request, $id)
+    {
+        $request->validate([
+            'dni' => ['required', 'digits:8', Rule::unique('clientes', 'dni')->ignore($id)],
+            'nombre' => 'required|string|max:100',
+            'apellidos' => 'nullable|string|max:100',
+            'telefono' => 'nullable|digits:9',
+            'direccion' => 'nullable|string|max:255',
+        ],[
+            'dni.unique' => 'Ya existe un cliente con este DNI.',
+            'telefono.digits' => 'El número de teléfono debe tener exactamente 9 dígitos.',
+        ]);
+
+        $cliente = Clientes::findOrFail($id);
+
+        $cliente->update([
+            'dni' => $request->dni,
+            'nombre' => $request->nombre,
+            'apellidos' => $request->apellidos,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion,
+        ]);
+
+        return redirect()->route('clientes.index')->with('success', 'Cliente actualizado correctamente.');
+    }
+    
     public function activar($id)
     {
         $cliente = Clientes::findOrFail($id);
@@ -75,26 +105,5 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')->with('success', 'Cliente desactivado correctamente.');
     }
 
-    public function actualizar(Request $request, $id)
-    {
-        $request->validate([
-            'dni' => 'required|digits:8',
-            'nombre' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'telefono' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-        ]);
 
-        $cliente = Clientes::findOrFail($id);
-
-        $cliente->update([
-            'dni' => $request->dni,
-            'nombre' => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'telefono' => $request->telefono,
-            'direccion' => $request->direccion,
-        ]);
-
-        return redirect()->route('clientes.index')->with('success', 'Cliente actualizado correctamente.');
-    }
 }

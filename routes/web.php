@@ -12,7 +12,7 @@ use App\Http\Controllers\TipoPagoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentasController;
 use App\Http\Controllers\ComprasController;
-use App\Http\Controllers\DevolucionesController;
+use App\Http\Controllers\DevolucionesVentasController;
 use App\Http\Controllers\DevolucionesComprasController;
 use App\Http\Controllers\MovimientoController;
 use App\Http\Controllers\CajaController;
@@ -126,7 +126,7 @@ Route::middleware('auth')->group(function () {
         Route::get('compras/buscar', 'buscar')->name('compras.buscar');
     });
 
-    Route::middleware('permiso:devolucionesVentas')->controller(DevolucionesController::class)->group(function () {
+    Route::middleware('permiso:devolucionesVentas')->controller(DevolucionesVentasController::class)->group(function () {
         Route::get('devoluciones', 'index')->name('devoluciones.index');
         Route::post('devoluciones', 'store')->name('devoluciones.store');
         Route::get('devoluciones/buscar', 'buscar')->name('devoluciones.buscar');

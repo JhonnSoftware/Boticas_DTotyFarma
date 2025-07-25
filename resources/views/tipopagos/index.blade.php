@@ -102,7 +102,7 @@
                                             <td class="border-top-0 px-2 py-4">
                                                 <div class="d-flex no-block align-items-center">
                                                     <div class="mr-3">
-                                                       
+
                                                     </div>
                                                     <div class="">
                                                         <h5 class="text-dark mb-0 font-16 font-weight-medium">
@@ -119,8 +119,7 @@
                                                 </span>
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-                                                <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
-
+                    
                                                 <a href="#" class="text-success" data-bs-toggle="modal"
                                                     data-bs-target="#editarTipoPago{{ $tipopago->id }}">
                                                     <i data-feather="edit"></i>
@@ -154,37 +153,62 @@
 
                                         </tr>
 
-                                        <!-- Modal de edición -->
+                                        <!-- Modal: Editar Tipo de Pago -->
                                         <div class="modal fade" id="editarTipoPago{{ $tipopago->id }}" tabindex="-1"
                                             aria-labelledby="editarTipoPagoLabel{{ $tipopago->id }}" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content" style="border-radius: 20px;">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title"
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content border-0"
+                                                    style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+
+                                                    <!-- Encabezado -->
+                                                    <div class="modal-header text-white" style="background-color: #0A7ABF;">
+                                                        <h5 class="modal-title fw-bold"
                                                             id="editarTipoPagoLabel{{ $tipopago->id }}">
-                                                            Editar Tipo Pago</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Cerrar"></button>
+                                                            <i class="bi bi-pencil-square me-2"></i>Editar Tipo de Pago
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                                     </div>
-                                                    <form action="{{ route('tipopagos.actualizar', $tipopago->id) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <div class="modal-body">
-                                                            <div class="form-group mb-3">
-                                                                <label for="nombre{{ $tipopago->id }}">Nombre</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="nombre{{ $tipopago->id }}" name="nombre"
-                                                                    value="{{ $tipopago->nombre }}" required>
+
+                                                    <!-- Cuerpo -->
+                                                    <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
+                                                        <form action="{{ route('tipopagos.actualizar', $tipopago->id) }}"
+                                                            method="POST" novalidate class="needs-validation">
+                                                            @csrf
+                                                            @method('PUT')
+
+                                                            <div class="row g-3">
+                                                                <!-- Nombre -->
+                                                                <div class="col-12">
+                                                                    <label for="nombre{{ $tipopago->id }}"
+                                                                        class="form-label text-dark">Nombre del Tipo de
+                                                                        Pago</label>
+                                                                    <input type="text" class="form-control rounded-3"
+                                                                        id="nombre{{ $tipopago->id }}" name="nombre"
+                                                                        value="{{ $tipopago->nombre }}" required>
+                                                                    <div class="invalid-feedback"
+                                                                        id="nombreError{{ $tipopago->id }}">
+                                                                        Por favor ingresa un nombre válido.
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary">Guardar
-                                                                Cambios</button>
-                                                        </div>
-                                                    </form>
+
+                                                            <!-- Footer -->
+                                                            <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                                                                style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                                                <button type="button"
+                                                                    class="btn btn-outline-secondary rounded-3 me-2"
+                                                                    data-bs-dismiss="modal">
+                                                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                                                </button>
+                                                                <button type="submit" class="btn text-white rounded-3"
+                                                                    style="background-color: #25A6D9;">
+                                                                    <i class="bi bi-save me-1"></i>Guardar Cambios
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -210,47 +234,57 @@
         </div>
     </div>
 
+    <!-- Modal: Registrar Tipo de Pago -->
     <div class="modal fade" id="nuevoTipoPago" tabindex="-1" aria-labelledby="nuevoTipoPagoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content shadow border-0 rounded-4 overflow-hidden">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
 
-            <!-- Encabezado -->
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold" id="nuevoTipoPagoLabel">
-                    <i class="bi bi-folder-plus me-2"></i> Nuevo Tipo Pago
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <!-- Encabezado -->
+                <div class="modal-header text-white" style="background-color: #0A7ABF;">
+                    <h5 class="modal-title fw-bold" id="nuevoTipoPagoLabel">
+                        <i class="bi bi-wallet2 me-2"></i>Registrar Tipo de Pago
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+
+                <!-- Cuerpo -->
+                <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
+                    <form action="{{ route('tipopagos.store') }}" method="POST" class="needs-validation" novalidate>
+                        @csrf
+
+                        <div class="row g-3">
+                            <!-- Nombre -->
+                            <div class="col-md-12">
+                                <label for="nombre" class="form-label text-dark">Nombre del Tipo de Pago</label>
+                                <input type="text" class="form-control rounded-3" id="nombre" name="nombre"
+                                    placeholder="Ej: Yape" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa un nombre válido.
+                                </div>
+                            </div>
+
+                            <!-- Estado oculto -->
+                            <input type="hidden" name="estado" value="Activo">
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 me-2"
+                                data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
+                            </button>
+                            <button type="submit" class="btn text-white rounded-3" style="background-color: #25A6D9;">
+                                <i class="bi bi-save me-1"></i>Guardar Tipo de Pago
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
-
-            <!-- Cuerpo -->
-            <div class="modal-body p-4">
-                <form action="{{ route('tipopagos.store') }}" method="POST" class="needs-validation" novalidate>
-                    @csrf
-
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label fw-semibold">Nombre del Tipo Pago</label>
-                        <input type="text" class="form-control form-control-lg rounded-3" id="nombre" name="nombre" placeholder="Ej: Yape" required>
-                        <div class="invalid-feedback">Por favor, ingresa un nombre válido.</div>
-                    </div>
-
-                    <input type="hidden" name="estado" value="Activo">
-
-                    <!-- Footer -->
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-1"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-success rounded-pill px-4">
-                            <i class="bi bi-save me-1"></i> Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-
         </div>
     </div>
-</div>
-
 
 @endsection
 
@@ -279,6 +313,74 @@
             });
         </script>
     @endif
+
+    @if ($errors->has('nombre'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Nombre duplicado',
+                    text: 'El nombre ingresado para el documento ya está registrado. Por favor, intenta con uno diferente.',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#0A7ABF',
+                    customClass: {
+                        popup: 'rounded-4'
+                    }
+                });
+
+            });
+        </script>
+    @endif
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const forms = document.querySelectorAll('.needs-validation');
+
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        form.classList.add('was-validated');
+
+                        const modalElement = form.closest('.modal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                            modal.show();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const camposNombre = document.querySelectorAll('input[id^="nombre"]');
+
+            camposNombre.forEach(input => {
+                const errorId = 'nombreError' + input.id.replace('nombre', '');
+                const errorDiv = document.getElementById(errorId);
+
+                input.addEventListener('input', function() {
+                    if (input.validity.valid) {
+                        input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'none';
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    if (!input.validity.valid) {
+                        input.classList.add('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+
 
     <script>
         $(document).ready(function() {

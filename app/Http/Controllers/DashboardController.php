@@ -11,7 +11,7 @@ use App\Models\Compras;
 use Illuminate\Support\Facades\DB;
 use App\Models\DetalleVentas;
 use App\Models\Productos;
-use App\Models\Devoluciones;
+use App\Models\DevolucionesVentas;
 use App\Models\DevolucionesCompras;
 use Carbon\Carbon;
 
@@ -72,7 +72,7 @@ class DashboardController extends Controller
         }
 
         // Conteo total de devoluciones por tipo
-        $devolucionesVentas = Devoluciones::count();
+        $devolucionesVentas = DevolucionesVentas::count();
         $devolucionesCompras = DevolucionesCompras::count();
         $cantidadVentas = Ventas::count();     // total de registros de ventas
         $cantidadCompras = Compras::count();   // total de registros de compras

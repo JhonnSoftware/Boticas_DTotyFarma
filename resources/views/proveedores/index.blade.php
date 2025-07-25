@@ -130,7 +130,6 @@
                                                 </span>
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-                                                <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
 
                                                 <a href="#" class="text-success" data-bs-toggle="modal"
                                                     data-bs-target="#editarProveedor{{ $proveedor->id }}">
@@ -165,73 +164,181 @@
 
                                         </tr>
 
-                                        <!-- Modal de edición -->
+                                        <!-- Modal: Editar proveedor -->
                                         <div class="modal fade" id="editarProveedor{{ $proveedor->id }}" tabindex="-1"
                                             aria-labelledby="editarProveedorLabel{{ $proveedor->id }}" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content" style="border-radius: 20px;">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title"
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content border-0 shadow"
+                                                    style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+
+                                                    <!-- Encabezado -->
+                                                    <div class="modal-header text-white py-3 px-4"
+                                                        style="background-color: #0A7ABF;">
+                                                        <h5 class="modal-title fw-semibold mb-0"
                                                             id="editarProveedorLabel{{ $proveedor->id }}">
-                                                            Editar Proveedor</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Cerrar"></button>
+                                                            <i class="bi bi-pencil-square me-2"></i>Editar proveedor
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                                     </div>
+
                                                     <form action="{{ route('proveedores.actualizar', $proveedor->id) }}"
-                                                        method="POST">
+                                                        method="POST" class="needs-validation was-validated" novalidate>
                                                         @csrf
                                                         @method('PUT')
-                                                        <div class="modal-body">
-                                                            <div class="form-group mb-3">
-                                                                <label for="nombre{{ $proveedor->id }}">Nombre</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="nombre{{ $proveedor->id }}" name="nombre"
-                                                                    value="{{ $proveedor->nombre }}" required>
-                                                            </div>
-                                                            <div class="form-group mb-3">
-                                                                <label for="ruc{{ $proveedor->id }}">RUC</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="ruc{{ $proveedor->id }}" name="ruc"
-                                                                    value="{{ $proveedor->ruc }}" required
-                                                                    maxlength="11">
-                                                            </div>
-                                                            <div class="form-group mb-3">
-                                                                <label for="telefono{{ $proveedor->id }}">Teléfono</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="telefono{{ $proveedor->id }}" name="telefono"
-                                                                    value="{{ $proveedor->telefono }}">
-                                                            </div>
-                                                            <div class="form-group mb-3">
-                                                                <label for="correo{{ $proveedor->id }}">Correo</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="correo{{ $proveedor->id }}" name="correo"
-                                                                    value="{{ $proveedor->correo }}" required>
-                                                            </div>
 
-                                                            <div class="form-group mb-3">
-                                                                <label
-                                                                    for="direccion{{ $proveedor->id }}">Dirección</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="direccion{{ $proveedor->id }}" name="direccion"
-                                                                    value="{{ $proveedor->direccion }}">
-                                                            </div>
-                                                            <div class="form-group mb-3">
-                                                                <label for="contacto{{ $proveedor->id }}">Contacto</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="contacto{{ $proveedor->id }}" name="contacto"
-                                                                    value="{{ $proveedor->contacto }}">
+                                                        <!-- Cuerpo -->
+                                                        <div class="modal-body px-4 py-4"
+                                                            style="background-color: #F9F9F9;">
+                                                            <div class="row g-3">
+                                                                <!-- Nombre -->
+                                                                <div class="col-md-6">
+                                                                    <label for="nombre{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">Nombre</label>
+                                                                    <input type="text" class="form-control rounded-3"
+                                                                        id="nombre{{ $proveedor->id }}" name="nombre"
+                                                                        value="{{ $proveedor->nombre }}" required>
+                                                                    <div class="invalid-feedback"
+                                                                        id="nombreError{{ $proveedor->id ?? '' }}">
+                                                                        Se debe registrar un nombre del proveedor.
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- RUC -->
+                                                                <div class="col-md-6">
+                                                                    <label for="ruc{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">RUC</label>
+                                                                    <div class="position-relative">
+                                                                        <input type="text"
+                                                                            class="form-control rounded-3"
+                                                                            id="ruc{{ $proveedor->id }}" name="ruc"
+                                                                            value="{{ $proveedor->ruc }}" maxlength="11"
+                                                                            pattern="\d{11}" inputmode="numeric" required>
+                                                                        <div
+                                                                            class="valid-feedback position-absolute end-0 top-50 translate-middle-y pe-3">
+                                                                            <i
+                                                                                class="bi bi-check-circle-fill text-success"></i>
+                                                                        </div>
+                                                                        <div class="invalid-feedback"
+                                                                            id="rucError{{ $proveedor->id ?? '' }}">
+                                                                            El RUC debe contener exactamente 11 dígitos
+                                                                            numéricos.
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Teléfono -->
+                                                                <div class="col-md-6">
+                                                                    <label for="telefono{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">Teléfono</label>
+                                                                    <div class="position-relative">
+                                                                        <input type="text"
+                                                                            class="form-control rounded-3"
+                                                                            id="telefono{{ $proveedor->id }}"
+                                                                            name="telefono"
+                                                                            value="{{ $proveedor->telefono }}"
+                                                                            maxlength="9" pattern="\d{9}"
+                                                                            inputmode="numeric">
+                                                                        <div
+                                                                            class="valid-feedback position-absolute end-0 top-50 translate-middle-y pe-3">
+                                                                            <i
+                                                                                class="bi bi-check-circle-fill text-success"></i>
+                                                                        </div>
+                                                                        <div class="invalid-feedback">
+                                                                            El teléfono debe tener exactamente 9 dígitos
+                                                                            numéricos (opcional).
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Correo -->
+                                                                <div class="col-md-6">
+                                                                    <label for="correo{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">Correo</label>
+                                                                    <div class="position-relative">
+                                                                        <input type="email"
+                                                                            class="form-control rounded-3"
+                                                                            id="correo{{ $proveedor->id }}"
+                                                                            name="correo"
+                                                                            value="{{ $proveedor->correo }}">
+                                                                        <div
+                                                                            class="valid-feedback position-absolute end-0 top-50 translate-middle-y pe-3">
+                                                                            <i
+                                                                                class="bi bi-check-circle-fill text-success"></i>
+                                                                        </div>
+                                                                        <div class="invalid-feedback">
+                                                                            Por favor ingrese un correo electrónico válido
+                                                                            (opcional)
+                                                                            .
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Dirección -->
+                                                                <div class="col-12">
+                                                                    <label for="direccion{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">Dirección</label>
+                                                                    <div class="position-relative">
+                                                                        <input type="text"
+                                                                            class="form-control rounded-3"
+                                                                            id="direccion{{ $proveedor->id }}"
+                                                                            name="direccion"
+                                                                            value="{{ $proveedor->direccion }}">
+                                                                        <div
+                                                                            class="valid-feedback position-absolute end-0 top-50 translate-middle-y pe-3">
+                                                                            <i
+                                                                                class="bi bi-check-circle-fill text-success"></i>
+                                                                        </div>
+                                                                        <div class="invalid-feedback">
+                                                                            Por favor ingrese la dirección del proveedor
+                                                                            (opcional).
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Contacto -->
+                                                                <div class="col-md-6">
+                                                                    <label for="contacto{{ $proveedor->id }}"
+                                                                        class="form-label fw-semibold text-dark">Contacto</label>
+                                                                    <div class="position-relative">
+                                                                        <input type="text"
+                                                                            class="form-control rounded-3"
+                                                                            id="contacto{{ $proveedor->id }}"
+                                                                            name="contacto"
+                                                                            value="{{ $proveedor->contacto }}">
+                                                                        <div
+                                                                            class="valid-feedback position-absolute end-0 top-50 translate-middle-y pe-3">
+                                                                            <i
+                                                                                class="bi bi-check-circle-fill text-success"></i>
+                                                                        </div>
+                                                                        <div class="invalid-feedback">
+                                                                            Por favor ingrese el nombre del contacto del
+                                                                            proveedor (opcional).
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary">Guardar
-                                                                Cambios</button>
+
+                                                        <!-- Footer -->
+                                                        <div class="modal-footer mt-3 border-0 px-4 d-flex justify-content-end bg-white"
+                                                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                                            <button type="button"
+                                                                class="btn btn-outline-secondary rounded-3 px-4 me-2"
+                                                                data-bs-dismiss="modal">
+                                                                Cancelar
+                                                            </button>
+                                                            <button type="submit" class="btn text-white rounded-3 px-4"
+                                                                style="background-color: #25A6D9;">
+                                                                Guardar Cambios
+                                                            </button>
                                                         </div>
                                                     </form>
+
                                                 </div>
                                             </div>
                                         </div>
+                                        
                                     @endforeach
                                 </tbody>
 
@@ -254,14 +361,15 @@
         </div>
     </div>
 
+    <!-- Modal: Registrar nuevo proveedor -->
     <div class="modal fade" id="nuevoProveedor" tabindex="-1" aria-labelledby="nuevoProveedorLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content shadow-lg rounded-4 border-0">
+            <div class="modal-content border-0" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
 
                 <!-- Encabezado -->
-                <div class="modal-header bg-gradient bg-primary text-white rounded-top-4 py-3">
-                    <h5 class="modal-title fw-semibold" id="nuevoProveedorLabel">
+                <div class="modal-header text-white" style="background-color: #0A7ABF;">
+                    <h5 class="modal-title fw-bold" id="nuevoProveedorLabel">
                         <i class="bi bi-person-plus me-2"></i>Registrar nuevo proveedor
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
@@ -269,59 +377,68 @@
                 </div>
 
                 <!-- Cuerpo -->
-                <div class="modal-body p-4">
+                <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
                     <form action="{{ route('proveedores.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
 
-                        <div class="row g-4">
+                        <div class="row g-3">
                             <!-- Nombre -->
                             <div class="col-md-6">
-                                <label for="nombre" class="form-label">Nombre</label>
+                                <label for="nombre" class="form-label text-dark">Nombre</label>
                                 <input type="text" class="form-control rounded-3" id="nombre" name="nombre"
                                     required>
+                                <div class="invalid-feedback">
+                                    Se debe registrar un nombre del proveedor.
+                                </div>
                             </div>
 
                             <!-- RUC -->
                             <div class="col-md-6">
-                                <label for="ruc" class="form-label">RUC</label>
+                                <label for="ruc" class="form-label text-dark">RUC</label>
                                 <input type="text" class="form-control rounded-3" id="ruc" name="ruc"
-                                    maxlength="11" required>
+                                    maxlength="11" pattern="\d*" inputmode="numeric" required>
+                                <div class="invalid-feedback">
+                                    El RUC debe tener exactamente 11 dígitos numéricos.
+                                </div>
                             </div>
 
                             <!-- Teléfono -->
                             <div class="col-md-6">
-                                <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control rounded-3" id="telefono" name="telefono">
+                                <label for="telefono" class="form-label text-dark">Teléfono</label>
+                                <input type="text" class="form-control rounded-3" id="telefono" name="telefono"
+                                    maxlength="9" pattern="\d*" inputmode="numeric">
                             </div>
 
                             <!-- Correo -->
                             <div class="col-md-6">
-                                <label for="correo" class="form-label">Correo</label>
-                                <input type="text" class="form-control rounded-3" id="correo" name="correo">
+                                <label for="correo" class="form-label text-dark">Correo</label>
+                                <input type="email" class="form-control rounded-3" id="correo" name="correo">
                             </div>
 
                             <!-- Dirección -->
                             <div class="col-12">
-                                <label for="direccion" class="form-label">Dirección</label>
+                                <label for="direccion" class="form-label text-dark">Dirección</label>
                                 <input type="text" class="form-control rounded-3" id="direccion" name="direccion">
                             </div>
 
                             <!-- Contacto -->
                             <div class="col-md-6">
-                                <label for="contacto" class="form-label">Contacto</label>
+                                <label for="contacto" class="form-label text-dark">Contacto</label>
                                 <input type="text" class="form-control rounded-3" id="contacto" name="contacto">
                             </div>
-                            
+
                             <!-- Estado -->
                             <input type="hidden" name="estado" value="Activo">
                         </div>
 
                         <!-- Footer -->
-                        <div class="modal-footer mt-4 px-0">
-                            <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
+                        <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 me-2"
+                                data-bs-dismiss="modal">
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </button>
-                            <button type="submit" class="btn btn-primary rounded-3">
+                            <button type="submit" class="btn text-white rounded-3" style="background-color: #25A6D9;">
                                 <i class="bi bi-save me-1"></i>Guardar proveedor
                             </button>
                         </div>
@@ -331,6 +448,8 @@
             </div>
         </div>
     </div>
+
+
 @endsection
 
 @section('scripts')
@@ -377,6 +496,7 @@
         });
     </script>
 
+
     <script>
         function confirmarDesactivacion(id) {
             Swal.fire({
@@ -409,6 +529,83 @@
                 }
             });
         }
+    </script>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const forms = document.querySelectorAll('.needs-validation');
+
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault(); // Detiene el envío
+                        event.stopPropagation();
+
+                        form.classList.add('was-validated');
+
+                        // Mostrar el modal si está cerrado
+                        const modalElement = form.closest('.modal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                            modal.show();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const camposRuc = document.querySelectorAll('input[id^="ruc"]');
+
+            camposRuc.forEach(input => {
+                const errorId = 'rucError' + input.id.replace('ruc', '');
+                const errorDiv = document.getElementById(errorId);
+
+                input.addEventListener('input', function() {
+                    // Limpia errores si ya está bien
+                    if (input.validity.valid) {
+                        input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'none';
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    if (!input.validity.valid) {
+                        input.classList.add('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const camposNombre = document.querySelectorAll('input[id^="nombre"]');
+
+            camposNombre.forEach(input => {
+                const errorId = 'nombreError' + input.id.replace('nombre', '');
+                const errorDiv = document.getElementById(errorId);
+
+                input.addEventListener('input', function() {
+                    if (input.validity.valid) {
+                        input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'none';
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    if (!input.validity.valid) {
+                        input.classList.add('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'block';
+                    }
+                });
+            });
+        });
     </script>
 
     <script>

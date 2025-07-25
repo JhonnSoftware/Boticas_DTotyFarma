@@ -20,7 +20,6 @@
             </span>
         </td>
         <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-            <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
 
             <a href="#" class="text-success" data-bs-toggle="modal"
                 data-bs-target="#editarTipoPago{{ $tipopago->id }}">
@@ -53,32 +52,56 @@
 
     </tr>
 
-    <!-- Modal de edición -->
+    <!-- Modal: Editar Tipo de Pago -->
     <div class="modal fade" id="editarTipoPago{{ $tipopago->id }}" tabindex="-1"
         aria-labelledby="editarTipoPagoLabel{{ $tipopago->id }}" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editarTipoPagoLabel{{ $tipopago->id }}">
-                        Editar Tipo Pago</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0"
+                style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+
+                <!-- Encabezado -->
+                <div class="modal-header text-white" style="background-color: #0A7ABF;">
+                    <h5 class="modal-title fw-bold" id="editarTipoPagoLabel{{ $tipopago->id }}">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Tipo de Pago
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
                 </div>
-                <form action="{{ route('tipopagos.actualizar', $tipopago->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body">
-                        <div class="form-group mb-3">
-                            <label for="nombre{{ $tipopago->id }}">Nombre</label>
-                            <input type="text" class="form-control" id="nombre{{ $tipopago->id }}" name="nombre"
-                                value="{{ $tipopago->nombre }}" required>
+
+                <!-- Cuerpo -->
+                <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
+                    <form action="{{ route('tipopagos.actualizar', $tipopago->id) }}" method="POST" novalidate
+                        class="needs-validation">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="row g-3">
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label for="nombre{{ $tipopago->id }}" class="form-label text-dark">Nombre del Tipo de
+                                    Pago</label>
+                                <input type="text" class="form-control rounded-3" id="nombre{{ $tipopago->id }}"
+                                    name="nombre" value="{{ $tipopago->nombre }}" required>
+                                <div class="invalid-feedback" id="nombreError{{ $tipopago->id }}">
+                                    Por favor ingresa un nombre válido.
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar
-                            Cambios</button>
-                    </div>
-                </form>
+
+                        <!-- Footer -->
+                        <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 me-2"
+                                data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
+                            </button>
+                            <button type="submit" class="btn text-white rounded-3" style="background-color: #25A6D9;">
+                                <i class="bi bi-save me-1"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Proveedores;
+use Illuminate\Validation\Rule;
 
 class ProveedorController extends Controller
 {
@@ -36,7 +37,7 @@ class ProveedorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ruc' => 'required|digits:11',
+            'ruc' => 'required|digits:11|unique:proveedores,ruc',
             'nombre' => 'required|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'nullable|string|max:255',
@@ -79,14 +80,14 @@ class ProveedorController extends Controller
     public function actualizar(Request $request, $id)
     {
         $request->validate([
-            'ruc' => 'required|digits:11',
+            'ruc' => ['required', 'digits:11', Rule::unique('proveedores', 'ruc')->ignore($id)],
             'nombre' => 'required|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'nullable|string|max:255',
             'direccion' => 'nullable|string|max:255',
             'contacto' => 'nullable|string|max:255',
         ]);
-
+        
         $proveedores = Proveedores::findOrFail($id);
 
         $proveedores->update([

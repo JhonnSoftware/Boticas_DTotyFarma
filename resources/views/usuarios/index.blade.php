@@ -156,94 +156,138 @@
                                         <div class="modal fade" id="editarUsuario{{ $usuario->id }}" tabindex="-1"
                                             aria-labelledby="editarUsuarioLabel{{ $usuario->id }}" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-lg">
-                                                <div class="modal-content"
-                                                    style="border-radius: 20px; background-color: #F2F2F2; border: none;">
-                                                    <div class="modal-header"
-                                                        style="background-color: #0A7ABF; border-radius: 20px 20px 0 0;">
-                                                        <h5 class="modal-title text-white"
+                                                <div class="modal-content shadow border-0 rounded-4"
+                                                    style="background-color: #F2F2F2;">
+
+                                                    <!-- Header -->
+                                                    <div class="modal-header text-white px-4 py-3"
+                                                        style="background-color: #0A7ABF;">
+                                                        <h5 class="modal-title fw-bold"
                                                             id="editarUsuarioLabel{{ $usuario->id }}">
                                                             <i class="bi bi-pencil-square me-2"></i>Editar Usuario
                                                         </h5>
                                                         <button type="button" class="btn-close btn-close-white"
                                                             data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                                     </div>
+
+                                                    <!-- Formulario -->
                                                     <form action="{{ route('usuarios.actualizar', $usuario->id) }}"
-                                                        method="POST" enctype="multipart/form-data">
+                                                        method="POST" enctype="multipart/form-data"
+                                                        class="needs-validation" novalidate>
                                                         @csrf
                                                         @method('PUT')
-                                                        <div class="modal-body px-4 py-3">
-                                                            <div class="form-group mb-3">
-                                                                <label for="name{{ $usuario->id }}"
-                                                                    class="fw-semibold">Nombre</label>
-                                                                <input type="text" class="form-control rounded-3"
-                                                                    id="name{{ $usuario->id }}" name="name"
-                                                                    value="{{ $usuario->name }}" required>
-                                                            </div>
 
-                                                            <div class="form-group mb-3">
-                                                                <label for="email{{ $usuario->id }}"
-                                                                    class="fw-semibold">Correo</label>
-                                                                <input type="email" class="form-control rounded-3"
-                                                                    id="email{{ $usuario->id }}" name="email"
-                                                                    value="{{ $usuario->email }}" required>
-                                                            </div>
+                                                        <div class="modal-body px-4 py-4">
+                                                            <div class="row g-3">
 
-                                                            <div class="form-group mb-3">
-                                                                <label for="rol{{ $usuario->id }}"
-                                                                    class="fw-semibold">Rol</label>
-                                                                <select class="form-control rounded-3"
-                                                                    id="rol{{ $usuario->id }}" name="rol" required>
-                                                                    <option value="usuario"
-                                                                        {{ $usuario->rol === 'usuario' ? 'selected' : '' }}>
-                                                                        Usuario</option>
-                                                                    <option value="admin"
-                                                                        {{ $usuario->rol === 'admin' ? 'selected' : '' }}>
-                                                                        Administrador</option>
-                                                                </select>
-                                                            </div>
+                                                                <!-- Nombre -->
+                                                                <div class="col-md-6">
+                                                                    <label for="name{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Nombre
+                                                                        <span class="text-danger">*</span></label>
+                                                                    <input type="text"
+                                                                        class="form-control rounded-pill shadow-sm"
+                                                                        id="name{{ $usuario->id }}" name="name"
+                                                                        value="{{ $usuario->name }}" required>
+                                                                    <div class="invalid-feedback"
+                                                                        id="nameError{{ $usuario->id }}">El nombre es
+                                                                        obligatorio.</div>
+                                                                </div>
 
-                                                            <div class="form-group mb-3">
-                                                                <label for="password{{ $usuario->id }}"
-                                                                    class="fw-semibold">Nueva Contraseña (opcional)</label>
-                                                                <input type="password" class="form-control rounded-3"
-                                                                    id="password{{ $usuario->id }}" name="password"
-                                                                    placeholder="Dejar en blanco si no desea cambiar">
-                                                            </div>
+                                                                <!-- Correo -->
+                                                                <div class="col-md-6">
+                                                                    <label for="email{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Correo
+                                                                        electrónico <span
+                                                                            class="text-danger">*</span></label>
+                                                                    <input type="email"
+                                                                        class="form-control rounded-pill shadow-sm"
+                                                                        id="email{{ $usuario->id }}" name="email"
+                                                                        value="{{ $usuario->email }}" required>
+                                                                    <div class="invalid-feedback"
+                                                                        id="emailError{{ $usuario->id }}">Ingresa un
+                                                                        correo válido.</div>
+                                                                </div>
 
-                                                            <div class="form-group mb-3">
-                                                                <label for="password_confirmation{{ $usuario->id }}"
-                                                                    class="fw-semibold">Confirmar Contraseña</label>
-                                                                <input type="password" class="form-control rounded-3"
-                                                                    id="password_confirmation{{ $usuario->id }}"
-                                                                    name="password_confirmation"
-                                                                    placeholder="Repetir contraseña si la cambiaste">
-                                                            </div>
+                                                                <!-- Rol -->
+                                                                <div class="col-md-6">
+                                                                    <label for="rol{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Rol <span
+                                                                            class="text-danger">*</span></label>
+                                                                    <select class="form-select rounded-pill shadow-sm"
+                                                                        id="rol{{ $usuario->id }}" name="rol"
+                                                                        required>
+                                                                        <option value="" disabled>Seleccionar rol
+                                                                        </option>
+                                                                        <option value="usuario"
+                                                                            {{ $usuario->rol === 'usuario' ? 'selected' : '' }}>
+                                                                            Usuario</option>
+                                                                        <option value="admin"
+                                                                            {{ $usuario->rol === 'admin' ? 'selected' : '' }}>
+                                                                            Administrador</option>
+                                                                    </select>
+                                                                    <div class="invalid-feedback"
+                                                                        id="rolError{{ $usuario->id }}">Selecciona un
+                                                                        rol.</div>
+                                                                </div>
 
-                                                            <div class="form-group mb-3">
-                                                                <label for="foto{{ $usuario->id }}"
-                                                                    class="fw-semibold">Foto (opcional)</label>
-                                                                <input type="file" class="form-control rounded-3"
-                                                                    id="foto{{ $usuario->id }}" name="foto"
-                                                                    accept="image/*">
-                                                                @if ($usuario->foto && Storage::exists('public/usuarios/' . $usuario->foto))
-                                                                    <div class="mt-2">
-                                                                        <small class="text-muted">Foto actual:</small><br>
-                                                                        <img src="{{ url('storage/usuarios/' . $usuario->foto) }}"
-                                                                            alt="Foto actual" class="rounded shadow-sm"
-                                                                            width="60" height="60">
-                                                                    </div>
-                                                                @endif
+                                                                <!-- Contraseña -->
+                                                                <div class="col-md-6">
+                                                                    <label for="password{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Nueva
+                                                                        contraseña (opcional)</label>
+                                                                    <input type="password"
+                                                                        class="form-control rounded-pill shadow-sm"
+                                                                        id="password{{ $usuario->id }}" name="password">
+                                                                    <div class="invalid-feedback"
+                                                                        id="passwordError{{ $usuario->id }}">La
+                                                                        contraseña debe ser válida.</div>
+                                                                </div>
+
+                                                                <!-- Confirmar contraseña -->
+                                                                <div class="col-md-6">
+                                                                    <label for="password_confirmation{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Confirmar
+                                                                        contraseña</label>
+                                                                    <input type="password"
+                                                                        class="form-control rounded-pill shadow-sm"
+                                                                        id="password_confirmation{{ $usuario->id }}"
+                                                                        name="password_confirmation">
+                                                                </div>
+
+                                                                <!-- Foto -->
+                                                                <div class="col-md-6">
+                                                                    <label for="foto{{ $usuario->id }}"
+                                                                        class="form-label fw-semibold text-dark">Foto
+                                                                        (opcional)
+                                                                    </label>
+                                                                    <input type="file"
+                                                                        class="form-control rounded-pill shadow-sm"
+                                                                        id="foto{{ $usuario->id }}" name="foto"
+                                                                        accept="image/*">
+                                                                    @if ($usuario->foto && Storage::exists('public/usuarios/' . $usuario->foto))
+                                                                        <div class="mt-2">
+                                                                            <small class="text-muted">Foto
+                                                                                actual:</small><br>
+                                                                            <img src="{{ url('storage/usuarios/' . $usuario->foto) }}"
+                                                                                alt="Foto actual"
+                                                                                class="rounded shadow-sm" width="60"
+                                                                                height="60">
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
                                                             </div>
                                                         </div>
 
-                                                        <div class="modal-footer bg-light rounded-bottom-3">
+                                                        <div class="modal-footer bg-white rounded-bottom-4 px-4 py-3">
                                                             <button type="button"
-                                                                class="btn btn-outline-secondary rounded-3"
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary rounded-3"
-                                                                style="background-color: #25A6D9; border: none;">
-                                                                Guardar Cambios
+                                                                class="btn btn-outline-secondary rounded-pill px-4"
+                                                                data-bs-dismiss="modal">
+                                                                Cancelar
                                                             </button>
+                                                            <button type="submit"
+                                                                class="btn text-white rounded-pill px-4"
+                                                                style="background-color: #25A6D9;">Guardar Cambios</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -271,14 +315,13 @@
         </div>
     </div>
 
-    <!-- Modal: Registrar nuevo usuario-->
+    <!-- Modal: Registrar nuevo usuario -->
     <div class="modal fade" id="nuevoUsuario" tabindex="-1" aria-labelledby="nuevoUsuarioLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content shadow-lg rounded-4 border-0" style="overflow: hidden;">
+            <div class="modal-content border-0" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
 
                 <!-- Encabezado -->
-                <div class="modal-header text-white px-4 py-3"
-                    style="background: linear-gradient(135deg, #0A7ABF, #25A6D9);">
+                <div class="modal-header text-white" style="background-color: #0A7ABF;">
                     <h5 class="modal-title fw-bold" id="nuevoUsuarioLabel">
                         <i class="bi bi-person-plus me-2"></i>Registrar nuevo usuario
                     </h5>
@@ -287,70 +330,75 @@
                 </div>
 
                 <!-- Cuerpo -->
-                <div class="modal-body px-4 py-4" style="background-color: #F2F2F2;">
+                <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
                     <form action="{{ route('usuarios.store') }}" method="POST" enctype="multipart/form-data"
                         class="needs-validation" novalidate>
                         @csrf
 
-                        <div class="row g-4">
-
+                        <div class="row g-3">
                             <!-- Nombre -->
                             <div class="col-md-6">
-                                <label for="name" class="form-label text-dark fw-semibold">Nombre</label>
-                                <input type="text" class="form-control rounded-pill shadow-sm" id="name"
-                                    name="name" required>
+                                <label for="name" class="form-label text-dark">Nombre <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" id="name" name="name"
+                                    required>
+                                <div class="invalid-feedback">Por favor, ingresa un nombre.</div>
                             </div>
 
                             <!-- Correo -->
                             <div class="col-md-6">
-                                <label for="email" class="form-label text-dark fw-semibold">Correo electrónico</label>
-                                <input type="email" class="form-control rounded-pill shadow-sm" id="email"
-                                    name="email" required>
+                                <label for="email" class="form-label text-dark">Correo electrónico <span
+                                        class="text-danger">*</span></label>
+                                <input type="email" class="form-control rounded-3" id="email" name="email"
+                                    required>
+                                <div class="invalid-feedback">Por favor, ingresa un correo válido.</div>
                             </div>
 
                             <!-- Rol -->
                             <div class="col-md-6">
-                                <label for="rol" class="form-label text-dark fw-semibold">Rol</label>
-                                <select class="form-select rounded-pill shadow-sm" id="rol" name="rol"
-                                    required>
+                                <label for="rol" class="form-label text-dark">Rol <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select rounded-3" id="rol" name="rol" required>
                                     <option value="" disabled selected>Seleccionar rol</option>
                                     <option value="usuario">Usuario</option>
                                     <option value="admin">Administrador</option>
                                 </select>
+                                <div class="invalid-feedback">Selecciona un rol para el usuario.</div>
                             </div>
 
                             <!-- Contraseña -->
                             <div class="col-md-6">
-                                <label for="password" class="form-label text-dark fw-semibold">Contraseña</label>
-                                <input type="password" class="form-control rounded-pill shadow-sm" id="password"
-                                    name="password" required>
+                                <label for="password" class="form-label text-dark">Contraseña <span
+                                        class="text-danger">*</span></label>
+                                <input type="password" class="form-control rounded-3" id="password" name="password"
+                                    required>
+                                <div class="invalid-feedback">Ingresa una contraseña.</div>
                             </div>
 
                             <!-- Confirmación de contraseña -->
                             <div class="col-md-6">
-                                <label for="password_confirmation" class="form-label text-dark fw-semibold">Confirmar
+                                <label for="password_confirmation" class="form-label text-dark">Confirmar
                                     contraseña</label>
-                                <input type="password" class="form-control rounded-pill shadow-sm"
-                                    id="password_confirmation" name="password_confirmation" required>
+                                <input type="password" class="form-control rounded-3" id="password_confirmation"
+                                    name="password_confirmation">
                             </div>
 
                             <!-- Foto -->
                             <div class="col-md-6">
-                                <label for="foto" class="form-label text-dark fw-semibold">Foto de perfil
-                                    (opcional)</label>
-                                <input type="file" class="form-control rounded-pill shadow-sm" id="foto"
-                                    name="foto" accept="image/*">
+                                <label for="foto" class="form-label text-dark">Foto de perfil (opcional)</label>
+                                <input type="file" class="form-control rounded-3" id="foto" name="foto"
+                                    accept="image/*">
                             </div>
                         </div>
 
                         <!-- Footer -->
-                        <div class="modal-footer mt-4 px-4 pb-3 pt-4 rounded-bottom-4" style="background-color: #F2F2F2;">
-                            <button type="button" class="btn rounded-pill px-4"
-                                style="background-color: #8BBF65; color: white;" data-bs-dismiss="modal">
+                        <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 me-2"
+                                data-bs-dismiss="modal">
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </button>
-                            <button type="submit" class="btn rounded-pill px-4"
-                                style="background-color: #25A6D9; color: white;">
+                            <button type="submit" class="btn text-white rounded-3" style="background-color: #25A6D9;">
                                 <i class="bi bi-save me-1"></i>Guardar usuario
                             </button>
                         </div>
@@ -360,6 +408,7 @@
             </div>
         </div>
     </div>
+
 
 @endsection
 
@@ -386,6 +435,60 @@
             });
         </script>
     @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const forms = document.querySelectorAll('.needs-validation');
+
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        form.classList.add('was-validated');
+
+                        const modalElement = form.closest('.modal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                            modal.show();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const campos = document.querySelectorAll(
+                'input[id^="name"], input[id^="email"], input[id^="password"], select[id^="rol"]');
+
+            campos.forEach(input => {
+                const tipo = input.id.startsWith('name') ? 'nameError' :
+                    input.id.startsWith('email') ? 'emailError' :
+                    input.id.startsWith('password') ? 'passwordError' :
+                    input.id.startsWith('rol') ? 'rolError' : '';
+
+                const id = input.id.replace(/[^\d]/g, '');
+                const errorDiv = document.getElementById(tipo + id);
+
+                input.addEventListener('input', () => {
+                    if (input.validity.valid) {
+                        input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.classList.add('d-none');
+                    }
+                });
+
+                input.addEventListener('blur', () => {
+                    if (!input.validity.valid) {
+                        input.classList.add('is-invalid');
+                        if (errorDiv) errorDiv.classList.remove('d-none');
+                    }
+                });
+            });
+        });
+    </script>
+
 
     <script>
         function confirmarEliminacion(id, nombre) {

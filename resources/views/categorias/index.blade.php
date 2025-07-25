@@ -120,7 +120,6 @@
                                                 </span>
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-                                                <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
 
                                                 <a href="#" class="text-success" data-bs-toggle="modal"
                                                     data-bs-target="#editarCategoria{{ $categoria->id }}">
@@ -155,40 +154,68 @@
 
                                         </tr>
 
-                                        <!-- Modal de edición -->
+                                        <!-- Modal de edición de Categoría -->
                                         <div class="modal fade" id="editarCategoria{{ $categoria->id }}" tabindex="-1"
                                             aria-labelledby="editarCategoriaLabel{{ $categoria->id }}" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content" style="border-radius: 20px;">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title"
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content border-0 shadow"
+                                                    style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+
+                                                    <!-- Encabezado -->
+                                                    <div class="modal-header text-white py-3 px-4"
+                                                        style="background-color: #0A7ABF;">
+                                                        <h5 class="modal-title fw-semibold mb-0"
                                                             id="editarCategoriaLabel{{ $categoria->id }}">
-                                                            Editar Categoria</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Cerrar"></button>
+                                                            <i class="bi bi-pencil-square me-2"></i>Editar Categoría
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                                     </div>
+
+                                                    <!-- Formulario -->
                                                     <form action="{{ route('categorias.actualizar', $categoria->id) }}"
-                                                        method="POST">
+                                                        method="POST" class="needs-validation was-validated" novalidate>
                                                         @csrf
                                                         @method('PUT')
-                                                        <div class="modal-body">
-                                                            <div class="form-group mb-3">
-                                                                <label for="nombre{{ $categoria->id }}">Nombre</label>
-                                                                <input type="text" class="form-control"
-                                                                    id="nombre{{ $categoria->id }}" name="nombre"
-                                                                    value="{{ $categoria->nombre }}" required>
+
+                                                        <!-- Cuerpo -->
+                                                        <div class="modal-body px-4 py-4"
+                                                            style="background-color: #F9F9F9;">
+                                                            <div class="row g-3">
+                                                                <!-- Campo Nombre -->
+                                                                <div class="col-md-12">
+                                                                    <label for="nombre{{ $categoria->id }}"
+                                                                        class="form-label fw-semibold text-dark">Nombre</label>
+                                                                    <input type="text" class="form-control rounded-3"
+                                                                        id="nombre{{ $categoria->id }}" name="nombre"
+                                                                        value="{{ $categoria->nombre }}" required>
+                                                                    <div class="invalid-feedback"
+                                                                        id="nombreError{{ $categoria->id }}">
+                                                                        Se debe ingresar el nombre de la categoría.
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary">Guardar
-                                                                Cambios</button>
+
+                                                        <!-- Footer -->
+                                                        <div class="modal-footer mt-3 border-0 px-4 d-flex justify-content-end bg-white"
+                                                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                                            <button type="button"
+                                                                class="btn btn-outline-secondary rounded-3 px-4 me-2"
+                                                                data-bs-dismiss="modal">
+                                                                Cancelar
+                                                            </button>
+                                                            <button type="submit" class="btn text-white rounded-3 px-4"
+                                                                style="background-color: #25A6D9;">
+                                                                Guardar Cambios
+                                                            </button>
                                                         </div>
                                                     </form>
+
                                                 </div>
                                             </div>
                                         </div>
+                                        
                                     @endforeach
                                 </tbody>
 
@@ -211,42 +238,50 @@
         </div>
     </div>
 
+    <!-- Modal: Registrar nueva categoría -->
     <div class="modal fade" id="nuevoCategoria" tabindex="-1" aria-labelledby="nuevoCategoriaLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content shadow border-0 rounded-4 overflow-hidden">
+            <div class="modal-content border-0" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
 
                 <!-- Encabezado -->
-                <div class="modal-header bg-primary text-white py-3">
+                <div class="modal-header text-white" style="background-color: #0A7ABF;">
                     <h5 class="modal-title fw-bold" id="nuevoCategoriaLabel">
-                        <i class="bi bi-folder-plus me-2"></i> Nueva Categoría
+                        <i class="bi bi-folder-plus me-2"></i>Registrar nueva categoría
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Cerrar"></button>
                 </div>
 
                 <!-- Cuerpo -->
-                <div class="modal-body p-4">
+                <div class="modal-body px-4 py-4" style="background-color: #F9F9F9;">
                     <form action="{{ route('categorias.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label fw-semibold">Nombre de la categoría</label>
-                            <input type="text" class="form-control form-control-lg rounded-3" id="nombre"
-                                name="nombre" placeholder="Ej: Analgésicos" required>
-                            <div class="invalid-feedback">Por favor, ingresa un nombre válido.</div>
+                        <div class="row g-3">
+                            <!-- Nombre de la categoría -->
+                            <div class="col-md-12">
+                                <label for="nombre" class="form-label text-dark">Nombre de la categoría</label>
+                                <input type="text" class="form-control rounded-3" id="nombre" name="nombre"
+                                    placeholder="Ej: Analgésicos" required>
+                                <div class="invalid-feedback">
+                                    Por favor, ingresa un nombre válido.
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <input type="hidden" name="estado" value="Activo">
                         </div>
 
-                        <input type="hidden" name="estado" value="Activo">
-
                         <!-- Footer -->
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                        <div class="modal-footer mt-4 border-0 px-0 d-flex justify-content-end"
+                            style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 me-2"
                                 data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
                             </button>
-                            <button type="submit" class="btn btn-success rounded-pill px-4">
-                                <i class="bi bi-save me-1"></i> Guardar
+                            <button type="submit" class="btn text-white rounded-3" style="background-color: #25A6D9;">
+                                <i class="bi bi-save me-1"></i>Guardar categoría
                             </button>
                         </div>
                     </form>
@@ -255,7 +290,6 @@
             </div>
         </div>
     </div>
-
 
 @endsection
 
@@ -283,6 +317,73 @@
             });
         </script>
     @endif
+
+    @if ($errors->has('nombre'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Nombre duplicado',
+                    text: 'El nombre ingresado para el documento ya está registrado. Por favor, intenta con uno diferente.',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#0A7ABF',
+                    customClass: {
+                        popup: 'rounded-4'
+                    }
+                });
+
+            });
+        </script>
+    @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const camposNombre = document.querySelectorAll('input[id^="nombre"]');
+
+            camposNombre.forEach(input => {
+                const errorId = 'nombreError' + input.id.replace('nombre', '');
+                const errorDiv = document.getElementById(errorId);
+
+                input.addEventListener('input', function() {
+                    if (input.validity.valid) {
+                        input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'none';
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    if (!input.validity.valid) {
+                        input.classList.add('is-invalid');
+                        if (errorDiv) errorDiv.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const forms = document.querySelectorAll('.needs-validation');
+
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault(); // Detiene el envío
+                        event.stopPropagation();
+
+                        form.classList.add('was-validated');
+
+                        // Mostrar el modal si está cerrado
+                        const modalElement = form.closest('.modal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                            modal.show();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {

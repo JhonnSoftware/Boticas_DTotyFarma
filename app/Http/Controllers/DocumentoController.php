@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Documentos;
+use Illuminate\Validation\Rule;
 
 class DocumentoController extends Controller
 {
@@ -33,7 +34,7 @@ class DocumentoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:100',
+            'nombre' => 'required|string|max:100|unique:documento,nombre',
             'estado' => 'required|in:Activo,Inactivo',
         ]);
 
@@ -45,6 +46,21 @@ class DocumentoController extends Controller
         return redirect()->route('documentos.index')->with('success', 'Documento registrado exitosamente.');
     }
 
+    public function actualizar(Request $request, $id)
+    {
+        $request->validate([
+            'nombre' => ['required', 'string', 'max:100' , Rule::unique('documento', 'nombre')->ignore($id)],
+        ]);
+
+        $cliente = Documentos::findOrFail($id);
+
+        $cliente->update([
+            'nombre' => $request->nombre,
+        ]);
+
+        return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
+    }
+    
     public function activar($id)
     {
         $cliente = Documentos::findOrFail($id);
@@ -63,18 +79,4 @@ class DocumentoController extends Controller
         return redirect()->route('documentos.index')->with('success', 'Documento desactivado correctamente.');
     }
 
-    public function actualizar(Request $request, $id)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:100',
-        ]);
-
-        $cliente = Documentos::findOrFail($id);
-
-        $cliente->update([
-            'nombre' => $request->nombre,
-        ]);
-
-        return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
-    }
 }
