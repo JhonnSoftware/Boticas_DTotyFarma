@@ -47,6 +47,10 @@
         .pagination .page-link:focus {
             box-shadow: none;
         }
+
+        #formBusquedaCompleta .btn:hover {
+            filter: brightness(1.1);
+        }
     </style>
 
     <div class="container-fluid">
@@ -56,33 +60,95 @@
                     <div class="card-body">
 
                         <div class="d-flex align-items-center mb-4">
-                            <h4 class="card-title" style="font-size: 24px;">Historial de Devoluciones</h4>
+                            <h4 class="card-title" style="font-size: 24px;">Historial de Devoluciones Compras</h4>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="entries-info">
-                                Showing 10 entries
+
+                        <form id="formBusquedaCompleta"
+                            class="bg-white rounded-3 p-3 d-flex flex-wrap gap-3 align-items-center justify-content-start mb-4">
+
+                            {{-- 🔍 Campo de texto --}}
+                            <div class="input-group" style="min-width: 240px;">
+                                <input type="text" name="buscar" id="inputBusqueda" class="form-control"
+                                    placeholder="Buscar por producto, proveedor, usuario o motivo..."
+                                    style="border-radius: 12px 0 0 12px; border-right: none;">
+                                <button type="submit" class="btn"
+                                    style="border-radius: 0 12px 12px 0; background-color: #0A7ABF; color: white; border: 1px solid #0A7ABF;">
+                                    <i class="fas fa-search"></i>
+                                </button>
                             </div>
 
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
-                                <div class="input-group">
-                                    <form action="{{ route('devolucionesCompras.buscar') }}" method="GET" class="input-group">
-                                        <input type="text" name="buscar" id="inputBusqueda" class="form-control"
-                                            placeholder="Buscar por producto, usuario, motivo o fecha..."
-                                            value="{{ request('buscar') }}"
-                                            style="border-radius: 10px 0 0 10px; padding: 15px; height: auto;">
-                                        <button type="submit" class="btn btn-primary"
-                                            style="border-radius: 0 10px 10px 0; background: #ffffff; color: #000; border: 1px solid #eaecef; padding:15px;">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </form>
+                            {{-- 📅 Fecha de inicio --}}
+                            <div>
+                                <label for="fechaInicio" class="form-label mb-1 text-muted">Desde:</label>
+                                <input type="date" name="fecha_inicio" id="fechaInicio" class="form-control"
+                                    style="min-width: 160px; border-radius: 10px; background-color: #F2F2F2;">
+                            </div>
+
+                            {{-- 📅 Fecha de fin --}}
+                            <div>
+                                <label for="fechaFin" class="form-label mb-1 text-muted">Hasta:</label>
+                                <input type="date" name="fecha_fin" id="fechaFin" class="form-control"
+                                    style="min-width: 160px; border-radius: 10px; background-color: #F2F2F2;">
+                            </div>
+
+                            {{-- ❌ Botón limpiar --}}
+                            <div>
+                                <label class="form-label d-none d-md-block mb-1 text-white">Limpiar</label>
+                                <button type="button" id="btnLimpiarFechas"
+                                    class="btn w-100 d-flex align-items-center gap-1 rounded"
+                                    style="background-color: #6EBF49; color: white; border: none;">
+                                    <i class="fas fa-times-circle"></i> Limpiar
+                                </button>
+                            </div>
+
+                            {{-- 📁 Botón Exportar (Dropdown) al lado --}}
+                            <div>
+                                <label class="form-label d-none d-md-block mb-1 text-white">Exportar</label>
+                                <div class="dropdown">
+                                    <button
+                                        class="btn btn-secondary dropdown-toggle w-100 d-flex align-items-center gap-1 rounded"
+                                        type="button" id="dropdownExportar" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="background-color: #0A7ABF; color: white; border: none;">
+                                        <i class="fas fa-file-export"></i> Exportar
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownExportar">
+                                        <li>
+                                            <a class="dropdown-item"
+                                                href="{{ route('devolucionesCompras.exportar', 'pdf') }}">
+                                                <i class="fas fa-file-pdf text-danger me-2"></i> PDF
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item"
+                                                href="{{ route('devolucionesCompras.exportar', 'xlsx') }}">
+                                                <i class="fas fa-file-excel text-success me-2"></i> Excel
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item"
+                                                href="{{ route('devolucionesCompras.exportar', 'csv') }}">
+                                                <i class="fas fa-file-csv text-primary me-2"></i> CSV
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item"
+                                                href="{{ route('devolucionesCompras.exportar', 'txt') }}">
+                                                <i class="fas fa-file-alt text-muted me-2"></i> TXT
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
-                        </div>
+
+                        </form>
+
+
                         <div class="table-responsive">
                             <table class="table no-wrap v-middle mb-0">
                                 <thead style="background: #f8f9fc;">
                                     <tr class="border-0">
-                                        <th class="border-0 font-14 font-weight-medium text-black px-2">Código de Compra</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black px-2">Código de Compra
+                                        </th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Proveedor</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Producto Devuelto</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
@@ -133,24 +199,54 @@
 @endsection
 
 @section('scripts')
+
     <script>
+        // Buscar por texto (con rango)
         $(document).ready(function() {
             $('#inputBusqueda').on('keyup', function() {
-                var buscar = $(this).val();
+                const buscar = $(this).val();
+                const fechaInicio = $('#fechaInicio').val();
+                const fechaFin = $('#fechaFin').val();
 
                 $.ajax({
                     url: "{{ route('devolucionesCompras.buscar') }}",
                     type: "GET",
                     data: {
-                        buscar: buscar
+                        buscar: buscar,
+                        fecha_inicio: fechaInicio,
+                        fecha_fin: fechaFin
                     },
                     success: function(data) {
                         $('#tablaHistorialDevolucionesCompras').html(data);
-                    }
+                    },
                 });
+            });
+
+            // También puedes agregar este extra para que al cambiar fechas se actualice sin escribir texto
+            $('#fechaInicio, #fechaFin').on('change', function() {
+                $('#inputBusqueda').trigger('keyup');
+            });
+        });
+
+        // Limpiar filtros
+        $('#btnLimpiarFechas').on('click', function() {
+            $('#inputBusqueda').val('');
+            $('#fechaInicio').val('');
+            $('#fechaFin').val('');
+
+            $.ajax({
+                url: "{{ route('devolucionesCompras.buscar') }}",
+                type: "GET",
+                success: function(data) {
+                    $('#tablaHistorialDevolucionesCompras').html(data);
+                },
+                error: function() {
+                    alert("Error al limpiar filtros.");
+                }
             });
         });
     </script>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -27,6 +27,13 @@
             @else
                 <span class="text-muted">—</span>
             @endif
+            @if ($venta->estado === 'Activo' && $venta->detalles->count() > 0)
+                <button type="button" class="btn btn-sm btn-devolver" data-id="{{ $venta->id }}"
+                    title="Devolver venta"
+                    style="background-color: #ffc107; color: #212529; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: 0.3s;">
+                    <i class="fas fa-undo-alt"></i>
+                </button>
+            @endif
         </td>
 
     </tr>

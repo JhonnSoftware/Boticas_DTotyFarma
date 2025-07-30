@@ -12,6 +12,9 @@ use App\Models\Productos;
 use App\Models\TipoPagos;
 use App\Models\Documentos;
 use App\Models\Movimientos;
+use App\Exports\ComprasExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ComprasController extends Controller
 {
@@ -125,6 +128,8 @@ class ComprasController extends Controller
     public function buscar(Request $request)
     {
         $buscar = $request->input('buscar');
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
 
         $compras = Compras::with(['proveedor', 'pago', 'documento', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
@@ -142,9 +147,55 @@ class ComprasController extends Controller
                         });
                 });
             })
+            ->when($fechaInicio, function ($query) use ($fechaInicio) {
+                $query->whereDate('fecha', '>=', $fechaInicio);
+            })
+            ->when($fechaFin, function ($query) use ($fechaFin) {
+                $query->whereDate('fecha', '<=', $fechaFin);
+            })
             ->orderBy('fecha', 'desc')
             ->get();
 
         return view('compras.partials.tabla', compact('compras'));
+    }
+
+    public function exportar($formato)
+    {
+        $compras = Compras::with(['proveedor', 'pago', 'documento', 'usuario'])->latest()->get();
+
+        if ($formato === 'pdf') {
+            $pdf = Pdf::loadView('exportaciones.compras_pdf', compact('compras'));
+            return $pdf->download('compras.pdf');
+        }
+
+        if ($formato === 'xlsx') {
+            return Excel::download(new ComprasExport, 'compras.xlsx');
+        }
+
+        if ($formato === 'csv') {
+            return Excel::download(new ComprasExport, 'compras.csv');
+        }
+
+        if ($formato === 'txt') {
+            $contenido = '';
+            foreach ($compras as $c) {
+                $contenido .= implode("\t", [
+                    $c->codigo,
+                    $c->proveedor->nombre ?? '',
+                    $c->documento->nombre ?? '',
+                    $c->pago->nombre ?? '',
+                    $c->total,
+                    $c->estado,
+                    $c->fecha,
+                    $c->usuario->name ?? ''
+                ]) . "\n";
+            }
+
+            return response($contenido)
+                ->header('Content-Type', 'text/plain')
+                ->header('Content-Disposition', 'attachment; filename="compras.txt"');
+        }
+
+        return back()->with('error', 'Formato no válido.');
     }
 }

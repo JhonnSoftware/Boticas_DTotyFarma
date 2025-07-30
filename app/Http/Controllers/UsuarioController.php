@@ -106,7 +106,7 @@ class UsuarioController extends Controller
     // Este método ya no recibe parámetros
     public function permisos()
     {
-        $usuarios = User::with('permisos')->get();
+        $usuarios = User::with('permisos')->where('rol', 'usuario')->get();
 
         $modulos = [
             'usuarios',

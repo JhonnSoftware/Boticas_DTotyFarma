@@ -129,21 +129,24 @@
 
                     <div class="navbar-brand">
                         <!-- Logo icon -->
-                        <a href="index.html">
-                            <b class="logo-icon">
-                                <!-- Dark Logo icon -->
-                                <img src="assets/images/logo-icon.png" alt="homepage" class="dark-logo" />
-                                <!-- Light Logo icon -->
-                                <img src="assets/images/logo-icon.png" alt="homepage" class="light-logo" />
-                            </b>
-                            <!--End Logo icon -->
-                            <!-- Logo text -->
-                            <span class="logo-text">
-                                <!-- dark Logo text -->
-                                <img src="assets/images/logo-text.png" alt="homepage" class="dark-logo" />
-                                <!-- Light Logo text -->
-                                <img src="assets/images/logo-light-text.png" class="light-logo" alt="homepage" />
-                            </span>
+                        <a href="{{ route('dashboard.index') }}">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <!-- Logo icon -->
+                                <b class="logo-icon">
+                                    <img src="{{ url('imagenes/logo_empresa.png') }}" alt="homepage" class="dark-logo"
+                                        style="height: 50px; width: auto;" />
+                                    <img src="{{ url('imagenes/logo_empresa.png') }}" alt="homepage" class="light-logo"
+                                        style="height: 50px; width: auto;" />
+                                </b>
+
+                                <!-- Logo text -->
+                                <span class="logo-text">
+                                    <img src="{{ url('imagenes/texto_logo.png') }}" alt="homepage" class="dark-logo"
+                                        style="height: 45px; width: auto;" />
+                                    <img src="{{ url('imagenes/texto_logo.png') }}" class="light-logo" alt="homepage"
+                                        style="height: 45px; width: auto;" />
+                                </span>
+                            </div>
                         </a>
                     </div>
 
@@ -263,6 +266,7 @@
                                         data-feather="chevron-down" class="svg-icon"></i></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
+                                <!-- 
                                 <a class="dropdown-item" href="javascript:void(0)"><i data-feather="user"
                                         class="svg-icon mr-2 ml-1"></i>
                                     My Profile</a>
@@ -275,14 +279,16 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="javascript:void(0)"><i data-feather="settings"
                                         class="svg-icon mr-2 ml-1"></i>
-                                    Account Setting</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="javascript:void(0)"><i data-feather="power"
+                                    Account Setting</a> 
+                                <div class="dropdown-divider"></div>-->
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i data-feather="power"
                                         class="svg-icon mr-2 ml-1"></i>
-                                    Logout</a>
-                                <div class="dropdown-divider"></div>
+                                    Salir
+                                </a>
+                            </a>
+                                 <!--  <div class="dropdown-divider"></div>
                                 <div class="pl-4 p-3"><a href="javascript:void(0)" class="btn btn-sm btn-info">View
-                                        Profile</a></div>
+                                        Profile</a></div>-->
                             </div>
                         </li>
 
@@ -318,7 +324,7 @@
                             </a>
                         </li>
 
-                        <li class="sidebar-item"> 
+                        <li class="sidebar-item">
                             <a class="sidebar-link" href="{{ route('usuarios.permisos') }}" aria-expanded="false">
                                 <i class="fa fa-shield-alt"></i>
                                 <span class="hide-menu">Roles y Permisos</span>
@@ -435,13 +441,6 @@
                                         </span></a>
                                 </li>
                             </ul>
-                        </li>
-
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="index.html" aria-expanded="false">
-                                <i data-feather="bar-chart" class="feather-icon"></i>
-                                <span class="hide-menu">Reportes Financieros</span>
-                            </a>
                         </li>
 
                         <li class="list-divider"></li>

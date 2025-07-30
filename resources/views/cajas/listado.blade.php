@@ -52,6 +52,10 @@
             background-color: #2275fc !important;
             color: #ffffff !important;
         }
+
+        #formBusquedaCaja .btn:hover {
+            filter: brightness(1.1);
+        }
     </style>
 
     <div class="container-fluid">
@@ -64,35 +68,37 @@
                             <h4 class="card-title" style="font-size: 24px;">Historial de Cajas</h4>
                         </div>
 
-                        <div class="d-flex justify-content-end mb-4">
-                            <form action="{{ route('caja.listado') }}" method="GET"
-                                class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="mb-4">
+                            <form id="formBusquedaCaja"
+                                class="d-flex align-items-center gap-3 flex-wrap bg-white rounded-3 p-3"
+                                style="max-width: 700px;"> 
 
-                                <!-- Campo de Fecha -->
-                                <div class="input-group" style="width: 250px;">
-                                    <span class="input-group-text bg-white border-end-0 px-3"
-                                        style="border: 1px solid #d6d8db; border-right: none;">
-                                        <i class="fas fa-calendar-alt text-primary"></i>
-                                    </span>
-                                    <input type="date" name="fecha" value="{{ request('fecha') }}"
-                                        class="form-control border-start-0"
-                                        style="background-color: #f8f9fc; border-left: none; border: 1px solid #d6d8db;" />
+                                <!-- 📅 Fecha -->
+                                <div>
+                                    <label for="fechaCaja" class="form-label mb-1 text-muted">Fecha:</label>
+                                    <input type="date" name="fecha" id="fechaCaja" class="form-control"
+                                        value="{{ request('fecha') }}"
+                                        style="min-width: 180px; border-radius: 10px; background-color: #F2F2F2;">
                                 </div>
 
-                                <!-- Botón Buscar -->
-                                <button type="submit" class="btn d-flex align-items-center px-4 py-2 text-white"
-                                    style="background: linear-gradient(to right, #007bff, #007bff); font-weight: 500; border: none; transition: background 0.3s ease;">
-                                    <i class="fas fa-search me-2"></i> Buscar
-                                </button>
+                                <!-- 🔍 Botón Buscar -->
+                                <div>
+                                    <label class="form-label d-none d-md-block mb-1 text-white">Buscar</label>
+                                    <button type="submit" class="btn d-flex align-items-center gap-2 px-4 py-2 rounded"
+                                        style="background-color: #0A7ABF; color: white; border: none;">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
 
-                                <!-- Botón Limpiar -->
-                                @if (request('fecha'))
-                                    <a href="{{ route('caja.listado') }}"
-                                        class="btn btn-outline-secondary d-flex align-items-center px-4 py-2"
-                                        style="border: 1px solid #ced4da; transition: background 0.3s ease;">
-                                        <i class="fas fa-times me-2"></i> Limpiar
-                                    </a>
-                                @endif
+                                <!-- ❌ Botón Limpiar -->
+                                <div>
+                                    <label class="form-label d-none d-md-block mb-1 text-white">Limpiar</label>
+                                    <button type="button" id="btnLimpiarCaja"
+                                        class="btn d-flex align-items-center gap-2 px-4 py-2 rounded"
+                                        style="background-color: #6EBF49; color: white; border: none;">
+                                        <i class="fas fa-times-circle"></i> Limpiar
+                                    </button>
+                                </div>
                             </form>
                         </div>
 
@@ -138,7 +144,6 @@
                                             </td>
                                         </tr>
                                     @endforelse
-
                                 </tbody>
                             </table>
                         </div>
@@ -162,6 +167,37 @@
 @endsection
 
 @section('scripts')
+
+    <script>
+        $(document).ready(function() {
+            $('#formBusquedaCaja').on('submit', function(e) {
+                e.preventDefault();
+
+                const fecha = $('#fechaCaja').val();
+
+                $.ajax({
+                    url: "{{ route('caja.buscar') }}",
+                    type: "GET",
+                    data: {
+                        fecha: fecha
+                    },
+                    success: function(data) {
+                        $('#tablaCajas').html(data);
+                    },
+                    error: function() {
+                        alert('Ocurrió un error al buscar las cajas.');
+                    }
+                });
+            });
+
+            $('#btnLimpiarCaja').click(function() {
+                $('#fechaCaja').val('');
+                $('#formBusquedaCaja').submit();
+            });
+        });
+    </script>
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

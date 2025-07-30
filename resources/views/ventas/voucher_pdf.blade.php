@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Voucher de Venta</title>
-    
+
     <style>
         @page {
             margin: 0cm;
@@ -58,12 +58,12 @@
 
     <div class="center">
         <p class="bold">BOTICAS D'TOTY FARMA</p>
-        <p>Av. Central N° 123 - Huancayo</p>
-        <p>Tel: 987654321</p>
+        <p>AV 7 DE JUNIO 361 LOS FICUS</p>
+        <p>SANTA ANITA - LIMA - LIMA</p>
         <div class="separator"></div>
         <p class="bold">VOUCHER DE VENTA</p>
         <p>N°: {{ $venta->codigo }}</p>
-        <p>Fecha: {{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</p>
+        <p>Fecha Emision: {{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</p>
         <div class="separator"></div>
     </div>
 
@@ -109,7 +109,16 @@
 
     <div class="separator"></div>
 
-    <p class="center">¡Gracias por su compra!</p>
+    <p>
+        <span class="bold">CAJA:</span> {{ $venta->caja_id ?? '1' }}
+        <span class="bold" style="margin-left: 10px;">USU:</span> {{ strtoupper(auth()->user()->name) }}
+        <span class="bold" style="margin-left: 10px;">IMP:</span> {{ strtoupper(auth()->user()->name) }}
+    </p>
+
+    <div class="separator"></div>
+
+    <p class="center bold">*NO ACEPTAMOS CAMBIOS - DEVOLUCIONES*</p>
+
 
 </body>
 

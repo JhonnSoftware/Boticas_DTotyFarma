@@ -51,7 +51,6 @@ Route::middleware('auth')->group(function () {
         Route::post('usuarios', 'store')->name('usuarios.store');
         Route::put('usuarios/{id}', 'actualizar')->name('usuarios.actualizar');
         Route::delete('usuarios/{id}', 'destroy')->name('usuarios.destroy');
-
         Route::get('permisos', 'permisos')->name('usuarios.permisos');
         Route::post('permisos', 'guardarPermisos')->name('usuarios.permisos.guardar');
     });
@@ -63,6 +62,7 @@ Route::middleware('auth')->group(function () {
         Route::put('clientes/{id}/desactivar', 'desactivar')->name('clientes.desactivar');
         Route::put('clientes/{id}/activar', 'activar')->name('clientes.activar');
         Route::put('clientes/{id}', 'actualizar')->name('clientes.actualizar');
+        Route::get('clientes/exportar/{formato}', 'exportar')->name('clientes.exportar');
     });
 
     Route::middleware('permiso:categorias')->controller(CategoriaController::class)->group(function () {
@@ -81,9 +81,10 @@ Route::middleware('auth')->group(function () {
         Route::put('proveedores/{id}/desactivar', 'desactivar')->name('proveedores.desactivar');
         Route::put('proveedores/{id}/activar', 'activar')->name('proveedores.activar');
         Route::put('proveedores/{id}', 'actualizar')->name('proveedores.actualizar');
+        Route::get('proveedores/exportar/{formato}', 'exportar')->name('proveedores.exportar');
     });
 
-    Route::middleware('permiso:proveedores')->controller(DocumentoController::class)->group(function () {
+    Route::middleware('permiso:documentos')->controller(DocumentoController::class)->group(function () {
         Route::get('documentos', 'index')->name('documentos.index');
         Route::post('documentos', 'store')->name('documentos.store');
         Route::get('documentos/buscar', 'buscar')->name('documentos.buscar');
@@ -92,7 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::put('documentos/{id}', 'actualizar')->name('documentos.actualizar');
     });
 
-    Route::middleware('permiso:proveedores')->controller(TipoPagoController::class)->group(function () {
+    Route::middleware('permiso:tipopagos')->controller(TipoPagoController::class)->group(function () {
         Route::get('tipopagos', 'index')->name('tipopagos.index');
         Route::post('tipopagos', 'store')->name('tipopagos.store');
         Route::get('tipopagos/buscar', 'buscar')->name('tipopagos.buscar');
@@ -109,6 +110,7 @@ Route::middleware('auth')->group(function () {
         Route::put('productos/{id}/activar', 'activar')->name('productos.activar');
         Route::put('productos/{id}', 'actualizar')->name('productos.actualizar');
         Route::get('detalleProductos', 'detalle')->name('productos.detalle');
+        Route::get('productos/exportar/{formato}', 'exportar')->name('productos.exportar');
     });
 
     Route::middleware('permiso:ventas')->controller(VentasController::class)->group(function () {
@@ -117,6 +119,8 @@ Route::middleware('auth')->group(function () {
         Route::get('historial_ventas', 'historial')->name('ventas.historial');
         Route::get('ventas/voucher/{id}', 'voucher')->name('ventas.voucher');
         Route::get('ventas/buscar', 'buscar')->name('ventas.buscar');
+        Route::get('ventas/exportar/{formato}', 'exportar')->name('ventas.exportar');
+
     });
 
     Route::middleware('permiso:compras')->controller(ComprasController::class)->group(function () {
@@ -124,18 +128,21 @@ Route::middleware('auth')->group(function () {
         Route::post('compras', 'store')->name('compras.store');
         Route::get('historial_compras', 'historial')->name('compras.historial');
         Route::get('compras/buscar', 'buscar')->name('compras.buscar');
+        Route::get('compras/exportar/{formato}', 'exportar')->name('compras.exportar');
     });
 
     Route::middleware('permiso:devolucionesVentas')->controller(DevolucionesVentasController::class)->group(function () {
         Route::get('devoluciones', 'index')->name('devoluciones.index');
         Route::post('devoluciones', 'store')->name('devoluciones.store');
         Route::get('devoluciones/buscar', 'buscar')->name('devoluciones.buscar');
+        Route::get('devoluciones/exportar/{formato}', 'exportar')->name('devoluciones.exportar');
     });
 
     Route::middleware('permiso:devolucionesCompras')->controller(DevolucionesComprasController::class)->group(function () {
         Route::get('devolucionesCompras', 'index')->name('devolucionesCompras.index');
         Route::post('devolucionesCompras', 'store')->name('devolucionesCompras.store');
         Route::get('devolucionesCompras/buscar', 'buscar')->name('devolucionesCompras.buscar');
+        Route::get('devolucionesCompras/exportar/{formato}', 'exportar')->name('devolucionesCompras.exportar');
     });
 
     Route::middleware('permiso:movimientos')->controller(MovimientoController::class)->group(function () {
@@ -147,6 +154,7 @@ Route::middleware('auth')->group(function () {
         Route::post('apertura', 'aperturaStore')->name('caja.apertura.store');
         Route::post('cierre', 'cierreStore')->name('caja.cierre.store');
         Route::get('listarCajas', 'listarCajas')->name('caja.listado');
+        Route::get('listarCajas/buscar', 'buscar')->name('caja.buscar');
     });
 
     Route::middleware('permiso:alertas')->controller(AlertaController::class)->group(function () {

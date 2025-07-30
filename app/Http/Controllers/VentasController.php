@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\VentasExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 
 class VentasController extends Controller
@@ -169,6 +171,8 @@ class VentasController extends Controller
     public function buscar(Request $request)
     {
         $buscar = $request->input('buscar');
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
 
         $ventas = Ventas::with(['cliente', 'pago', 'documento', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
@@ -187,9 +191,57 @@ class VentasController extends Controller
                         ->orWhere('fecha', 'LIKE', "%$buscar%");
                 });
             })
-            ->orderBy('fecha', 'desc') // se aplica siempre
+            ->when($fechaInicio, function ($query) use ($fechaInicio) {
+                $query->whereDate('fecha', '>=', $fechaInicio);
+            })
+            ->when($fechaFin, function ($query) use ($fechaFin) {
+                $query->whereDate('fecha', '<=', $fechaFin);
+            })
+            ->orderBy('fecha', 'desc')
             ->get();
 
         return view('ventas.partials.tabla', compact('ventas'));
+    }
+
+    public function exportar(Request $request, $formato)
+    {
+        $ventas = Ventas::with(['cliente', 'pago', 'documento', 'usuario'])->get();
+
+        if ($formato === 'pdf') {
+            $pdf = Pdf::loadView('exportaciones.ventas_pdf', compact('ventas'));
+            return $pdf->download('ventas.pdf');
+        }
+
+        if ($formato === 'xlsx') {
+            return Excel::download(new VentasExport, 'ventas.xlsx');
+        }
+
+        if ($formato === 'csv') {
+            return Excel::download(new VentasExport, 'ventas.csv');
+        }
+
+        if ($formato === 'txt') {
+            $contenido = '';
+            foreach ($ventas as $v) {
+                $contenido .= implode("\t", [
+                    $v->codigo,
+                    $v->cliente->nombre . ' ' . $v->cliente->apellidos,
+                    $v->documento->nombre,
+                    $v->pago->nombre,
+                    $v->total,
+                    $v->igv,
+                    $v->descuento_total,
+                    $v->fecha,
+                    $v->estado,
+                    $v->usuario->name,
+                ]) . "\n";
+            }
+
+            return response($contenido)
+                ->header('Content-Type', 'text/plain')
+                ->header('Content-Disposition', 'attachment; filename="ventas.txt"');
+        }
+
+        return back()->with('error', 'Formato de exportación no válido.');
     }
 }

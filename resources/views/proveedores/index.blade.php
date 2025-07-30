@@ -63,12 +63,10 @@
                         <div class="d-flex align-items-center mb-4">
                             <h4 class="card-title" style="font-size: 24px;">Lista de Proveedores</h4>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="entries-info">
-                                Showing 10 entries
-                            </div>
+                        <div class="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
+                                
                                 <div class="input-group">
                                     <form action="{{ route('proveedores.index') }}" method="GET" class="input-group">
                                         <input type="text" name="buscar" id="inputBusqueda" class="form-control"
@@ -80,6 +78,30 @@
                                         </button>
                                     </form>
                                 </div>
+
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                        id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="padding: 15px; border-radius: 10px;">
+                                        <i class="fas fa-download me-1"></i> Exportar
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('proveedores.exportar', ['formato' => 'pdf']) }}">
+                                                <i class="far fa-file-pdf me-2 text-danger"></i>Exportar PDF</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('proveedores.exportar', ['formato' => 'xlsx']) }}">
+                                                <i class="far fa-file-excel me-2 text-success"></i>Exportar Excel</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('proveedores.exportar', ['formato' => 'csv']) }}">
+                                                <i class="fas fa-file-csv me-2 text-primary"></i>Exportar CSV</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('proveedores.exportar', ['formato' => 'txt']) }}">
+                                                <i class="far fa-file-alt me-2 text-muted"></i>Exportar TXT</a></li>
+                                    </ul>
+                                </div>
+
+
                                 <button class="btnAgregarProveedor"
                                     style="white-space: nowrap; border: 1px solid #2275fc; border-radius: 10px; color: #2275fc; background: #fff; padding:15px; transition: background-color 0.3s ease, color 0.3s ease;"
                                     data-bs-toggle="modal" data-bs-target="#nuevoProveedor">
@@ -166,7 +188,8 @@
 
                                         <!-- Modal: Editar proveedor -->
                                         <div class="modal fade" id="editarProveedor{{ $proveedor->id }}" tabindex="-1"
-                                            aria-labelledby="editarProveedorLabel{{ $proveedor->id }}" aria-hidden="true">
+                                            aria-labelledby="editarProveedorLabel{{ $proveedor->id }}"
+                                            aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-lg">
                                                 <div class="modal-content border-0 shadow"
                                                     style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
@@ -338,7 +361,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
                                     @endforeach
                                 </tbody>
 

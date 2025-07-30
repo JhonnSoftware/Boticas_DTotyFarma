@@ -23,6 +23,8 @@
             background-color: #BF4A4A;
             color: #fff;
         }
+
+        
     </style>
 
     <div class="container-fluid py-4">

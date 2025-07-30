@@ -8,6 +8,10 @@ use App\Models\DevolucionesVentas;
 use App\Models\Productos;
 use App\Models\Ventas;
 use App\Models\Movimientos;
+use Carbon\Carbon;
+use App\Exports\DevolucionesVentasExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DevolucionesVentasController extends Controller
 {
@@ -73,11 +77,11 @@ class DevolucionesVentasController extends Controller
         return redirect()->route('ventas.historial')->with('success', 'Venta devuelta correctamente.');
     }
 
-
-
     public function buscar(Request $request)
     {
         $buscar = $request->input('buscar');
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
 
         $devoluciones = DevolucionesVentas::with(['venta.cliente', 'producto', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
@@ -99,9 +103,60 @@ class DevolucionesVentasController extends Controller
                         ->orWhere('motivo', 'LIKE', "%$buscar%");
                 });
             })
+            ->when($fechaInicio && $fechaFin, function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('fecha', [
+                    Carbon::parse($fechaInicio)->startOfDay(),
+                    Carbon::parse($fechaFin)->endOfDay()
+                ]);
+            })
+            ->when($fechaInicio && !$fechaFin, function ($query) use ($fechaInicio) {
+                $query->whereDate('fecha', Carbon::parse($fechaInicio));
+            })
+            ->when(!$fechaInicio && $fechaFin, function ($query) use ($fechaFin) {
+                $query->whereDate('fecha', Carbon::parse($fechaFin));
+            })
             ->orderBy('fecha', 'desc')
             ->get();
 
         return view('devoluciones.partials.tabla', compact('devoluciones'));
+    }
+
+    public function exportar(Request $request, $formato)
+    {
+        $devoluciones = DevolucionesVentas::with(['venta.cliente', 'producto', 'usuario'])->latest()->get();
+
+        if ($formato === 'pdf') {
+            $pdf = Pdf::loadView('exportaciones.devoluciones_pdf', compact('devoluciones'));
+            return $pdf->download('devoluciones_ventas.pdf');
+        }
+
+        if ($formato === 'xlsx') {
+            return Excel::download(new DevolucionesVentasExport, 'devoluciones_ventas.xlsx');
+        }
+
+        if ($formato === 'csv') {
+            return Excel::download(new DevolucionesVentasExport, 'devoluciones_ventas.csv');
+        }
+
+        if ($formato === 'txt') {
+            $contenido = '';
+            foreach ($devoluciones as $d) {
+                $contenido .= implode("\t", [
+                    $d->venta->codigo,
+                    $d->producto->descripcion,
+                    $d->cantidad,
+                    $d->motivo,
+                    $d->venta->cliente->nombre . ' ' . $d->venta->cliente->apellidos,
+                    $d->usuario->name,
+                    $d->fecha,
+                ]) . "\n";
+            }
+
+            return response($contenido)
+                ->header('Content-Type', 'text/plain')
+                ->header('Content-Disposition', 'attachment; filename="devoluciones_ventas.txt"');
+        }
+
+        return back()->with('error', 'Formato de exportación no válido.');
     }
 }

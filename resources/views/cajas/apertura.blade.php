@@ -153,10 +153,18 @@
                                                     style="height: 50px; object-fit: contain; margin-top: 10px;">
                                                 <div class="card-body p-2">
                                                     <label for="monto_yape" class="form-label">Yape (S/)</label>
-                                                    <input type="number" name="monto_yape" id="monto_yape"
-                                                        class="form-control text-center" step="0.01" min="0"
-                                                        value="0">
+                                                    <div class="input-group">
+                                                        <input type="number" name="monto_yape" id="monto_yape"
+                                                            class="form-control text-center monto-electronico"
+                                                            step="0.01" min="0" value="0">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success btn-agregar-monto"
+                                                            data-id="monto_yape">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
+
                                             </div>
                                         </div>
 
@@ -167,9 +175,16 @@
                                                     style="height: 50px; object-fit: contain; margin-top: 10px;">
                                                 <div class="card-body p-2">
                                                     <label for="monto_plin" class="form-label">Plin (S/)</label>
-                                                    <input type="number" name="monto_plin" id="monto_plin"
-                                                        class="form-control text-center" step="0.01" min="0"
-                                                        value="0">
+                                                    <div class="input-group">
+                                                        <input type="number" name="monto_plin" id="monto_plin"
+                                                            class="form-control text-center" step="0.01"
+                                                            min="0" value="0">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success btn-agregar-monto"
+                                                            data-id="monto_plin">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -181,9 +196,16 @@
                                                     style="height: 50px; object-fit: contain; margin-top: 10px;">
                                                 <div class="card-body p-2">
                                                     <label for="monto_bbva" class="form-label">BBVA (S/)</label>
-                                                    <input type="number" name="monto_bbva" id="monto_bbva"
-                                                        class="form-control text-center" step="0.01" min="0"
-                                                        value="0">
+                                                    <div class="input-group">
+                                                        <input type="number" name="monto_bbva" id="monto_bbva"
+                                                            class="form-control text-center" step="0.01"
+                                                            min="0" value="0">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success btn-agregar-monto"
+                                                            data-id="monto_bbva">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -195,9 +217,16 @@
                                                     style="height: 50px; object-fit: contain; margin-top: 10px;">
                                                 <div class="card-body p-2">
                                                     <label for="monto_interbank" class="form-label">Interbank (S/)</label>
-                                                    <input type="number" name="monto_interbank" id="monto_interbank"
-                                                        class="form-control text-center" step="0.01" min="0"
-                                                        value="0">
+                                                    <div class="input-group">
+                                                        <input type="number" name="monto_interbank" id="monto_interbank"
+                                                            class="form-control text-center" step="0.01"
+                                                            min="0" value="0">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success btn-agregar-monto"
+                                                            data-id="monto_interbank">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -209,9 +238,16 @@
                                                     style="height: 50px; object-fit: contain; margin-top: 10px;">
                                                 <div class="card-body p-2">
                                                     <label for="monto_otros" class="form-label">Otros (S/)</label>
-                                                    <input type="number" name="monto_otros" id="monto_otros"
-                                                        class="form-control text-center" step="0.01" min="0"
-                                                        value="0">
+                                                    <div class="input-group">
+                                                        <input type="number" name="monto_otros" id="monto_otros"
+                                                            class="form-control text-center" step="0.01"
+                                                            min="0" value="0">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success btn-agregar-monto"
+                                                            data-id="monto_otros">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -243,6 +279,7 @@
 @endsection
 
 @section('scripts')
+
     <script>
         function calcularTotal() {
             let total = 0;
@@ -259,63 +296,94 @@
         }
 
         document.addEventListener('input', calcularTotal);
-
-        // Mostrar SweetAlert si hay mensaje de éxito desde sesión
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: '¡Éxito!',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#198754'
-            });
-        @endif
-
-        // Mostrar SweetAlert si hay error
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Atención',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#dc3545'
-            });
-        @endif
     </script>
 
     <script>
-        document.addEventListener('input', function(event) {
-            if (
-                event.target.classList.contains('cantidad-cierre') || ['monto_yape', 'monto_bbva',
-                    'monto_interbank', 'monto_plin', 'monto_otros'
-                ].includes(event.target.id)
-            ) {
-                calcularTotalCierre();
-            }
-        });
-    </script>
+        // 🎯 NUEVA lógica para el cálculo manual
+        let montosElectronicos = {
+            yape: 0,
+            plin: 0,
+            bbva: 0,
+            interbank: 0,
+            otros: 0,
+        };
 
-    <script>
-        function calcularTotalCierre() {
+        function calcularTotalManual() {
             let total = 0;
 
+            // Pagos físicos
             document.querySelectorAll('.cantidad-cierre').forEach(input => {
                 const valor = parseFloat(input.dataset.valor);
                 const cantidad = parseInt(input.value) || 0;
                 total += valor * cantidad;
             });
 
-            const yape = parseFloat(document.getElementById('monto_yape').value) || 0;
-            const plin = parseFloat(document.getElementById('monto_plin').value) || 0;
-            const bbva = parseFloat(document.getElementById('monto_bbva').value) || 0;
-            const interbank = parseFloat(document.getElementById('monto_interbank').value) || 0;
-            const otros = parseFloat(document.getElementById('monto_otros').value) || 0;
-
-            total += yape + plin + bbva + interbank + otros;
+            // Pagos electrónicos
+            for (const key in montosElectronicos) {
+                total += montosElectronicos[key];
+            }
 
             document.getElementById('totalMostrarCierre').textContent = `S/ ${total.toFixed(2)}`;
             document.getElementById('monto_cierre').value = total.toFixed(2);
-
-            return true;
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const montosGuardados = localStorage.getItem('montosElectronicos');
+            if (montosGuardados) {
+                montosElectronicos = JSON.parse(montosGuardados);
+                calcularTotalManual();
+            }
+
+            // Restaurar cantidades físicas
+            const cantidadesGuardadas = JSON.parse(localStorage.getItem('cantidadesFisicas'));
+            if (cantidadesGuardadas) {
+                document.querySelectorAll('.cantidad-cierre').forEach((input, index) => {
+                    if (cantidadesGuardadas.hasOwnProperty(index)) {
+                        input.value = cantidadesGuardadas[index];
+                    }
+                });
+            }
+
+
+            // Escuchar click en los botones "+"
+            document.querySelectorAll('.btn-agregar-monto').forEach(boton => {
+                boton.addEventListener('click', function() {
+                    const inputId = this.dataset.id;
+                    const input = document.getElementById(inputId);
+                    const valor = parseFloat(input.value);
+
+                    if (!valor || valor <= 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Monto inválido',
+                            text: 'Ingresa un monto mayor a cero.',
+                            confirmButtonColor: '#f39c12'
+                        });
+                        return;
+                    }
+
+                    const tipo = inputId.replace('monto_', '');
+                    montosElectronicos[tipo] += valor;
+                    localStorage.setItem('montosElectronicos', JSON.stringify(montosElectronicos));
+
+                    input.value = '';
+                    calcularTotalManual();
+                });
+            });
+
+            // Escuchar cambios en monedas/billetes
+            document.querySelectorAll('.cantidad-cierre').forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    const cantidades = JSON.parse(localStorage.getItem('cantidadesFisicas')) || {};
+                    cantidades[index] = this.value;
+                    localStorage.setItem('cantidadesFisicas', JSON.stringify(cantidades));
+
+                    calcularTotalManual();
+                });
+            });
+
+        });
     </script>
 
     <script>
@@ -323,8 +391,8 @@
             const toggle = document.getElementById('togglePagos');
             const seccionFisicos = document.getElementById('seccionPagosFisicos');
             const seccionElectronicos = document.getElementById('seccionPagosElectronicos');
-            const labelSuperior = document.getElementById('toggleLabel'); // Texto tipo "Modo: Pagos Físicos"
-            const labelSwitch = document.querySelector('label[for="togglePagos"]'); // Texto al lado del switch
+            const labelSuperior = document.getElementById('toggleLabel');
+            const labelSwitch = document.querySelector('label[for="togglePagos"]');
 
             function actualizarToggle() {
                 if (toggle.checked) {
@@ -339,20 +407,21 @@
                     if (labelSwitch) labelSwitch.textContent = 'Mostrar Pagos No Físicos';
                 }
 
-                calcularTotalCierre(); // Para que actualice el total automáticamente
+                calcularTotalManual();
             }
 
             toggle.addEventListener('change', actualizarToggle);
-            actualizarToggle(); // Llamada inicial por si quieres que detecte el estado al cargar
+            actualizarToggle();
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const btnCerrar = document.getElementById('btnCerrarCaja');
             const formCierre = document.getElementById('formCierreCaja');
 
             btnCerrar.addEventListener('click', function() {
-                calcularTotalCierre(); // actualiza el monto antes de confirmar
+                calcularTotalManual();
 
                 Swal.fire({
                     title: '¿Estás seguro de cerrar la caja?',
@@ -365,11 +434,36 @@
                     cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        // 🧼 Limpiar datos locales
+                        localStorage.removeItem('montosElectronicos');
+                        localStorage.removeItem('cantidadesFisicas');
+
                         formCierre.submit();
                     }
                 });
             });
+
         });
+    </script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#198754'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Atención',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#dc3545'
+            });
+        @endif
     </script>
 
 @endsection

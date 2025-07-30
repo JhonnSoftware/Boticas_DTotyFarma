@@ -118,10 +118,7 @@
                         <div class="d-flex align-items-center mb-4">
                             <h4 class="card-title" style="font-size: 24px;">Lista de Productos</h4>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="entries-info">
-                                Showing 10 entries
-                            </div>
+                        <div class="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
                                 <div class="input-group">
@@ -135,6 +132,29 @@
                                         </button>
                                     </form>
                                 </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                        id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="padding: 15px; border-radius: 10px;">
+                                        <i class="fas fa-download me-1"></i> Exportar
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('productos.exportar', ['formato' => 'pdf']) }}">
+                                                <i class="far fa-file-pdf me-2 text-danger"></i>Exportar PDF</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('productos.exportar', ['formato' => 'xlsx']) }}">
+                                                <i class="far fa-file-excel me-2 text-success"></i>Exportar Excel</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('productos.exportar', ['formato' => 'csv']) }}">
+                                                <i class="fas fa-file-csv me-2 text-primary"></i>Exportar CSV</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('productos.exportar', ['formato' => 'txt']) }}">
+                                                <i class="far fa-file-alt me-2 text-muted"></i>Exportar TXT</a></li>
+                                    </ul>
+                                </div>
+
+
                                 <button class="btnAgregarProducto"
                                     style="white-space: nowrap; border: 1px solid #2275fc; border-radius: 10px; color: #2275fc; background: #fff; padding:15px; transition: background-color 0.3s ease, color 0.3s ease;"
                                     data-bs-toggle="modal" data-bs-target="#nuevoProducto">
@@ -182,13 +202,16 @@
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->laboratorio }}</td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->lote }}</td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}</td>
+                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}
+                                            </td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descuento }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->fecha_vencimiento }}
+                                            <td class="border-top-0 text-dark px-2 py-4">
+                                                {{ $producto->fecha_vencimiento }}
                                             </td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_compra }}
                                             </td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_venta }}</td>
+                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_venta }}
+                                            </td>
                                             <td>
                                                 <img src="{{ url($producto->foto) }}" alt="Foto del producto"
                                                     width="70">
@@ -203,7 +226,8 @@
                                                 </span>
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-                                                <a href="#" class="text-primary me-2"><i data-feather="eye"></i></a>
+                                                <a href="#" class="text-primary me-2"><i
+                                                        data-feather="eye"></i></a>
 
                                                 <a href="#" class="text-success" data-bs-toggle="modal"
                                                     data-bs-target="#editarProducto{{ $producto->id }}">

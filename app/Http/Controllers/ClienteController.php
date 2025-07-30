@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Clientes;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ClientesExport;
 
 class ClienteController extends Controller
 {
@@ -44,7 +47,7 @@ class ClienteController extends Controller
             'telefono' => 'nullable|digits:9',
             'direccion' => 'nullable|string|max:255',
             'estado' => 'required|in:Activo,Inactivo',
-        ],[
+        ], [
             'dni.unique' => 'Ya existe un cliente con este DNI.',
             'telefono.digits' => 'El número de teléfono debe tener exactamente 9 dígitos.',
         ]);
@@ -69,7 +72,7 @@ class ClienteController extends Controller
             'apellidos' => 'nullable|string|max:100',
             'telefono' => 'nullable|digits:9',
             'direccion' => 'nullable|string|max:255',
-        ],[
+        ], [
             'dni.unique' => 'Ya existe un cliente con este DNI.',
             'telefono.digits' => 'El número de teléfono debe tener exactamente 9 dígitos.',
         ]);
@@ -86,7 +89,7 @@ class ClienteController extends Controller
 
         return redirect()->route('clientes.index')->with('success', 'Cliente actualizado correctamente.');
     }
-    
+
     public function activar($id)
     {
         $cliente = Clientes::findOrFail($id);
@@ -105,5 +108,33 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')->with('success', 'Cliente desactivado correctamente.');
     }
 
+    public function exportar($formato)
+    {
+        $clientes = Clientes::all();
 
+        switch ($formato) {
+            case 'pdf':
+                $pdf = Pdf::loadView('exportaciones.clientes_pdf', compact('clientes'));
+                return $pdf->download('clientes.pdf');
+
+            case 'xlsx':
+                return Excel::download(new ClientesExport, 'clientes.xlsx');
+
+            case 'csv':
+                return Excel::download(new ClientesExport, 'clientes.csv');
+
+            case 'txt':
+                $contenido = '';
+                foreach ($clientes as $cliente) {
+                    $contenido .= "{$cliente->dni}\t{$cliente->nombre}\t{$cliente->apellidos}\t{$cliente->telefono}\t{$cliente->direccion}\t{$cliente->estado}\n";
+                }
+
+                return response($contenido)
+                    ->header('Content-Type', 'text/plain')
+                    ->header('Content-Disposition', 'attachment; filename="clientes.txt"');
+
+            default:
+                return back()->with('error', 'Formato no válido.');
+        }
+    }
 }

@@ -66,6 +66,7 @@ class CajaController extends Controller
 
         return redirect()->route('caja.apertura.form')->with('success', 'Caja cerrada correctamente.');
     }
+
     public function listarCajas()
     {
         $cajas = Cajas::where('usuario_id', auth()->id())
@@ -89,6 +90,29 @@ class CajaController extends Controller
 
         $cajas = $query->orderBy('fecha_apertura', 'desc')->get();
 
-        return view('admin.cajas.listado', compact('cajas'));
+        // Verifica si la petición es AJAX y devuelve solo el fragmento
+        if ($request->ajax()) {
+            return view('cajas.partials.tabla', compact('cajas'));
+        }
+
+        // Si no es AJAX, devuelve la vista principal
+        return view('cajas.listado', compact('cajas'));
+    }
+
+    public function buscar(Request $request)
+    {
+        $query = Cajas::where('usuario_id', auth()->id());
+
+        if ($request->filled('fecha')) {
+            $fecha = $request->fecha;
+            $query->whereBetween('fecha_apertura', [
+                $fecha . ' 00:00:00',
+                $fecha . ' 23:59:59',
+            ]);
+        }
+
+        $cajas = $query->orderBy('fecha_apertura', 'desc')->get();
+
+        return view('cajas.partials.tabla', compact('cajas'));
     }
 }

@@ -7,6 +7,9 @@ use App\Models\Productos;
 use App\Models\Proveedores;
 use App\Models\Categorias;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\ProductosExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductoController extends Controller
 {
@@ -184,5 +187,50 @@ class ProductoController extends Controller
     {
         $productos = Productos::with('categoria', 'proveedor')->get(); // ← Eager loading
         return view('productos.detalleProductos', compact('productos'));
+    }
+
+    public function exportar($formato)
+    {
+        $productos = Productos::with(['proveedor', 'categoria'])->get();
+
+        if ($formato === 'pdf') {
+            $pdf = Pdf::loadView('exportaciones.productos_pdf', compact('productos'));
+            return $pdf->download('productos.pdf');
+        }
+
+        if ($formato === 'xlsx') {
+            return Excel::download(new ProductosExport, 'productos.xlsx');
+        }
+
+        if ($formato === 'csv') {
+            return Excel::download(new ProductosExport, 'productos.csv');
+        }
+
+        if ($formato === 'txt') {
+            $contenido = '';
+            foreach ($productos as $p) {
+                $contenido .= implode("\t", [
+                    $p->codigo,
+                    $p->descripcion,
+                    $p->presentacion,
+                    $p->laboratorio,
+                    $p->lote,
+                    $p->cantidad,
+                    $p->stock_minimo,
+                    $p->descuento,
+                    $p->fecha_vencimiento,
+                    $p->precio_compra,
+                    $p->precio_venta,
+                    optional($p->proveedor)->nombre,
+                    optional($p->categoria)->nombre,
+                    $p->estado
+                ]) . "\n";
+            }
+            return response($contenido)
+                ->header('Content-Type', 'text/plain')
+                ->header('Content-Disposition', 'attachment; filename="productos.txt"');
+        }
+
+        return back()->with('error', 'Formato no válido.');
     }
 }
