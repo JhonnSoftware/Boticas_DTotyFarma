@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\GenericoController;
+use App\Http\Controllers\ClaseController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\TipoPagoController;
@@ -30,7 +32,7 @@ use App\Http\Controllers\AlertaController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -74,6 +76,24 @@ Route::middleware('auth')->group(function () {
         Route::put('categorias/{id}', 'actualizar')->name('categorias.actualizar');
     });
 
+    Route::middleware('permiso:clases')->controller(ClaseController::class)->group(function () {
+        Route::get('clases', 'index')->name('clases.index');
+        Route::post('clases', 'store')->name('clases.store');
+        Route::get('clases/buscar', 'buscar')->name('clases.buscar');
+        Route::put('clases/{id}/desactivar', 'desactivar')->name('clases.desactivar');
+        Route::put('clases/{id}/activar', 'activar')->name('clases.activar');
+        Route::put('clases/{id}', 'actualizar')->name('clases.actualizar');
+    });
+
+    Route::middleware('permiso:genericos')->controller(GenericoController::class)->group(function () {
+        Route::get('genericos', 'index')->name('genericos.index');
+        Route::post('genericos', 'store')->name('genericos.store');
+        Route::get('genericos/buscar', 'buscar')->name('genericos.buscar');
+        Route::put('genericos/{id}/desactivar', 'desactivar')->name('genericos.desactivar');
+        Route::put('genericos/{id}/activar', 'activar')->name('genericos.activar');
+        Route::put('genericos/{id}', 'actualizar')->name('genericos.actualizar');
+    });
+
     Route::middleware('permiso:proveedores')->controller(ProveedorController::class)->group(function () {
         Route::get('proveedores', 'index')->name('proveedores.index');
         Route::post('proveedores', 'store')->name('proveedores.store');
@@ -109,7 +129,9 @@ Route::middleware('auth')->group(function () {
         Route::put('productos/{id}/desactivar', 'desactivar')->name('productos.desactivar');
         Route::put('productos/{id}/activar', 'activar')->name('productos.activar');
         Route::put('productos/{id}', 'actualizar')->name('productos.actualizar');
+        Route::get('productos/{id}/edit-partial', 'editPartial')->name('productos.edit-partial');
         Route::get('detalleProductos', 'detalle')->name('productos.detalle');
+        Route::get('tablaProductos', 'tablaProductos')->name('productos.tablaProductos');
         Route::get('productos/exportar/{formato}', 'exportar')->name('productos.exportar');
     });
 
@@ -120,7 +142,6 @@ Route::middleware('auth')->group(function () {
         Route::get('ventas/voucher/{id}', 'voucher')->name('ventas.voucher');
         Route::get('ventas/buscar', 'buscar')->name('ventas.buscar');
         Route::get('ventas/exportar/{formato}', 'exportar')->name('ventas.exportar');
-
     });
 
     Route::middleware('permiso:compras')->controller(ComprasController::class)->group(function () {

@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('alertas', function (Blueprint $table) {
+        Schema::create('clases', function (Blueprint $table) {
             $table->id();
-            $table->string('referencia')->nullable()->unique();
-            $table->unsignedBigInteger('id_producto')->nullable()->index();
-            $table->string('titulo');
-            $table->text('mensaje');
-            $table->boolean('leido')->default(false);
+            $table->string('nombre');
+            $table->string('estado')->default('Activo');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('alertas');
+        Schema::dropIfExists('clases');
     }
 };

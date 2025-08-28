@@ -1,8 +1,25 @@
 @extends('layouts.plantilla')
 
 @section('content')
+    <style>
+        <style>tr.stock-zero {
+            background: #fdecea !important;
+        }
+
+        tr.stock-zero td {
+            color: #e81328;
+        }
+
+        tr.stock-zero img {
+            filter: grayscale(100%);
+            opacity: .8;
+        }
+    </style>
+
+
     <div class="container-fluid py-4">
         <div class="row g-4">
+
             <!-- Panel Registro de Venta -->
             <div class="col-md-7">
                 <div class="card shadow-lg border-0 rounded-4">
@@ -61,6 +78,7 @@
                                     <thead style="background-color: #25A6D9; color: white;">
                                         <tr>
                                             <th>Producto</th>
+                                            <th>Presentación</th>
                                             <th>Cant.</th>
                                             <th>Precio</th>
                                             <th>Desc.</th>
@@ -119,7 +137,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <!-- Panel Productos -->
             <div class="col-md-5">
                 <div class="card shadow-lg border-0 rounded-4">
@@ -144,30 +162,98 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($productos as $producto)
-                                        <tr data-nombre="{{ strtolower($producto->descripcion) }}"
+                                        @php
+                                            $totalUnidades = (int) ($producto->cantidad ?? 0);
+
+                                            $upb = $producto->unidades_por_blister
+                                                ? (int) $producto->unidades_por_blister
+                                                : null; // unidades x blister
+                                            $uxc = $producto->unidades_por_caja
+                                                ? (int) $producto->unidades_por_caja
+                                                : null; // unidades x caja
+
+                                            // Cajas disponibles y unidades sueltas SIN romper cajas
+                                            if ($uxc && $uxc > 0) {
+                                                $cajas = intdiv($totalUnidades, $uxc);
+                                                $sueltas = $totalUnidades % $uxc;
+                                            } else {
+                                                $cajas = null; // si no hay ratio de caja, no mostramos cajas
+                                                $sueltas = $totalUnidades; // todo es suelto
+                                            }
+
+                                            // Blísteres disponibles SOLO desde sueltas (no “romper” cajas)
+                                            if ($upb && $upb > 0) {
+                                                $blisters = intdiv($sueltas, $upb);
+                                            } else {
+                                                $blisters = null; // no maneja blister
+                                            }
+
+                                            $dispU = $sueltas > 0;
+                                            $dispB = !is_null($blisters) && $blisters > 0;
+                                            $dispC = !is_null($cajas) && $cajas > 0;
+                                            $sinStockTotal = !$dispU && !$dispB && !$dispC;
+                                        @endphp
+
+
+                                        <tr class="{{ $totalUnidades == 0 ? 'stock-zero' : '' }}"
+                                            data-nombre="{{ strtolower($producto->descripcion) }}"
                                             data-presentacion="{{ strtolower($producto->presentacion) }}"
                                             data-laboratorio="{{ strtolower($producto->laboratorio) }}"
-                                            data-categoria="{{ strtolower($producto->categoria ?? '') }}">
+                                            data-categoria="{{ strtolower($producto->categorias->pluck('nombre')->implode(', ') ?? '') }}">
+
                                             <td>
                                                 <button type="button"
                                                     class="btn btn-outline-primary btn-sm agregar-producto"
                                                     data-id="{{ $producto->id }}"
                                                     data-nombre="{{ $producto->descripcion }}"
-                                                    data-precio="{{ $producto->precio_venta }}">
+                                                    data-precio-u="{{ $producto->precio_venta ?? '' }}"
+                                                    data-precio-b="{{ $producto->precio_venta_blister ?? '' }}"
+                                                    data-precio-c="{{ $producto->precio_venta_caja ?? '' }}"
+                                                    data-descpct-u="{{ $producto->descuento ?? 0 }}"
+                                                    data-descpct-b="{{ $producto->descuento_blister ?? 0 }}"
+                                                    data-descpct-c="{{ $producto->descuento_caja ?? 0 }}"
+                                                    {{-- ⬅️ AQUÍ el cambio: unidades totales, no sueltas --}}
+                                                    data-stock-u="{{ (int) ($producto->cantidad ?? 0) }}"
+                                                    {{-- Blíster y caja puedes dejarlos como los tenías --}} data-stock-b="{{ $dispB ? $blisters : '' }}"
+                                                    data-stock-c="{{ $dispC ? $cajas : '' }}"
+                                                    {{ $sinStockTotal ? 'disabled' : '' }}>
                                                     <i data-feather="plus-circle"></i>
                                                 </button>
+
                                             </td>
+
                                             <td class="info-producto">{{ $producto->descripcion }}</td>
                                             <td>{{ $producto->presentacion }}</td>
+
                                             <td>
-                                                <span
-                                                    class="badge {{ $producto->cantidad <= 10 ? 'bg-danger' : 'bg-success' }}">
-                                                    {{ $producto->cantidad }}
-                                                </span>
+                                                {{-- Mostrar “cajas + sueltas” para que sea claro --}}
+                                                @if ($uxc)
+                                                    <div class="small">
+                                                        <span
+                                                            class="badge {{ $cajas > 0 ? 'bg-success' : 'bg-secondary' }}">Cj:
+                                                            {{ $cajas }}</span>
+                                                        <span
+                                                            class="badge {{ $sueltas > 0 ? 'bg-success' : 'bg-danger' }}">U:
+                                                            {{ $sueltas }}</span>
+                                                        @if (!is_null($blisters))
+                                                            <span
+                                                                class="badge {{ $blisters > 0 ? 'bg-success' : 'bg-secondary' }}">Bl:
+                                                                {{ $blisters }}</span>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <div class="small">
+                                                        <span
+                                                            class="badge {{ $sueltas > 0 ? 'bg-success' : 'bg-danger' }}">U:
+                                                            {{ $sueltas }}</span>
+                                                    </div>
+                                                @endif
                                             </td>
+
                                             <td>
-                                                <img src="{{ url($producto->foto) }}" alt="imagen"
-                                                    class="rounded-circle shadow-sm" width="40" height="40">
+                                                <img src="{{ url($producto->foto) }}" alt="imagen" width="40"
+                                                    height="40"
+                                                    onerror="this.src='{{ asset('imagenes/producto_defecto.jpg') }}'">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -178,6 +264,7 @@
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 @endsection
@@ -231,103 +318,233 @@
             buscador.addEventListener("keyup", function() {
                 let filtro = this.value.toLowerCase();
                 let filas = document.querySelectorAll("#tablaProductos tbody tr");
-
                 filas.forEach(fila => {
                     let texto = fila.querySelector(".info-producto")?.innerText.toLowerCase() || "";
                     fila.style.display = texto.includes(filtro) ? "" : "none";
                 });
             });
 
-            // Agregar producto a la tabla de venta
+            // ===== Helpers por presentación =====
+            function getPrecio(btn, pres) {
+                if (pres === 'unidad') return parseFloat(btn.dataset.precioU || '0') || 0;
+                if (pres === 'blister') return parseFloat(btn.dataset.precioB || '0') || 0;
+                if (pres === 'caja') return parseFloat(btn.dataset.precioC || '0') || 0;
+                return 0;
+            }
+
+            function getDescPct(btn, pres) {
+                if (pres === 'unidad') return parseFloat(btn.dataset.descpctU || '0') || 0;
+                if (pres === 'blister') return parseFloat(btn.dataset.descpctB || '0') || 0;
+                if (pres === 'caja') return parseFloat(btn.dataset.descpctC || '0') || 0;
+                return 0;
+            }
+
+            function getStock(btn, pres) {
+                if (pres === 'unidad') return parseInt(btn.dataset.stockU || '0', 10) || 0;
+                if (pres === 'blister') return parseInt(btn.dataset.stockB || '0', 10) || 0;
+                if (pres === 'caja') return parseInt(btn.dataset.stockC || '0', 10) || 0;
+                return 0;
+            }
+
+            function primeraPresentacionDisponible(btn) {
+                if (getStock(btn, 'unidad') > 0) return 'unidad';
+                if (getStock(btn, 'blister') > 0) return 'blister';
+                if (getStock(btn, 'caja') > 0) return 'caja';
+                return 'unidad';
+            }
+
+            // ===== Agregar producto a la venta =====
             document.addEventListener("click", function(e) {
-                if (e.target.closest(".agregar-producto")) {
-                    const btn = e.target.closest(".agregar-producto");
-                    const id = btn.dataset.id;
-                    const nombre = btn.dataset.nombre;
-                    const precio = parseFloat(btn.dataset.precio).toFixed(2);
+                if (!e.target.closest(".agregar-producto")) return;
 
-                    const tabla = document.querySelector("#tablaVenta tbody");
-                    const filaExistente = tabla.querySelector(`tr[data-id='${id}']`);
+                const btn = e.target.closest(".agregar-producto");
+                const id = btn.dataset.id;
+                const nombre = btn.dataset.nombre;
+                const tabla = document.querySelector("#tablaVenta tbody");
+                const filaExistente = tabla.querySelector(`tr[data-id='${id}']`);
 
-                    if (filaExistente) {
-                        // Ya existe el producto: sumar cantidad
-                        const cantidadInput = filaExistente.querySelector(".cantidad");
-                        cantidadInput.value = parseInt(cantidadInput.value) + 1;
-                    } else {
-                        // Agregar nueva fila
-                        const fila = `
-                <tr data-id="${id}">
-                    <td>
-                        <input type="hidden" name="productos[]" value="${id}">
-                        ${nombre}
-                    </td>
-                    <td>
-                        <input type="number" name="cantidades[]" class="form-control cantidad" value="1" min="1">
-                    </td>
-                    <td>
-                        <input type="number" name="precios[]" class="form-control precio" value="${precio}" step="0.01">
-                    </td>
-                    <td>
-                        <input type="number" name="descuentos[]" class="form-control descuento" value="0" step="0.01">
-                    </td>
-                    <td>
-                        <span class="subtotal">${precio}</span>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm eliminar-producto">
-                            <i data-feather="trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-                        tabla.insertAdjacentHTML("beforeend", fila);
-                        feather.replace();
+                const allZero = getStock(btn, 'unidad') === 0 && getStock(btn, 'blister') === 0 && getStock(
+                    btn, 'caja') === 0;
+                if (allZero) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Sin stock',
+                        text: 'Este producto está agotado en todas las presentaciones.'
+                    });
+                    return;
+                }
+
+                // Si ya está, solo aumenta cantidad respetando stock de la presentación seleccionada
+                if (filaExistente) {
+                    const cantidadInput = filaExistente.querySelector(".cantidad");
+                    const pres = filaExistente.querySelector(".presentacion").value;
+                    const stock = getStock(btn, pres);
+                    const nueva = (parseInt(cantidadInput.value || "0", 10) + 1);
+                    if (nueva > stock) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock insuficiente',
+                            text: `Solo hay ${stock} en stock (${pres}).`
+                        });
+                        return;
                     }
-
-                    // Desactivar el botón agregar para evitar duplicados
-                    btn.disabled = true;
-
-                    calcularTotales();
+                    cantidadInput.value = nueva;
+                    cantidadInput.dispatchEvent(new Event("input", {
+                        bubbles: true
+                    }));
+                    return;
                 }
+
+                // Nueva fila
+                const presDefault = primeraPresentacionDisponible(btn);
+                const precioUnit = getPrecio(btn, presDefault);
+                const descPct = getDescPct(btn, presDefault);
+                const cantidadIni = 1;
+                const descLinea = cantidadIni * precioUnit * (descPct / 100);
+                const subtotal = (cantidadIni * precioUnit) - descLinea;
+
+                const opts = [];
+                opts.push(
+                    `<option value="unidad" ${getStock(btn,'unidad')>0?'':'disabled'} ${presDefault==='unidad'?'selected':''}>Unidad</option>`
+                );
+                opts.push(
+                    `<option value="blister" ${getStock(btn,'blister')>0?'':'disabled'} ${presDefault==='blister'?'selected':''}>Blíster</option>`
+                );
+                opts.push(
+                    `<option value="caja" ${getStock(btn,'caja')>0?'':'disabled'} ${presDefault==='caja'?'selected':''}>Caja</option>`
+                );
+
+                const fila = `
+      <tr data-id="${id}">
+        <td>
+          <input type="hidden" name="productos[]" value="${id}">
+          ${nombre}
+        </td>
+
+        <td>
+          <select name="unidades_venta[]" class="form-select form-select-sm presentacion">
+            ${opts.join('')}
+          </select>
+          <div class="form-text small text-muted stock-pres">Stock: ${getStock(btn, presDefault)}</div>
+        </td>
+
+        <td>
+          <input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*">
+        </td>
+
+        <td>
+          <input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly>
+        </td>
+
+        <td>
+          <!-- Descuento MONTO de la línea (lo que espera el backend en descuentos[]) -->
+          <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${descLinea.toFixed(2)}" step="0.01" readonly>
+          <div class="form-text small text-muted">(-${descPct}%)</div>
+        </td>
+
+        <td><span class="subtotal">${subtotal.toFixed(2)}</span></td>
+
+        <td>
+          <button type="button" class="btn btn-danger btn-sm eliminar-producto">
+            <i data-feather="trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+                tabla.insertAdjacentHTML("beforeend", fila);
+                feather.replace();
+
+                // Evita duplicados: mismo producto no puede añadirse dos veces
+                btn.disabled = true;
+
+                window.calcularTotales();
             });
 
-
-            // Eliminar producto de tabla
-            document.addEventListener("click", function(e) {
-                if (e.target.closest(".eliminar-producto")) {
-                    e.target.closest("tr").remove();
-                    calcularTotales();
-                }
-            });
-
-            // Actualizar totales al modificar cantidad/precio/descuento
+            // Recalcular cuando cambia presentación o cantidad
             document.addEventListener("input", function(e) {
-                if (e.target.matches(".cantidad, .precio, .descuento")) {
+                if (e.target.matches(".cantidad")) {
                     const fila = e.target.closest("tr");
-                    const cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
-                    const precio = parseFloat(fila.querySelector(".precio").value) || 0;
-                    const descuento = parseFloat(fila.querySelector(".descuento").value) || 0;
-                    const subtotal = (cantidad * precio) - descuento;
-                    fila.querySelector(".subtotal").textContent = subtotal.toFixed(2);
-                    calcularTotales();
+                    recalcFila(fila);
+                }
+            });
+            document.addEventListener("change", function(e) {
+                if (e.target.matches(".presentacion")) {
+                    const fila = e.target.closest("tr");
+                    recalcFila(fila);
                 }
             });
 
-            function calcularTotales() {
+            function recalcFila(fila) {
+                const id = fila.getAttribute("data-id");
+                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
+                const pres = fila.querySelector(".presentacion").value;
+
+                const stock = getStock(btn, pres);
+                const qtyInp = fila.querySelector(".cantidad");
+                let qty = parseInt(qtyInp.value || "0", 10) || 0;
+
+                if (qty < 1) qty = 1;
+                if (qty > stock) {
+                    qty = stock;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stock insuficiente',
+                        text: `Disponible: ${stock} (${pres}).`
+                    });
+                }
+                qtyInp.value = qty;
+
+                const precioUnit = getPrecio(btn, pres);
+                const descPct = getDescPct(btn, pres);
+                const descLinea = qty * precioUnit * (descPct / 100);
+                const subtotal = (qty * precioUnit) - descLinea;
+
+                fila.querySelector(".precio").value = precioUnit.toFixed(2);
+                fila.querySelector(".descuento-linea").value = descLinea.toFixed(2);
+                fila.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+                fila.querySelector(".stock-pres").textContent = `Stock: ${stock}`;
+
+                window.calcularTotales();
+            }
+
+            // Eliminar producto
+            document.addEventListener("click", function(e) {
+                if (!e.target.closest(".eliminar-producto")) return;
+                const fila = e.target.closest("tr");
+                const id = fila.getAttribute("data-id");
+                fila.remove();
+
+                // Rehabilita el botón en la lista de productos
+                const botonAgregar = document.querySelector(`.agregar-producto[data-id='${id}']`);
+                if (botonAgregar) botonAgregar.disabled = false;
+
+                window.calcularTotales();
+            });
+
+            // Función global de totales para usarla desde otros scripts también
+            window.calcularTotales = function() {
                 let total = 0;
                 document.querySelectorAll(".subtotal").forEach(s => {
                     total += parseFloat(s.textContent) || 0;
                 });
-
                 document.getElementById("subtotal").textContent = `S/ ${total.toFixed(2)}`;
                 document.getElementById("igv").textContent = `S/ 0.00`;
                 document.getElementById("total").textContent = `S/ ${total.toFixed(2)}`;
-            }
+            };
 
-            // Renderiza íconos feather al cargar la vista por primera vez
+            // Validación numérica en cantidades (solo enteros >=1)
+            document.addEventListener("keydown", function(e) {
+                const el = e.target;
+                if (el.classList && el.classList.contains("cantidad")) {
+                    const invalid = ["-", "+", "e", "E", ".", ","];
+                    if (invalid.includes(e.key)) e.preventDefault();
+                }
+            });
+
             feather.replace();
         });
     </script>
+
 
     <script>
         // Validar antes de enviar: que haya al menos un producto en la tabla
@@ -387,9 +604,10 @@
                 }
 
                 // Validar que descuento ≤ precio por fila
+                // Validar que descuento ≤ precio por fila
                 document.querySelectorAll("#tablaVenta tbody tr").forEach(fila => {
                     const precioInput = fila.querySelector(".precio");
-                    const descuentoInput = fila.querySelector(".descuento");
+                    const descuentoInput = fila.querySelector(".descuento-linea");
 
                     const precio = parseFloat(precioInput.value) || 0;
                     const descuento = parseFloat(descuentoInput.value) || 0;
@@ -410,6 +628,7 @@
                         if (feedback) feedback.remove();
                     }
                 });
+
 
                 if (!isValid) {
                     event.preventDefault();

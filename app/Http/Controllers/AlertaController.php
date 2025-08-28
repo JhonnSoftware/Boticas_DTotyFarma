@@ -26,13 +26,13 @@ class AlertaController extends Controller
         return redirect()->back()->with('success', 'Alerta marcada como leída.');
     }
 
+    /*
     public function generarAlertasManual()
     {
         $this->generarAlertas(); // llama a tu lógica ya implementada
 
         return redirect()->back()->with('success', '🔔 Alertas generadas manualmente.');
     }
-
 
     public function generarAlertas()
     {
@@ -63,18 +63,6 @@ class AlertaController extends Controller
             ]);
         }
 
-        // 4. Productos sin movimiento en 60 días
-        $productosSinMovimiento = Productos::whereDoesntHave('detalleVentas', function ($q) {
-            $q->where('created_at', '>=', now()->subDays(60));
-        })->get();
-
-        foreach ($productosSinMovimiento as $producto) {
-            Alertas::firstOrCreate([
-                'titulo' => 'Producto sin movimiento',
-                'mensaje' => "El producto {$producto->descripcion} no tiene ventas en los últimos 60 días.",
-            ]);
-        }
-
         // 5. Caja sin apertura hoy
         $aperturaHoy = Cajas::whereDate('fecha_apertura', today())->exists();
         if (!$aperturaHoy) {
@@ -95,4 +83,5 @@ class AlertaController extends Controller
 
         return redirect()->back()->with('success', 'Alertas generadas correctamente.');
     }
+    */
 }

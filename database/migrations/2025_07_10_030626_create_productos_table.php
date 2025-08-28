@@ -13,21 +13,57 @@ return new class extends Migration
     {
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo');
+            // Identificación
+            $table->string('codigo')->unique();
             $table->text('descripcion');
+
+            // Atributos base
             $table->string('presentacion');
             $table->string('laboratorio');
+
+            // Lote y vencimiento
             $table->integer('lote');
-            $table->integer('cantidad')->default(0);
-            $table->integer('stock_minimo');
-            $table->decimal('descuento');
             $table->date('fecha_vencimiento');
-            $table->decimal('precio_compra', 8, 2);
-            $table->decimal('precio_venta', 8, 2);
-            $table->string('foto');
+
+            // Stock 
+            $table->unsignedInteger('cantidad')->default(0);
+            $table->unsignedInteger('cantidad_blister')->nullable()->default(null);
+            $table->unsignedInteger('cantidad_caja')->nullable()->default(null);
+
+            //Stock Minimo
+            $table->unsignedInteger('stock_minimo')->default(0);
+            $table->unsignedInteger('stock_minimo_blister')->nullable()->default(0);
+            $table->unsignedInteger('stock_minimo_caja')->nullable()->default(0);
+
+            // Descuento unitario (si aplica)
+            $table->decimal('descuento', 10, 2)->nullable();   // ej. 10 = 10% o S/10
+            $table->decimal('descuento_blister', 10, 2)->nullable();  // null = no aplica
+            $table->decimal('descuento_caja', 10, 2)->nullable();
+
+            // Precios de compra
+            $table->decimal('precio_compra', 12, 2);
+            $table->decimal('precio_compra_blister', 12, 2)->nullable();
+            $table->decimal('precio_compra_caja', 12, 2)->nullable();
+
+            // Precios de venta
+            $table->decimal('precio_venta', 12, 2); // unidad
+            $table->decimal('precio_venta_blister', 12, 2)->nullable();
+            $table->decimal('precio_venta_caja', 12, 2)->nullable();
+
+            // Imagen
+            $table->string('foto')->nullable();
+
+            // Otras relaciones
             $table->foreignId('id_proveedor')->constrained('proveedores');
-            $table->foreignId('id_categoria')->constrained('categorias');
-            $table->string('estado')->default('Activo'); // Activo por defecto
+            // $table->foreignId('id_categoria')->constrained('categorias');
+
+            // Relaciones con catálogos
+            $table->foreignId('id_clase')->nullable()->constrained('clases')->nullOnDelete();
+            $table->foreignId('id_generico')->nullable()->constrained('genericos')->nullOnDelete();
+
+            // Estado
+            $table->string('estado', 20)->default('Activo');
+
             $table->timestamps();
         });
     }

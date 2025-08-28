@@ -22,6 +22,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.6.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -161,6 +164,7 @@
                     <ul class="navbar-nav float-left mr-auto ml-3 pl-1">
                         <!-- Notification -->
                         <li class="nav-item dropdown">
+                            
                             <a class="nav-link dropdown-toggle pl-md-3 position-relative" href="javascript:void(0)"
                                 id="bell" role="button" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
@@ -169,6 +173,7 @@
                                     <span class="badge badge-danger notify-no rounded-circle">{{ $cantidad }}</span>
                                 @endif
                             </a>
+
                             <div class="dropdown-menu dropdown-menu-left mailbox animated bounceInDown">
                                 <ul class="list-style-none">
                                     <li>
@@ -266,7 +271,7 @@
                                         data-feather="chevron-down" class="svg-icon"></i></span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
-                                <!-- 
+                                <!--
                                 <a class="dropdown-item" href="javascript:void(0)"><i data-feather="user"
                                         class="svg-icon mr-2 ml-1"></i>
                                     My Profile</a>
@@ -279,14 +284,15 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="javascript:void(0)"><i data-feather="settings"
                                         class="svg-icon mr-2 ml-1"></i>
-                                    Account Setting</a> 
+                                    Account Setting</a>
                                 <div class="dropdown-divider"></div>-->
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i data-feather="power"
-                                        class="svg-icon mr-2 ml-1"></i>
+                                <a class="dropdown-item" href="javascript:void(0)"
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
+                                        data-feather="power" class="svg-icon mr-2 ml-1"></i>
                                     Salir
                                 </a>
-                            </a>
-                                 <!--  <div class="dropdown-divider"></div>
+                                </a>
+                                <!--  <div class="dropdown-divider"></div>
                                 <div class="pl-4 p-3"><a href="javascript:void(0)" class="btn btn-sm btn-info">View
                                         Profile</a></div>-->
                             </div>
@@ -404,11 +410,39 @@
                         </li>
 
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="{{ route('categorias.index') }}" aria-expanded="false">
-                                <i class="fa fa-layer-group"></i>
-                                <span class="hide-menu">Categorias</span>
+                            <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
+                                <i data-feather="package" class="feather-icon"></i>
+                                <span class="hide-menu">Catálogos</span>
                             </a>
+
+
+                            <ul aria-expanded="false" class="collapse first-level base-level-line">
+                                <li class="sidebar-item">
+                                    <a class="sidebar-link" href="{{ route('categorias.index') }}"
+                                        aria-expanded="false">
+                                        <i class="fa fa-layer-group"></i>
+                                        <span class="hide-menu">Categorías</span>
+                                    </a>
+                                </li>
+
+                                <li class="sidebar-item">
+                                    <a class="sidebar-link" href="{{ route('genericos.index') }}"
+                                        aria-expanded="false">
+                                        <i class="fa fa-pills"></i>
+                                        <span class="hide-menu">Genéricos</span>
+                                    </a>
+                                </li>
+
+                                <li class="sidebar-item">
+                                    <a class="sidebar-link" href="{{ route('clases.index') }}"
+                                        aria-expanded="false">
+                                        <i class="fa fa-sitemap"></i>
+                                        <span class="hide-menu">Clases</span>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
+
 
                         <li class="sidebar-item">
                             <a class="sidebar-link" href="{{ route('movimientos.index') }}" aria-expanded="false">
@@ -517,6 +551,7 @@
     <script src="{{ url('assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js') }}"></script>
     <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js') }}"></script>
     <script src="{{ url('assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url('dist/js/pages/dashboards/dashboard1.min.js') }}"></script>
 
     <script>

@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Voucher de Venta</title>
+    <link rel="icon" href="{{ asset('imagenes/logo_empresa.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('imagenes/logo_empresa.png') }}" type="image/png">
 
     <style>
         @page {

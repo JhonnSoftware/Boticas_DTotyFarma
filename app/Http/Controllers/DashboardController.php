@@ -19,6 +19,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // ===== Ventas por mes (6 últimos) =====
         $ventasPorMes = Ventas::select(
             DB::raw("DATE_FORMAT(fecha, '%Y-%m') as mes"),
             DB::raw("SUM(total) as total")
@@ -28,42 +29,31 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
 
-        $labels = $ventasPorMes->pluck('mes');   // ['2025-02', '2025-03', ...]
-        $data = $ventasPorMes->pluck('total');
+        $labels = $ventasPorMes->pluck('mes');
+        $data   = $ventasPorMes->pluck('total');
 
-        // Obtener productos más vendidos
+        // ===== Productos más vendidos =====
         $productosMasVendidos = DetalleVentas::select('id_producto', DB::raw('SUM(cantidad) as total_vendidos'))
             ->groupBy('id_producto')
             ->orderByDesc('total_vendidos')
-            ->take(5) // o 10 si deseas
+            ->take(5)
             ->get();
 
-        $productosNombres = $productosMasVendidos->map(function ($detalle) {
-            return $detalle->producto->descripcion ?? 'Producto Eliminado';
-        });
-
+        $productosNombres    = $productosMasVendidos->map(fn($d) => $d->producto->descripcion ?? 'Producto Eliminado');
         $productosCantidades = $productosMasVendidos->pluck('total_vendidos');
 
-
-        // Contar productos con stock bajo o crítico
-        $stockBajo = Productos::whereColumn('cantidad', '<', 'stock_minimo')->count();
-
-        // Contar productos con stock normal
+        // ===== Stock bajo / normal (solo unidades para mantener compatibilidad con tu UI actual) =====
+        $stockBajo   = Productos::whereColumn('cantidad', '<', 'stock_minimo')->count();
         $stockNormal = Productos::whereColumn('cantidad', '>=', 'stock_minimo')->count();
 
-        // (Opcional) total productos si lo necesitas en otra parte
-        $totalProductos = $stockBajo + $stockNormal;
-
-
-        // --- Ingresos vs Egresos (barras agrupadas) ---
-        $meses = collect([]);
+        // ===== Ingresos vs Egresos (6 últimos meses) =====
+        $meses    = collect([]);
         $ingresos = collect([]);
-        $egresos = collect([]);
+        $egresos  = collect([]);
 
         for ($i = 5; $i >= 0; $i--) {
             $mes = now()->subMonths($i)->format('Y-m');
-
-            $ventasMes = Ventas::where(DB::raw("DATE_FORMAT(fecha, '%Y-%m')"), $mes)->sum('total');
+            $ventasMes  = Ventas::where(DB::raw("DATE_FORMAT(fecha, '%Y-%m')"), $mes)->sum('total');
             $comprasMes = Compras::where(DB::raw("DATE_FORMAT(fecha, '%Y-%m')"), $mes)->sum('total');
 
             $meses->push(Carbon::createFromFormat('Y-m', $mes)->translatedFormat('F Y'));
@@ -71,22 +61,46 @@ class DashboardController extends Controller
             $egresos->push($comprasMes);
         }
 
-        // Conteo total de devoluciones por tipo
-        $devolucionesVentas = DevolucionesVentas::count();
+        // ===== Devoluciones y conteos =====
+        $devolucionesVentas  = DevolucionesVentas::count();
         $devolucionesCompras = DevolucionesCompras::count();
-        $cantidadVentas = Ventas::count();     // total de registros de ventas
-        $cantidadCompras = Compras::count();   // total de registros de compras
+        $cantidadVentas      = Ventas::count();
+        $cantidadCompras     = Compras::count();
 
-        // Top 5 productos con menos stock (activos o todos, tú decides)
-        $productosStockBajoTop = Productos::orderBy('cantidad', 'asc')
+        // ===== NUEVO: Top 5 productos con menor stock (considerando U/B/C) =====
+        // ratio_min: peor ratio contra mínimo entre U/B/C. Si no hay mínimo definido, lo ignora (empuja al final).
+        $productosStockBajoTop = Productos::select(
+            'id',
+            'descripcion',
+            'foto',
+            'cantidad',
+            'cantidad_blister',
+            'cantidad_caja',
+            'stock_minimo',
+            'stock_minimo_blister',
+            'stock_minimo_caja',
+            'fecha_vencimiento'
+        )
+            ->addSelect(DB::raw("
+            NULLIF(cantidad / NULLIF(stock_minimo, 0), NULL)                 as r_u,
+            NULLIF(cantidad_blister / NULLIF(stock_minimo_blister, 0), NULL) as r_b,
+            NULLIF(cantidad_caja / NULLIF(stock_minimo_caja, 0), NULL)       as r_c,
+            COALESCE(LEAST(
+                NULLIF(cantidad / NULLIF(stock_minimo, 0), NULL),
+                NULLIF(cantidad_blister / NULLIF(stock_minimo_blister, 0), NULL),
+                NULLIF(cantidad_caja / NULLIF(stock_minimo_caja, 0), NULL)
+            ), 9999) as ratio_min
+        "))
+            ->orderBy('ratio_min', 'asc')   // más críticos primero
+            ->orderBy('cantidad', 'asc')    // desempate
             ->take(5)
             ->get();
 
-        // Datos para tarjetas resumen
-        $totalUsuarios    = User::count();
-        $totalClientes    = Clientes::count();
-        $totalProductos   = Productos::count();
-        $totalCategorias  = Categorias::count();
+        // ===== Datos para tarjetas resumen =====
+        $totalUsuarios   = User::count();
+        $totalClientes   = Clientes::count();
+        $totalProductos  = Productos::count();
+        $totalCategorias = Categorias::count();
 
         $ventasDelMes = Ventas::whereMonth('fecha', Carbon::now()->month)
             ->whereYear('fecha', Carbon::now()->year)
@@ -98,11 +112,41 @@ class DashboardController extends Controller
             ->where('estado', 'Activo')
             ->sum('total');
 
+        $ventasAnuladas  = Ventas::where('estado', 'Anulado')->sum('total');
+        $comprasAnuladas = Compras::where('estado', 'Anulado')->sum('total');
 
-        $ventasAnuladas   = Ventas::where('estado', 'Anulado')->sum('total');
-        $comprasAnuladas  = Compras::where('estado', 'Anulado')->sum('total');
+        // ===== NUEVO: métricas extra con U/B/C =====
+
+        // Conteos de stock bajo por presentación (si existe mínimo)
+        $stockBajoU = Productos::whereNotNull('stock_minimo')
+            ->whereColumn('cantidad', '<=', 'stock_minimo')->count();
+        $stockBajoB = Productos::whereNotNull('stock_minimo_blister')
+            ->whereColumn('cantidad_blister', '<=', 'stock_minimo_blister')->count();
+        $stockBajoC = Productos::whereNotNull('stock_minimo_caja')
+            ->whereColumn('cantidad_caja', '<=', 'stock_minimo_caja')->count();
+
+        // Sumas de stock por presentación
+        $stockSumU = (int) Productos::sum('cantidad');
+        $stockSumB = (int) Productos::sum('cantidad_blister');
+        $stockSumC = (int) Productos::sum('cantidad_caja');
+
+        // Valor de inventario con precios de compra por presentación
+        $valorInventario = (float) Productos::selectRaw("
+        SUM(
+            COALESCE(cantidad, 0) * COALESCE(precio_compra, 0) +
+            COALESCE(cantidad_blister, 0) * COALESCE(precio_compra_blister, 0) +
+            COALESCE(cantidad_caja, 0) * COALESCE(precio_compra_caja, 0)
+        ) as valor
+    ")->value('valor');
+
+        // Próximos a vencer (≤ 30 días)
+        $proximosAVencer = Productos::whereNotNull('fecha_vencimiento')
+            ->whereDate('fecha_vencimiento', '>=', now()->startOfDay())
+            ->whereDate('fecha_vencimiento', '<=', now()->addDays(30)->endOfDay())
+            ->count();
 
         return view('dashboard', compact(
+            // existentes (no los tocamos)
             'labels',
             'data',
             'productosNombres',
@@ -125,9 +169,20 @@ class DashboardController extends Controller
             'ventasDelMes',
             'comprasDelMes',
             'ventasAnuladas',
-            'comprasAnuladas'
+            'comprasAnuladas',
+
+            // nuevos (para potenciar el dashboard)
+            'stockBajoU',
+            'stockBajoB',
+            'stockBajoC',
+            'stockSumU',
+            'stockSumB',
+            'stockSumC',
+            'valorInventario',
+            'proximosAVencer'
         ));
     }
+
 
     public function datosEmpresa()
     {

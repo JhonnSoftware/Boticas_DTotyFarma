@@ -16,18 +16,19 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\VentasExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class VentasController extends Controller
 {
     public function index()
     {
-        $clientes = Clientes::all();
-        $productos = Productos::all();
-        $pagos = TipoPagos::all();
+        $clientes   = Clientes::all();
+        $productos  = Productos::all();
+        $pagos      = TipoPagos::all();
         $documentos = Documentos::all();
 
-        // Generar el siguiente número de serie (esto puede ser más dinámico luego)
-        $serie = 'TI001';
+        // Generar serie/número simple (ajústalo a tu lógica)
+        $serie  = 'TI001';
         $ultimo = Ventas::latest()->first();
         $numero = $ultimo ? str_pad($ultimo->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
 
@@ -37,118 +38,200 @@ class VentasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_cliente' => 'required|exists:clientes,id',
-            'id_documento' => 'required|exists:documento,id',
-            'id_pago' => 'required|exists:tipopago,id',
-            'productos' => 'required|array|min:1',
-            'productos.*' => 'exists:productos,id',
-            'cantidades' => 'required|array',
-            'precios' => 'required|array',
-            'descuentos' => 'required|array',
+            'id_cliente'       => 'required|exists:clientes,id',
+            // OJO: ajusta los nombres de tabla si tus tablas son "documentos"/"tipopagos"
+            'id_documento'     => 'required|exists:documento,id',
+            'id_pago'          => 'required|exists:tipopago,id',
+
+            'productos'        => 'required|array|min:1',
+            'productos.*'      => 'exists:productos,id',
+
+            'cantidades'       => 'required|array',
+            'cantidades.*'     => 'numeric|min:1',
+
+            'precios'          => 'required|array',
+            'precios.*'        => 'numeric|min:0',
+
+            'descuentos'       => 'required|array',
+            'descuentos.*'     => 'numeric|min:0',
+
+            'unidades_venta'   => 'required|array',
+            'unidades_venta.*' => 'in:unidad,blister,caja',
         ]);
 
-        // Validar stock disponible antes de registrar la venta
-        foreach ($request->productos as $i => $id_producto) {
-            $producto = Productos::find($id_producto);
-            $cantidadSolicitada = $request->cantidades[$i];
+        // ===== Helpers: ratios y conversión a unidades =====
+        $ratio = function (Productos $p): array {
+            $upb = $p->unidades_por_blister ? (int)$p->unidades_por_blister : null; // unidades por blíster
+            $uxc = $p->unidades_por_caja    ? (int)$p->unidades_por_caja    : null; // unidades por caja
+            return [$upb, $uxc];
+        };
 
-            if (!$producto) {
+        $toUnits = function (int $qty, string $unitKind, Productos $p) use ($ratio): int {
+            [$upb, $uxc] = $ratio($p);
+            switch ($unitKind) {
+                case 'unidad':
+                    // Romper caja permitido: 1 unidad = 1 unidad
+                    return $qty;
+                case 'blister':
+                    if (!$upb) abort(400, "El producto '{$p->descripcion}' no maneja blíster.");
+                    return $qty * $upb;
+                case 'caja':
+                    if (!$uxc) abort(400, "El producto '{$p->descripcion}' no maneja caja.");
+                    return $qty * $uxc;
+                default:
+                    return $qty;
+            }
+        };
+
+        // ===== Validación de stock por presentación =====
+        foreach ($request->productos as $i => $id_producto) {
+            $p = Productos::find($id_producto);
+            if (!$p) {
                 return back()->with('error', "El producto con ID $id_producto no existe.");
             }
 
-            if ($producto->cantidad < $cantidadSolicitada) {
-                return back()->with('error', "Stock insuficiente para el producto '{$producto->descripcion}'. Stock actual: {$producto->cantidad}, solicitado: {$cantidadSolicitada}.");
+            $qtyUI    = (int)($request->cantidades[$i] ?? 0);
+            $unitKind = (string)($request->unidades_venta[$i] ?? 'unidad');
+            [$upb, $uxc] = $ratio($p);
+
+            $totalU   = (int)($p->cantidad ?? 0);                 // total en unidades (incluye cajas)
+            $cajas    = ($uxc && $uxc > 0) ? intdiv($totalU, $uxc) : 0;
+            $sueltas  = ($uxc && $uxc > 0) ? ($totalU % $uxc)      : $totalU;
+            $blisters = ($upb && $upb > 0) ? intdiv($sueltas, $upb) : 0; // blísteres desde sueltas
+
+            if ($unitKind === 'caja') {
+                if (!$uxc) return back()->with('error', "El producto '{$p->descripcion}' no tiene unidades por caja definidas.");
+                if ($qtyUI > $cajas) return back()->with('error', "No hay cajas suficientes de '{$p->descripcion}'. Disponibles: $cajas.");
+            } elseif ($unitKind === 'blister') {
+                if (!$upb) return back()->with('error', "El producto '{$p->descripcion}' no tiene unidades por blíster definidas.");
+                if ($qtyUI > $blisters) return back()->with('error', "No hay blísteres suficientes de '{$p->descripcion}'. Disponibles: $blisters.");
+            } else { // unidad — permitir romper caja => validar contra totalU
+                if ($qtyUI > $totalU) {
+                    return back()->with('error', "No hay unidades suficientes de '{$p->descripcion}'. Disponibles: $totalU.");
+                }
+            }
+
+            // Validación final en unidades base (anti-carrera)
+            $qtyUnits = $toUnits($qtyUI, $unitKind, $p);
+            if ($totalU < $qtyUnits) {
+                return back()->with('error', "Stock insuficiente para '{$p->descripcion}'.");
             }
         }
 
-        // Calcular totales
-        $subtotal = 0;
-        $descuento_total = 0;
+        // ===== Calcular totales (según lo que viene del UI) =====
+        $subtotal        = 0.0;
+        $descuento_total = 0.0;
 
         foreach ($request->productos as $i => $id_producto) {
-            $cantidad = $request->cantidades[$i];
-            $precio = $request->precios[$i];
-            $descuento = $request->descuentos[$i];
-            $subtotal += ($cantidad * $precio);
+            $cantidad  = (float)$request->cantidades[$i];
+            $precio    = (float)$request->precios[$i];
+            $descuento = (float)$request->descuentos[$i];
+
+            $subtotal        += ($cantidad * $precio);
             $descuento_total += $descuento;
         }
 
         $total_final = $subtotal - $descuento_total;
-        $igv = 0; // Puedes ajustarlo luego si aplicas impuestos
+        $igv = 0; // ajusta si corresponde
 
-        // Crear la venta
-        $venta = Ventas::create([
-            'codigo' => 'TI001-' . str_pad(Ventas::max('id') + 1, 6, '0', STR_PAD_LEFT),
-            'id_cliente' => $request->id_cliente,
-            'id_documento' => $request->id_documento,
-            'id_pago' => $request->id_pago,
-            'fecha' => Carbon::now(),
-            'estado' => 'Activo',
-            'usuario_id' => Auth::id(),
-            'total' => $total_final,
-            'igv' => $igv,
-            'descuento_total' => $descuento_total,
-        ]);
+        // ===== Transacción que crea la venta y descuenta stock =====
+        $venta = DB::transaction(function () use ($request, $toUnits, $total_final, $descuento_total) {
+            $nuevoId = (Ventas::max('id') ?? 0) + 1;
 
-        // Crear los detalles de venta
-        foreach ($request->productos as $i => $id_producto) {
-            $cantidad = $request->cantidades[$i];
-
-            // Crear detalle de venta
-            DetalleVentas::create([
-                'id_venta' => $venta->id,
-                'id_producto' => $id_producto,
-                'cantidad' => $cantidad,
-                'precio' => $request->precios[$i],
-                'sub_total' => ($cantidad * $request->precios[$i]) - $request->descuentos[$i],
+            // Crear la venta
+            $venta = Ventas::create([
+                'codigo'          => 'TI001-' . str_pad($nuevoId, 6, '0', STR_PAD_LEFT),
+                'id_cliente'      => $request->id_cliente,
+                'id_documento'    => $request->id_documento,
+                'id_pago'         => $request->id_pago,
+                'fecha'           => Carbon::now(),
+                'estado'          => 'Activo',
+                'usuario_id'      => Auth::id(),
+                'total'           => $total_final,
+                'igv'             => 0,
+                'descuento_total' => $descuento_total,
             ]);
 
-            // Actualizar stock del producto
-            $producto = Productos::find($id_producto);
-            if ($producto) {
-                $stockAnterior = $producto->cantidad;
-                $producto->cantidad -= $cantidad;
+            // Detalles + actualización de stock
+            foreach ($request->productos as $i => $id_producto) {
+                // Bloquear fila para evitar condiciones de carrera
+                $producto = Productos::lockForUpdate()->find($id_producto);
+                if (!$producto) {
+                    throw new \Exception("El producto con ID {$id_producto} no existe (durante la transacción).");
+                }
+
+                $cantidadUI  = (int)$request->cantidades[$i];
+                $precioUI    = (float)$request->precios[$i];
+                $descuentoUI = (float)$request->descuentos[$i];
+                $unidadUI    = (string)($request->unidades_venta[$i] ?? 'unidad');
+
+                // Convertir a unidades base
+                $cantidadEnUnidades = $toUnits($cantidadUI, $unidadUI, $producto);
+
+                // Crear detalle
+                DetalleVentas::create([
+                    'id_venta'    => $venta->id,
+                    'id_producto' => $id_producto,
+                    'cantidad'    => $cantidadUI, // cantidad en la presentación elegida
+                    'precio'      => $precioUI,   // precio por esa presentación
+                    'sub_total'   => ($cantidadUI * $precioUI) - $descuentoUI,
+                ]);
+
+                // Descontar SIEMPRE del stock base (unidades)
+                $stockAnterior = (int)$producto->cantidad;
+                $nuevoStockU   = $stockAnterior - $cantidadEnUnidades;
+                if ($nuevoStockU < 0) {
+                    throw new \Exception("Stock insuficiente (condición de carrera) en '{$producto->descripcion}'.");
+                }
+
+                // Recalcular contadores derivados segun ratios fijos (si existen)
+                $upb = $producto->unidades_por_blister ? (int)$producto->unidades_por_blister : null;
+                $uxc = $producto->unidades_por_caja    ? (int)$producto->unidades_por_caja    : null;
+
+                $producto->cantidad         = $nuevoStockU;                     // unidades
+                $producto->cantidad_blister = $upb ? intdiv($nuevoStockU, $upb) : null; // derivados
+                $producto->cantidad_caja    = $uxc ? intdiv($nuevoStockU, $uxc) : null; // derivados
                 $producto->save();
 
+                // Registrar movimiento
                 Movimientos::create([
                     'id_producto'     => $producto->id,
                     'tipo_movimiento' => 'Salida',
                     'origen'          => 'Venta',
                     'documento_ref'   => $venta->codigo,
                     'fecha'           => now(),
-                    'cantidad'        => -$cantidad, // salida = cantidad negativa
+                    'cantidad'        => -$cantidadEnUnidades, // negativa (UNIDADES)
                     'stock_anterior'  => $stockAnterior,
-                    'stock_actual'    => $producto->cantidad,
-                    'observacion'     => 'Venta registrada',
+                    'stock_actual'    => $nuevoStockU,
+                    'observacion'     => "Venta ({$unidadUI}) => -{$cantidadEnUnidades} unid",
                     'usuario_id'      => Auth::id(),
                 ]);
             }
-        }
 
+            return $venta;
+        });
+
+        // Voucher si corresponde
         $documento = Documentos::find($request->id_documento);
-
         if ($documento && strtolower($documento->nombre) === 'voucher') {
-            // Renderizar el PDF desde la vista
-            $pdf = Pdf::loadView('ventas.voucher_pdf', ['venta' => $venta])->setPaper([0, 0, 250, 800], 'portrait');;
+            $pdf = Pdf::loadView('ventas.voucher_pdf', ['venta' => $venta])
+                ->setPaper([0, 0, 250, 800], 'portrait');
 
-            // Guardarlo automáticamente
             $nombreArchivo = 'voucher_' . $venta->codigo . '.pdf';
             $ruta = storage_path('app/public/vouchers/' . $nombreArchivo);
             $pdf->save($ruta);
 
-            // Agregar URL accesible públicamente al PDF
             $urlPDF = url("storage/vouchers/$nombreArchivo");
 
             return redirect()
                 ->route('ventas.index')
                 ->with([
-                    'success' => 'Venta registrada correctamente con Voucher.',
-                    'imprimir' => $venta->id,
+                    'success'      => 'Venta registrada correctamente con Voucher.',
+                    'imprimir'     => $venta->id,
                     'codigo_venta' => $venta->codigo,
-                    'voucher_url' => $urlPDF, // <-- AQUI
+                    'voucher_url'  => $urlPDF,
                 ]);
         }
-
 
         return redirect()->route('ventas.index')->with('success', 'Venta registrada correctamente.');
     }
@@ -170,9 +253,9 @@ class VentasController extends Controller
 
     public function buscar(Request $request)
     {
-        $buscar = $request->input('buscar');
+        $buscar      = $request->input('buscar');
         $fechaInicio = $request->input('fecha_inicio');
-        $fechaFin = $request->input('fecha_fin');
+        $fechaFin    = $request->input('fecha_fin');
 
         $ventas = Ventas::with(['cliente', 'pago', 'documento', 'usuario'])
             ->when($buscar, function ($query) use ($buscar) {
@@ -180,7 +263,7 @@ class VentasController extends Controller
                     $q->where('codigo', 'LIKE', "%$buscar%")
                         ->orWhereHas('cliente', function ($q) use ($buscar) {
                             $q->where('nombre', 'LIKE', "%$buscar%")
-                                ->orWhere('apellidos', 'LIKE', "%$buscar%");
+                              ->orWhere('apellidos', 'LIKE', "%$buscar%");
                         })
                         ->orWhereHas('documento', function ($q) use ($buscar) {
                             $q->where('nombre', 'LIKE', "%$buscar%");

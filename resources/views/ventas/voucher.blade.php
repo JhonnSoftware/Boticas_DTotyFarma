@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Voucher de Venta</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url('imagenes/logo_empresa.png') }}">
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;

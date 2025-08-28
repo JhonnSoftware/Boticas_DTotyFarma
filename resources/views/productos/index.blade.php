@@ -81,30 +81,87 @@
             background-color: #2275fc !important;
             color: #ffffff !important;
         }
+
+        /* Contenedor del control */
+        .select2-container .select2-selection {
+            border: 1px solid #dee2e6 !important;
+            border-radius: .75rem !important;
+            min-height: 46px;
+            background: #fff;
+            padding: .25rem .25rem;
+            /* espacio interno */
+        }
+
+        /* Estado foco */
+        .select2-container--default.select2-container--focus .select2-selection {
+            border-color: #0A7ABF !important;
+            box-shadow: 0 0 0 .2rem rgba(10, 122, 191, .15);
+        }
+
+        /* Chips (selecciones) */
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background: #eef7ff;
+            color: #0A7ABF;
+            border: none;
+            border-radius: 9999px;
+            padding: .25rem .6rem;
+            margin-top: .3rem;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            margin-right: .35rem;
+            color: inherit;
+            opacity: .7;
+        }
+
+        /* Render y buscador */
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .25rem;
+        }
+
+        .select2-container .select2-search__field {
+            margin-top: .25rem;
+        }
+
+        /* Dropdown */
+        .select2-dropdown {
+            border: 1px solid #e6e9ef;
+            border-radius: .75rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+        }
+
+        .select2-results__option--highlighted {
+            background: #0A7ABF !important;
+        }
     </style>
 
     <!-- Botón y panel colapsable -->
 
     <div class="container-fluid">
 
-        <a href="{{ route('productos.detalle') }}" class="text-decoration-none">
+        <a href="{{ route('productos.detalle', ['filtro' => 'agotados_unidad']) }}" class="text-decoration-none">
             <div class="card border-right shadow-sm hover-shadow" style="transition: 0.2s; border-radius: 20px;">
                 <div class="card-body">
                     <div class="d-flex d-lg-flex d-md-block align-items-center">
                         <div>
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium" style="font-size: 24px;">Ver Detalles</h2>
-                                <span
-                                    class="badge bg-warning font-12 text-dark font-weight-medium badge-pill ms-2 d-lg-block d-md-none">
-                                    2 productos con stock bajo
-                                </span>
+
+                                @if (($agotadosUnidad ?? 0) > 0)
+                                    <span
+                                        class="badge bg-warning font-12 text-dark font-weight-medium badge-pill ms-2 d-lg-block d-md-none">
+                                        {{ $agotadosUnidad }} producto(s) con stock 0 (unidad)
+                                    </span>
+                                @endif
                             </div>
                         </div>
                         <div class="ms-auto mt-md-3 mt-lg-0">
                             <span class="opacity-7 text-muted"><i data-feather="eye"></i></span>
                         </div>
                     </div>
-
                 </div>
             </div>
         </a>
@@ -168,15 +225,18 @@
                                     <tr class="border-0">
                                         <th class="border-0 font-14 font-weight-medium text-black rounded-start">Codigo</th>
                                         <th class="border-0 font-14 font-weight-medium text-black px-2">Descripcion</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Presentacion</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Laboratorio</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Lote</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Stock Minimo</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Dscto</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">Caduca</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black px-2">Stock (Unid)</th>
+                                                                                        <!-- <th class="border-0 font-14 font-weight-medium text-black">Presentacion</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Laboratorio</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Lote</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Stock Minimo</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Dscto</th>
+                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Caduca</th>
+                                                                                                -->
                                         <th class="border-0 font-14 font-weight-medium text-black">P. Venta</th>
-                                        <th class="border-0 font-14 font-weight-medium text-black">P. Compra</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black">P. Venta (Blister)</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black">P. Venta (Caja)</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Foto</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Estado</th>
                                         <th class="border-0 font-14 font-weight-medium text-black rounded-end">Acciones</th>
@@ -198,19 +258,25 @@
                                                 </div>
                                             </td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descripcion }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->presentacion }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->laboratorio }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->lote }}</td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}
-                                            </td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descuento }}</td>
-                                            <td class="border-top-0 text-dark px-2 py-4">
-                                                {{ $producto->fecha_vencimiento }}
-                                            </td>
-                                            <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_compra }}
-                                            </td>
+                                            <!--
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->laboratorio }}</td>
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->lote }}</td>
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}
+                                                                                                </td>
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descuento }}</td>
+                                                                                                <td class="border-top-0 text-dark px-2 py-4">
+                                                                                                    {{ $producto->fecha_vencimiento }}
+                                                                                                </td>
+                                                                                                -->
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_venta }}
+                                            </td>
+                                            <td class="border-top-0 text-dark px-2 py-4">
+                                                {{ $producto->precio_venta_blister }}
+                                            </td>
+                                            <td class="border-top-0 text-dark px-2 py-4">
+                                                {{ $producto->precio_venta_caja }}
                                             </td>
                                             <td>
                                                 <img src="{{ url($producto->foto) }}" alt="Foto del producto"
@@ -226,14 +292,16 @@
                                                 </span>
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
-                                                <a href="#" class="text-primary me-2"><i
-                                                        data-feather="eye"></i></a>
+                                                <!--
+                                                                            <a href="#" class="text-primary me-2"><i
+                                                                                    data-feather="eye"></i></a> -->
 
-                                                <a href="#" class="text-success" data-bs-toggle="modal"
-                                                    data-bs-target="#editarProducto{{ $producto->id }}">
+                                                <a href="#" class="text-success btn-edit"
+                                                    data-id="{{ $producto->id }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalEditar">
                                                     <i data-feather="edit"></i>
                                                 </a>
-
 
                                                 @if ($producto->estado === 'Activo')
                                                     <form action="{{ route('productos.desactivar', $producto->id) }}"
@@ -261,206 +329,20 @@
                                             </td>
 
                                         </tr>
-
-                                        <!-- Modal de edición -->
-                                        <div class="modal fade" id="editarProducto{{ $producto->id }}" tabindex="-1"
-                                            aria-labelledby="editarProductoLabel{{ $producto->id }}" aria-hidden="true">
-                                            <div class="modal-dialog modal-lg"> <!-- Tamaño grande para que todo entre -->
-                                                <div class="modal-content" style="border-radius: 20px;">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title"
-                                                            id="editarProductoLabel{{ $producto->id }}">Editar Producto
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Cerrar"></button>
-                                                    </div>
-
-                                                    <form action="{{ route('productos.actualizar', $producto->id) }}"
-                                                        method="POST" enctype="multipart/form-data">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <div class="modal-body">
-                                                            <div class="row g-4">
-                                                                <!-- Código -->
-                                                                <div class="col-md-6">
-                                                                    <label for="codigo{{ $producto->id }}"
-                                                                        class="form-label">Código</label>
-                                                                    <input type="text" class="form-control rounded-3"
-                                                                        id="codigo{{ $producto->id }}" name="codigo"
-                                                                        value="{{ $producto->codigo }}" required>
-                                                                </div>
-
-                                                                <!-- Descripción -->
-                                                                <div class="col-md-6">
-                                                                    <label for="descripcion{{ $producto->id }}"
-                                                                        class="form-label">Descripción</label>
-                                                                    <input type="text" class="form-control rounded-3"
-                                                                        id="descripcion{{ $producto->id }}"
-                                                                        name="descripcion"
-                                                                        value="{{ $producto->descripcion }}" required>
-                                                                </div>
-
-                                                                <!-- Presentación -->
-                                                                <div class="col-md-6">
-                                                                    <label for="presentacion{{ $producto->id }}"
-                                                                        class="form-label">Presentación</label>
-                                                                    <input type="text" class="form-control rounded-3"
-                                                                        id="presentacion{{ $producto->id }}"
-                                                                        name="presentacion"
-                                                                        value="{{ $producto->presentacion }}" required>
-                                                                </div>
-
-                                                                <!-- Laboratorio -->
-                                                                <div class="col-md-6">
-                                                                    <label for="laboratorio{{ $producto->id }}"
-                                                                        class="form-label">Laboratorio</label>
-                                                                    <input type="text" class="form-control rounded-3"
-                                                                        id="laboratorio{{ $producto->id }}"
-                                                                        name="laboratorio"
-                                                                        value="{{ $producto->laboratorio }}" required>
-                                                                </div>
-
-                                                                <!-- Lote -->
-                                                                <div class="col-md-4">
-                                                                    <label for="lote{{ $producto->id }}"
-                                                                        class="form-label">Lote</label>
-                                                                    <input type="number" class="form-control rounded-3"
-                                                                        id="lote{{ $producto->id }}" name="lote"
-                                                                        value="{{ $producto->lote }}" required>
-                                                                </div>
-
-                                                                <!-- Cantidad -->
-                                                                <div class="col-md-4">
-                                                                    <label for="cantidad{{ $producto->id }}"
-                                                                        class="form-label">Cantidad</label>
-                                                                    <input type="number" class="form-control rounded-3"
-                                                                        id="cantidad{{ $producto->id }}" name="cantidad"
-                                                                        min="0" value="{{ $producto->cantidad }}"
-                                                                        required>
-                                                                </div>
-
-                                                                <!-- Stock mínimo -->
-                                                                <div class="col-md-4">
-                                                                    <label for="stock_minimo{{ $producto->id }}"
-                                                                        class="form-label">Stock mínimo</label>
-                                                                    <input type="number" class="form-control rounded-3"
-                                                                        id="stock_minimo{{ $producto->id }}"
-                                                                        name="stock_minimo" min="0"
-                                                                        value="{{ $producto->stock_minimo }}" required>
-                                                                </div>
-
-                                                                <!-- Descuento -->
-                                                                <div class="col-md-6">
-                                                                    <label for="descuento{{ $producto->id }}"
-                                                                        class="form-label">Descuento (%)</label>
-                                                                    <input type="number" step="0.01"
-                                                                        class="form-control rounded-3"
-                                                                        id="descuento{{ $producto->id }}"
-                                                                        name="descuento" min="0"
-                                                                        value="{{ $producto->descuento }}" required>
-                                                                </div>
-
-                                                                <!-- Fecha de vencimiento -->
-                                                                <div class="col-md-6">
-                                                                    <label for="fecha_vencimiento{{ $producto->id }}"
-                                                                        class="form-label">Fecha de vencimiento</label>
-                                                                    <input type="date" class="form-control rounded-3"
-                                                                        id="fecha_vencimiento{{ $producto->id }}"
-                                                                        name="fecha_vencimiento"
-                                                                        value="{{ $producto->fecha_vencimiento }}"
-                                                                        required>
-                                                                </div>
-
-                                                                <!-- Precio compra -->
-                                                                <div class="col-md-6">
-                                                                    <label for="precio_compra{{ $producto->id }}"
-                                                                        class="form-label">Precio de compra (S/)</label>
-                                                                    <input type="number" step="0.01"
-                                                                        class="form-control rounded-3"
-                                                                        id="precio_compra{{ $producto->id }}"
-                                                                        name="precio_compra" min="0"
-                                                                        value="{{ $producto->precio_compra }}" required>
-                                                                </div>
-
-                                                                <!-- Precio venta -->
-                                                                <div class="col-md-6">
-                                                                    <label for="precio_venta{{ $producto->id }}"
-                                                                        class="form-label">Precio de venta (S/)</label>
-                                                                    <input type="number" step="0.01"
-                                                                        class="form-control rounded-3"
-                                                                        id="precio_venta{{ $producto->id }}"
-                                                                        name="precio_venta" min="0"
-                                                                        value="{{ $producto->precio_venta }}" required>
-                                                                </div>
-
-                                                                <!-- Proveedor -->
-                                                                <div class="col-md-6">
-                                                                    <label for="id_proveedor{{ $producto->id }}"
-                                                                        class="form-label">Proveedor</label>
-                                                                    <select class="form-select rounded-3"
-                                                                        id="id_proveedor{{ $producto->id }}"
-                                                                        name="id_proveedor" required>
-                                                                        <option value="" disabled>Seleccione
-                                                                            proveedor</option>
-                                                                        @foreach ($proveedores as $proveedor)
-                                                                            <option value="{{ $proveedor->id }}"
-                                                                                {{ $producto->id_proveedor == $proveedor->id ? 'selected' : '' }}>
-                                                                                {{ $proveedor->nombre }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </div>
-
-                                                                <!-- Categoría -->
-                                                                <div class="col-md-6">
-                                                                    <label for="id_categoria{{ $producto->id }}"
-                                                                        class="form-label">Categoría</label>
-                                                                    <select class="form-select rounded-3"
-                                                                        id="id_categoria{{ $producto->id }}"
-                                                                        name="id_categoria" required>
-                                                                        <option value="" disabled>Seleccione
-                                                                            categoría</option>
-                                                                        @foreach ($categorias as $categoria)
-                                                                            <option value="{{ $categoria->id }}"
-                                                                                {{ $producto->id_categoria == $categoria->id ? 'selected' : '' }}>
-                                                                                {{ $categoria->nombre }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </div>
-
-                                                                <!-- Foto -->
-                                                                <div class="col-12">
-                                                                    <label for="foto{{ $producto->id }}"
-                                                                        class="form-label">Foto del producto</label>
-                                                                    <input type="file" class="form-control rounded-3"
-                                                                        id="foto{{ $producto->id }}" name="foto"
-                                                                        accept=".jpg,.jpeg,.png,.webp">
-                                                                    @if ($producto->foto)
-                                                                        <small class="text-muted">Actual:
-                                                                            {{ $producto->foto }}</small>
-                                                                    @endif
-                                                                </div>
-
-                                                                <!-- Estado oculto -->
-                                                                <input type="hidden" name="estado" value="Activo">
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary">Guardar
-                                                                Cambios</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
                                     @endforeach
                                 </tbody>
 
                             </table>
+                            {{-- 🚀 Modal único, al final del blade --}}
+                            <div class="modal fade modal-edit-product" id="modalEditar" tabindex="-1"
+                                aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-xl">
+                                    <div class="modal-content" id="modalEditarContent">
+                                        <div class="p-4 text-center text-muted">Cargando…</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
 
                         <div class="row mt-3">
@@ -499,114 +381,229 @@
                         @csrf
 
                         <div class="row g-4">
+
+                            {{-- 1) Información para venta rápida --}}
+
+                            <!-- Descripción -->
+                            <div class="col-md-8">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <input type="text" class="form-control rounded-3" id="descripcion" name="descripcion"
+                                    required>
+                                <div class="invalid-feedback">Por favor ingrese la descripción del producto.</div>
+                            </div>
                             <!-- Código -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="codigo" class="form-label">Código</label>
                                 <input type="text" class="form-control rounded-3" id="codigo" name="codigo"
                                     value="{{ $nuevoCodigo }}" readonly>
                             </div>
 
-                            <!-- Descripción -->
-                            <div class="col-md-6">
-                                <label for="descripcion" class="form-label">Descripción</label>
-                                <input type="text" class="form-control rounded-3" id="descripcion" name="descripcion"
-                                    required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la descripción del producto.
-                                </div>
+                            {{-- 2) Clasificación / Catálogos --}}
+
+                            <!-- Categoría -->
+                            <div class="col-md-4">
+                                <label class="form-label mb-1">Categorías</label>
+                                <select class="form-select select2-categorias" name="categorias[]" id="id_categoria"
+                                    multiple required data-placeholder="Seleccionar categorias..">
+                                    @foreach ($categorias as $categoria)
+                                        <option value="{{ $categoria->id }}"
+                                            @if (collect(old('categorias'))->contains($categoria->id)) selected @endif>
+                                            {{ $categoria->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback">Seleccione al menos una categoría.</div>
                             </div>
+
+                            <!-- Clase -->
+                            <div class="col-md-4">
+                                <label for="id_clase" class="form-label">Clase terapéutica</label>
+                                <select class="form-select rounded-3" id="id_clase" name="id_clase">
+                                    <option value="">Seleccione clase</option>
+                                    @foreach ($clases as $cl)
+                                        <option value="{{ $cl->id }}">{{ $cl->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <!-- Genérico -->
+                            <div class="col-md-4">
+                                <label for="id_generico" class="form-label">Genérico / Principio activo</label>
+                                <select class="form-select rounded-3" id="id_generico" name="id_generico">
+                                    <option value="">Seleccione genérico</option>
+                                    @foreach ($genericos as $ge)
+                                        <option value="{{ $ge->id }}">{{ $ge->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- 3) Presentación comercial --}}
 
                             <!-- Presentación -->
                             <div class="col-md-6">
                                 <label for="presentacion" class="form-label">Presentación</label>
                                 <input type="text" class="form-control rounded-3" id="presentacion"
                                     name="presentacion" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la presentacion del producto.
-                                </div>
+                                <div class="invalid-feedback">Por favor ingrese la presentación del producto.</div>
                             </div>
-
                             <!-- Laboratorio -->
                             <div class="col-md-6">
                                 <label for="laboratorio" class="form-label">Laboratorio</label>
                                 <input type="text" class="form-control rounded-3" id="laboratorio" name="laboratorio"
                                     required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la laboratorio del producto.
-                                </div>
+                                <div class="invalid-feedback">Por favor ingrese el laboratorio del producto.</div>
                             </div>
 
                             <!-- Lote -->
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="lote" class="form-label">Lote</label>
                                 <input type="number" class="form-control rounded-3" id="lote" name="lote"
                                     required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el lote del producto.
-                                </div>
+                                <div class="invalid-feedback">Por favor ingrese el lote.</div>
                             </div>
-
-                            <!-- Cantidad -->
-                            <div class="col-md-4">
-                                <label for="cantidad" class="form-label">Cantidad</label>
-                                <input type="number" class="form-control rounded-3" id="cantidad" name="cantidad"
-                                    min="0" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la cantidad del producto.
-                                </div>
-                            </div>
-
-                            <!-- Stock mínimo -->
-                            <div class="col-md-4">
-                                <label for="stock_minimo" class="form-label">Stock mínimo</label>
-                                <input type="number" class="form-control rounded-3" id="stock_minimo"
-                                    name="stock_minimo" min="0" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el stock minimo del producto.
-                                </div>
-                            </div>
-
-                            <!-- Descuento -->
-                            <div class="col-md-6">
-                                <label for="descuento" class="form-label">Descuento (%)</label>
-                                <input type="number" step="0.01" class="form-control rounded-3" id="descuento"
-                                    name="descuento" min="0" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el descuento del producto.
-                                </div>
-                            </div>
-
                             <!-- Fecha de vencimiento -->
                             <div class="col-md-6">
                                 <label for="fecha_vencimiento" class="form-label">Fecha de vencimiento</label>
                                 <input type="date" class="form-control rounded-3" id="fecha_vencimiento"
                                     name="fecha_vencimiento" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la fecha de vencimiento del producto.
-                                </div>
+                                <div class="invalid-feedback">Por favor ingrese la fecha de vencimiento.</div>
                             </div>
 
-                            <!-- Precio compra -->
+                            <!-- Ratios de conversión (opcionales) -->
                             <div class="col-md-6">
-                                <label for="precio_compra" class="form-label">Precio de compra (S/)</label>
-                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_compra"
-                                    name="precio_compra" min="0" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el precio de compra del producto.
-                                </div>
+                                <label for="unidades_por_blister" class="form-label">Unidades por blíster</label>
+                                <input type="number" class="form-control rounded-3 ratio-field"
+                                    id="unidades_por_blister" name="unidades_por_blister" min="0"
+                                    value="{{ old('unidades_por_blister') }}" placeholder="Ej: 10 (0 = sin definir)">
+                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes. (Se guardará como <strong>sin
+                                        definir</strong>)</div>
                             </div>
 
-                            <!-- Precio venta -->
                             <div class="col-md-6">
-                                <label for="precio_venta" class="form-label">Precio de venta (S/)</label>
+                                <label for="unidades_por_caja" class="form-label">Unidades por caja</label>
+                                <input type="number" class="form-control rounded-3 ratio-field" id="unidades_por_caja"
+                                    name="unidades_por_caja" min="0" value="{{ old('unidades_por_caja') }}"
+                                    placeholder="Ej: 100 (0 = sin definir)">
+                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes. (Se guardará como <strong>sin
+                                        definir</strong>)</div>
+                            </div>
+
+
+                            <div class="col-md-4">
+                                <label for="cantidad" class="form-label">Cantidad (en unidades)</label>
+                                <input type="number" class="form-control rounded-3" id="cantidad" name="cantidad"
+                                    min="0" required>
+                                <div class="invalid-feedback">Ingrese la cantidad inicial (unidades).</div>
+                            </div>
+                            <!-- NUEVO: Stock en blíster -->
+                            <div class="col-md-4">
+                                <label for="cantidad_blister" class="form-label">Cantidad (en blíster)</label>
+                                <input type="number" class="form-control rounded-3" id="cantidad_blister"
+                                    name="cantidad_blister" min="0" value="{{ old('cantidad_blister') }}">
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            <!-- NUEVO: Stock en caja -->
+                            <div class="col-md-4">
+                                <label for="cantidad_caja" class="form-label">Cantidad (en caja)</label>
+                                <input type="number" class="form-control rounded-3" id="cantidad_caja"
+                                    name="cantidad_caja" min="0" value="{{ old('cantidad_caja') }}">
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stock_minimo" class="form-label">Stock mínimo (en unidades)</label>
+                                <input type="number" class="form-control rounded-3" id="stock_minimo"
+                                    name="stock_minimo" min="0" required>
+                                <div class="invalid-feedback">Ingrese el stock mínimo.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stock_minimo_blister" class="form-label">Stock mínimo (en blister)</label>
+                                <input type="number" class="form-control rounded-3" id="stock_minimo_blister"
+                                    name="stock_minimo_blister" min="0">
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stock_minimo_caja" class="form-label">Stock mínimo (en caja)</label>
+                                <input type="number" class="form-control rounded-3" id="stock_minimo_caja"
+                                    name="stock_minimo_caja" min="0">
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="descuento" class="form-label">Descuento por unidad (%)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" max="100"
+                                        class="form-control rounded-start-3" id="descuento" name="descuento"
+                                        value="{{ old('descuento', 0) }}" required>
+                                    <span class="input-group-text rounded-end-3">%</span>
+                                </div>
+                                <div class="invalid-feedback">Ingrese un porcentaje entre 0 y 100.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="descuento_blister" class="form-label">Descuento por blíster (%)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" max="100"
+                                        class="form-control rounded-start-3" id="descuento_blister"
+                                        name="descuento_blister" value="{{ old('descuento_blister') }}">
+                                    <span class="input-group-text rounded-end-3">%</span>
+                                </div>
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="descuento_caja" class="form-label">Descuento por caja (%)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0" max="100"
+                                        class="form-control rounded-start-3" id="descuento_caja" name="descuento_caja"
+                                        value="{{ old('descuento_caja') }}">
+                                    <span class="input-group-text rounded-end-3">%</span>
+                                </div>
+                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            </div>
+
+                            {{-- 6) Precios de venta (lo que usarás en caja) --}}
+
+                            <div class="col-md-4">
+                                <label for="precio_venta" class="form-label">Venta (unidad) S/</label>
                                 <input type="number" step="0.01" class="form-control rounded-3" id="precio_venta"
                                     name="precio_venta" min="0" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el precio de venta del producto.
-                                </div>
+                                <div class="invalid-feedback">Ingrese el precio de venta por unidad.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="precio_venta_blister" class="form-label">Venta (blíster) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_venta_blister" name="precio_venta_blister" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="precio_venta_caja" class="form-label">Venta (caja) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_venta_caja" name="precio_venta_caja" min="0">
                             </div>
 
-                            <!-- Proveedor -->
+                            {{-- 8) Precios de compra (para costos y kardex) --}}
+
+                            <div class="col-md-4">
+                                <label for="precio_compra" class="form-label">Compra (unidad) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_compra"
+                                    name="precio_compra" min="0" required>
+                                <div class="invalid-feedback">Ingrese el precio de compra por unidad.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="precio_compra_blister" class="form-label">Compra (blíster) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_compra_blister" name="precio_compra_blister" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="precio_compra_caja" class="form-label">Compra (caja) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_compra_caja" name="precio_compra_caja" min="0">
+                            </div>
+
+                            {{-- 9) Proveedor --}}
+
                             <div class="col-md-6">
                                 <label for="id_proveedor" class="form-label">Proveedor</label>
                                 <select class="form-select rounded-3" id="id_proveedor" name="id_proveedor" required>
@@ -615,33 +612,17 @@
                                         <option value="{{ $proveedor->id }}">{{ $proveedor->nombre }}</option>
                                     @endforeach
                                 </select>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese el proveedor del producto.
-                                </div>
+                                <div class="invalid-feedback">Por favor seleccione el proveedor.</div>
                             </div>
 
-                            <!-- Categoría -->
+                            {{-- 10) Imagen --}}
                             <div class="col-md-6">
-                                <label for="id_categoria" class="form-label">Categoría</label>
-                                <select class="form-select rounded-3" id="id_categoria" name="id_categoria" required>
-                                    <option value="" disabled selected>Seleccione categoría</option>
-                                    @foreach ($categorias as $categoria)
-                                        <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback">
-                                    Por favor ingrese la categoria del producto.
-                                </div>
-                            </div>
-
-                            <!-- Imagen -->
-                            <div class="col-12">
                                 <label for="foto" class="form-label">Foto del producto</label>
                                 <input type="file" class="form-control rounded-3" id="foto" name="foto"
                                     accept=".jpg,.jpeg,.png,.webp">
                             </div>
 
-                            <!-- Estado -->
+                            {{-- Estado --}}
                             <input type="hidden" name="estado" value="Activo">
                         </div>
 
@@ -725,22 +706,12 @@
         </div>
     @endif
 
+
 @endsection
 
 @section('scripts')
 
-    @if (session('success'))
-        <script>
-            Swal.fire({
-                position: "center",
-                icon: "success",
-                title: "{{ session('success') }}",
-                showConfirmButton: false,
-                timer: 1500
-            });
-        </script>
-    @endif
-
+    {{-- Toast de éxito --}}
     @if (session('success'))
         <script>
             Swal.fire({
@@ -752,26 +723,46 @@
         </script>
     @endif
 
+    {{-- ===== Helper robusto para abrir modales (BS5 5.0/5.1/5.2+ y fallback BS4) ===== --}}
     <script>
-        $(document).ready(function() {
-            $('#inputBusqueda').on('keyup', function() {
-                var buscar = $(this).val();
+        function openModalById(id) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.error('No existe #' + id);
+                return false;
+            }
 
-                $.ajax({
-                    url: "{{ route('productos.buscar') }}",
-                    type: "GET",
-                    data: {
-                        buscar: buscar
-                    },
-                    success: function(data) {
-                        $('#tablaProductos').html(data);
-                        feather.replace();
+            // Bootstrap 5 (namespace window.bootstrap)
+            if (window.bootstrap && typeof bootstrap.Modal === 'function') {
+                try {
+                    if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+                        bootstrap.Modal.getOrCreateInstance(el).show(); // 5.2+
+                        return true;
                     }
-                });
-            });
-        });
+                    if (typeof bootstrap.Modal.getInstance === 'function') {
+                        (bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el)).show(); // 5.0/5.1
+                        return true;
+                    }
+                    // Si no existen los estáticos pero sí el constructor
+                    new bootstrap.Modal(el).show();
+                    return true;
+                } catch (e) {
+                    console.warn('Fallo API BS5, intentando fallback jQuery…', e);
+                }
+            }
+
+            // Fallback Bootstrap 4 (plugin jQuery)
+            if (window.jQuery && typeof jQuery.fn.modal === 'function') {
+                jQuery('#' + id).modal('show');
+                return true;
+            }
+
+            console.error('No hay API válida de Bootstrap para abrir el modal.');
+            return false;
+        }
     </script>
 
+    {{-- ===== Confirmaciones activar/desactivar ===== --}}
     <script>
         function confirmarDesactivacion(id) {
             Swal.fire({
@@ -806,28 +797,120 @@
         }
     </script>
 
+    {{-- ===== Abrir modal de edición + cargar parcial por AJAX ===== --}}
+    <script>
+        $(document).on('click', '.btn-edit', function(e) {
+            e.preventDefault();
+
+            const id = $(this).data('id');
+            const $content = $('#modalEditarContent');
+
+            // Loader
+            $content.html('<div class="p-4 text-center text-muted">Cargando…</div>');
+
+            // Abre el modal (robusto a la versión)
+            if (!openModalById('modalEditar')) return;
+
+            // Carga la vista parcial del formulario
+            $.get("{{ route('productos.edit-partial', ['id' => '__ID__']) }}".replace('__ID__', id))
+                .done(function(html) {
+                    $content.html(html);
+
+                    if (window.feather) feather.replace();
+
+                    // Re‑inicializar Select2 dentro del modal
+                    const $modal = $('#modalEditar');
+                    $modal.find('.select2-categorias-edit').each(function() {
+                        const $el = $(this);
+                        if ($el.data('select2')) return;
+                        $el.select2({
+                            width: '100%',
+                            closeOnSelect: false,
+                            allowClear: true,
+                            dropdownParent: $modal
+                        });
+                    });
+
+                    // Validación Bootstrap 5 en el form del modal (una sola vez)
+                    const form = $content.find('#formEditarProducto')[0];
+                    if (form && !form.dataset.bound) {
+                        form.dataset.bound = '1';
+                        form.addEventListener('submit', function(ev) {
+                            if (!form.checkValidity()) {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                            }
+                            form.classList.add('was-validated');
+                        });
+                    }
+                })
+                .fail(function(xhr) {
+                    $content.html(
+                        '<div class="p-4 text-danger text-center">Error cargando el formulario (' +
+                        (xhr.status || '??') + ').</div>'
+                    );
+                });
+        });
+    </script>
+
+    {{-- ===== Select2 en "Nuevo producto" ===== --}}
+    <script>
+        $(function() {
+            const $sel = $('.select2-categorias');
+            if ($sel.length) {
+                $sel.select2({
+                    width: '100%',
+                    placeholder: $sel.data('placeholder') || 'Seleccionar categorías…',
+                    allowClear: true,
+                    closeOnSelect: false,
+                    dropdownAutoWidth: true
+                    // Si el select está dentro del modal de "Nuevo producto", podrías habilitar:
+                    // dropdownParent: $('#nuevoProducto')
+                });
+            }
+        });
+    </script>
+
+    {{-- ===== Select2 cuando se muestre cualquier modal (seguro contra re‑init) ===== --}}
+    <script>
+        $(document).on('shown.bs.modal', '.modal', function() {
+            const $modal = $(this);
+            $modal.find('.select2-categorias-edit').each(function() {
+                const $el = $(this);
+                if ($el.data('select2')) return;
+                $el.select2({
+                    width: '100%',
+                    placeholder: $el.data('placeholder'),
+                    allowClear: true,
+                    closeOnSelect: false,
+                    dropdownParent: $modal
+                });
+            });
+        });
+    </script>
+
+    {{-- Mostrar modal de stock bajo si aplica --}}
     @if ($productosStockBajo->count() > 0)
         <script>
             window.addEventListener('DOMContentLoaded', () => {
-                const modal = new bootstrap.Modal(document.getElementById('modalStockBajo'));
-                modal.show();
+                openModalById('modalStockBajo');
             });
         </script>
     @endif
 
-
+    {{-- ===== Paginación client‑side simple sobre las filas ya renderizadas ===== --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rowsPerPage = 10;
             const table = document.querySelector('.table');
+            if (!table) return;
+
             const tbody = table.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
+            const rows = tbody ? tbody.querySelectorAll('tr') : [];
             const pageCount = Math.ceil(rows.length / rowsPerPage);
             const pagination = document.getElementById('pagination');
+            if (!pagination) return;
 
-            let currentPage = 1;
-
-            // Función para mostrar las filas de la página actual
             function showPage(page) {
                 const start = (page - 1) * rowsPerPage;
                 const end = start + rowsPerPage;
@@ -835,16 +918,13 @@
                 rows.forEach((row, index) => {
                     row.style.display = (index >= start && index < end) ? '' : 'none';
                 });
-
                 updatePaginationButtons(page);
             }
 
-            // Función para actualizar los botones del paginador
             function updatePaginationButtons(page) {
                 pagination.innerHTML = '';
-                currentPage = page;
 
-                // Botón Anterior
+                // Prev
                 const prevLi = document.createElement('li');
                 prevLi.className = `page-item ${page === 1 ? 'disabled' : ''}`;
                 prevLi.innerHTML =
@@ -855,30 +935,28 @@
                 });
                 pagination.appendChild(prevLi);
 
-                // Botones de páginas
-                const maxVisiblePages = 5; // Máximo de botones de página a mostrar
+                // rango visible
+                const maxVisiblePages = 5;
                 let startPage, endPage;
-
                 if (pageCount <= maxVisiblePages) {
                     startPage = 1;
                     endPage = pageCount;
                 } else {
-                    const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
-                    const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
+                    const before = Math.floor(maxVisiblePages / 2);
+                    const after = Math.ceil(maxVisiblePages / 2) - 1;
 
-                    if (page <= maxPagesBeforeCurrent) {
+                    if (page <= before) {
                         startPage = 1;
                         endPage = maxVisiblePages;
-                    } else if (page + maxPagesAfterCurrent >= pageCount) {
+                    } else if (page + after >= pageCount) {
                         startPage = pageCount - maxVisiblePages + 1;
                         endPage = pageCount;
                     } else {
-                        startPage = page - maxPagesBeforeCurrent;
-                        endPage = page + maxPagesAfterCurrent;
+                        startPage = page - before;
+                        endPage = page + after;
                     }
                 }
 
-                // Botón primera página si es necesario
                 if (startPage > 1) {
                     const firstLi = document.createElement('li');
                     firstLi.className = 'page-item';
@@ -890,34 +968,31 @@
                     pagination.appendChild(firstLi);
 
                     if (startPage > 2) {
-                        const dotsLi = document.createElement('li');
-                        dotsLi.className = 'page-item disabled';
-                        dotsLi.innerHTML = `<span class="page-link">...</span>`;
-                        pagination.appendChild(dotsLi);
+                        const dots = document.createElement('li');
+                        dots.className = 'page-item disabled';
+                        dots.innerHTML = `<span class="page-link">...</span>`;
+                        pagination.appendChild(dots);
                     }
                 }
 
-                // Botones de páginas numeradas
                 for (let i = startPage; i <= endPage; i++) {
-                    const pageLi = document.createElement('li');
-                    pageLi.className = `page-item ${i === page ? 'active' : ''}`;
-                    pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                    pageLi.addEventListener('click', (e) => {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === page ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', (e) => {
                         e.preventDefault();
                         showPage(i);
                     });
-                    pagination.appendChild(pageLi);
+                    pagination.appendChild(li);
                 }
 
-                // Botón última página si es necesario
                 if (endPage < pageCount) {
                     if (endPage < pageCount - 1) {
-                        const dotsLi = document.createElement('li');
-                        dotsLi.className = 'page-item disabled';
-                        dotsLi.innerHTML = `<span class="page-link">...</span>`;
-                        pagination.appendChild(dotsLi);
+                        const dots = document.createElement('li');
+                        dots.className = 'page-item disabled';
+                        dots.innerHTML = `<span class="page-link">...</span>`;
+                        pagination.appendChild(dots);
                     }
-
                     const lastLi = document.createElement('li');
                     lastLi.className = 'page-item';
                     lastLi.innerHTML = `<a class="page-link" href="#">${pageCount}</a>`;
@@ -928,7 +1003,6 @@
                     pagination.appendChild(lastLi);
                 }
 
-                // Botón Siguiente
                 const nextLi = document.createElement('li');
                 nextLi.className = `page-item ${page === pageCount ? 'disabled' : ''}`;
                 nextLi.innerHTML =
@@ -940,24 +1014,21 @@
                 pagination.appendChild(nextLi);
             }
 
-            // Inicializar paginación
-            showPage(1);
+            if (rows.length) showPage(1);
         });
     </script>
 
+    {{-- ===== Validación Bootstrap 5 ===== --}}
     <script>
-        // Bootstrap 5: Validación personalizada
         (() => {
             'use strict';
             const forms = document.querySelectorAll('.needs-validation');
-
             Array.from(forms).forEach(form => {
                 form.addEventListener('submit', event => {
                     if (!form.checkValidity()) {
                         event.preventDefault();
                         event.stopPropagation();
                     }
-
                     form.classList.add('was-validated');
                 }, false);
             });

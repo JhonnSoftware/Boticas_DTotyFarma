@@ -71,7 +71,7 @@
                         <div class="mb-4">
                             <form id="formBusquedaCaja"
                                 class="d-flex align-items-center gap-3 flex-wrap bg-white rounded-3 p-3"
-                                style="max-width: 700px;"> 
+                                style="max-width: 700px;">
 
                                 <!-- 📅 Fecha -->
                                 <div>
@@ -111,6 +111,7 @@
                                         <th class="border-0 font-14 font-weight-medium text-black">Fecha Apertura</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Monto Cierre</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Fecha Cierre</th>
+                                        <th class="border-0 font-14 font-weight-medium text-black">Monto Info.</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">Estado</th>
                                     </tr>
                                 </thead>
@@ -127,6 +128,25 @@
                                             <td class="py-3">
                                                 {{ $caja->fecha_cierre ? \Carbon\Carbon::parse($caja->fecha_cierre)->format('d/m/Y H:i') : '-' }}
                                             </td>
+                                            <td class="py-3">
+                                                @php
+                                                    $ap = (float) $caja->monto_apertura;
+                                                    $mc = is_null($caja->monto_cierre)
+                                                        ? null
+                                                        : (float) $caja->monto_cierre;
+                                                @endphp
+
+                                                @if (is_null($mc))
+                                                    <span class="badge rounded-pill bg-secondary">Pendiente</span>
+                                                @else
+                                                    @if ($ap > $mc)
+                                                        <span class="badge rounded-pill bg-danger">Monto Apertura Superior</span>
+                                                    @else
+                                                        <span class="badge rounded-pill bg-success">Monto Cierre Superior</span>
+                                                    @endif
+                                                @endif
+                                            </td>
+
                                             <td class="py-3">
                                                 <span
                                                     style="background: {{ $caja->estado == 'abierta' ? '#6ff073' : '#d4d4d4' }};

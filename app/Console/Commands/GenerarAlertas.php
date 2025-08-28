@@ -57,17 +57,6 @@ class GenerarAlertas extends Command
             ]);
         }
 
-        // 4. Sin movimiento
-        $productosSinMovimiento = Productos::whereDoesntHave('detalleVentas', function ($q) {
-            $q->where('created_at', '>=', now()->subDays(60));
-        })->get();
-        foreach ($productosSinMovimiento as $producto) {
-            Alertas::firstOrCreate([
-                'titulo' => 'Producto sin movimiento',
-                'mensaje' => "El producto {$producto->descripcion} no tiene ventas en los últimos 60 días.",
-            ]);
-        }
-
         // 5. Caja no aperturada
         $aperturaHoy = Cajas::whereDate('fecha_apertura', today())->exists();
         if (!$aperturaHoy) {

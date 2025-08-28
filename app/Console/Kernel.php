@@ -19,7 +19,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:generar-alertas')->daily();
+        $schedule->command('app:generar-alertas')->everyMinute()->timezone('America/Lima');
     }
 
     /**

@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('alertas', function (Blueprint $table) {
+        Schema::create('categoria_producto', function (Blueprint $table) {
             $table->id();
-            $table->string('referencia')->nullable()->unique();
-            $table->unsignedBigInteger('id_producto')->nullable()->index();
-            $table->string('titulo');
-            $table->text('mensaje');
-            $table->boolean('leido')->default(false);
+            $table->foreignId('id_producto')->constrained('productos')->cascadeOnDelete();
+            $table->foreignId('id_categoria')->constrained('categorias')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['id_producto', 'id_categoria']);
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('alertas');
+        Schema::dropIfExists('categoria_producto');
     }
 };

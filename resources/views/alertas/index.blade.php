@@ -4,19 +4,23 @@
 
 @section('content')
     <div class="container-fluid">
+        <!-- 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <a href="{{ route('alertas.generar') }}" class="btn btn-outline-primary shadow-sm rounded-pill px-4 py-2">
                 <i class="fas fa-sync-alt me-1"></i> Actualizar Alertas
             </a>
         </div>
-
+        -->
+        
         <div class="card shadow" style="border-radius: 20px;">
+            
             <div class="card-header text-white d-flex align-items-center justify-content-between"
                  style="background-color: #0A7ABF; border-radius: 20px 20px 0 0;">
                 <h4 class="mb-0">
                     <i class="fas fa-bell me-2"></i> Alertas del Sistema
                 </h4>
             </div>
+
             <div class="card-body" style="background-color: #F2F2F2;">
                 @if ($alertas->count() > 0)
                     <div class="list-group">

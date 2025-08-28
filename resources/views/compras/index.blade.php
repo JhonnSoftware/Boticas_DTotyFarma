@@ -24,7 +24,12 @@
             color: #fff;
         }
 
-        
+        /* === Ajustar ancho máximo del modal de productos === */
+        #modalProductos .modal-dialog.modal-xl {
+            max-width: 85% !important;
+            /* ocupa el 95% del ancho de la pantalla */
+        }
+
     </style>
 
     <div class="container-fluid py-4">
@@ -100,13 +105,18 @@
                             <thead style="background-color: #25A6D9; color: white;">
                                 <tr>
                                     <th>Producto</th>
+                                    <th>Lote</th>
+                                    <th>Laboratorio</th>
+                                    <th>F. Venc.</th>
                                     <th>Cantidad</th>
                                     <th>Precio Unitario</th>
                                     <th>Subtotal</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody>
+
+                            </tbody>
                         </table>
                     </div>
 
@@ -159,25 +169,85 @@
                             <thead style="background-color: #25A6D9; color: white;">
                                 <tr>
                                     <th>Nombre</th>
-                                    <th>Precio Compra</th>
-                                    <th>Stock</th>
+                                    <th>Lote</th>
+                                    <th>Laboratorio</th>
+                                    <th>F. Venc.</th>
+                                    <th>P. Compra U</th>
+                                    <th>P. Compra B</th>
+                                    <th>P. Compra C</th>
+                                    <th>Stock U</th>
+                                    <th>Stock B</th>
+                                    <th>Stock C</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($productos as $producto)
                                     <tr>
+                                        <!-- Datos base -->
                                         <td class="fw-semibold">{{ $producto->descripcion }}</td>
-                                        <td>S/ {{ number_format($producto->precio_compra, 2) }}</td>
-                                        <td><span class="badge bg-success">{{ $producto->cantidad }}</span></td>
+                                        <td>{{ $producto->lote ?? '—' }}</td>
+                                        <td>{{ $producto->laboratorio ?? '—' }}</td>
+                                        <td>
+                                            @if (!empty($producto->fecha_vencimiento))
+                                                {{ \Carbon\Carbon::parse($producto->fecha_vencimiento)->format('d/m/Y') }}
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
+
+                                        <!-- Precio Compra -->
+                                        <td>{{ $producto->precio_compra !== null ? 'S/ ' . number_format($producto->precio_compra, 2) : '—' }}
+                                        </td>
+                                        <td>{{ $producto->precio_compra_blister !== null ? 'S/ ' . number_format($producto->precio_compra_blister, 2) : '—' }}
+                                        </td>
+                                        <td>{{ $producto->precio_compra_caja !== null ? 'S/ ' . number_format($producto->precio_compra_caja, 2) : '—' }}
+                                        </td>
+
+                                        <!-- Stock -->
+                                        <td>
+                                            @if (($producto->cantidad ?? 0) === 0)
+                                                <span class="badge bg-danger">0</span>
+                                            @elseif (($producto->cantidad ?? 0) <= 10)
+                                                <span class="badge bg-warning text-dark">{{ $producto->cantidad }}</span>
+                                            @else
+                                                <span class="badge bg-success">{{ $producto->cantidad }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if (($producto->cantidad_blister ?? 0) === 0)
+                                                <span class="badge bg-danger">0</span>
+                                            @elseif (($producto->cantidad_blister ?? 0) <= 5)
+                                                <span
+                                                    class="badge bg-warning text-dark">{{ $producto->cantidad_blister }}</span>
+                                            @else
+                                                <span class="badge bg-success">{{ $producto->cantidad_blister }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if (($producto->cantidad_caja ?? 0) === 0)
+                                                <span class="badge bg-danger">0</span>
+                                            @elseif (($producto->cantidad_caja ?? 0) <= 3)
+                                                <span
+                                                    class="badge bg-warning text-dark">{{ $producto->cantidad_caja }}</span>
+                                            @else
+                                                <span class="badge bg-success">{{ $producto->cantidad_caja }}</span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Botón Agregar -->
                                         <td>
                                             <button type="button" class="btn btn-sm text-white seleccionar-producto"
-                                                style="background-color: #6EBF49;" data-id="{{ $producto->id }}"
+                                                style="background-color:#6EBF49;" data-id="{{ $producto->id }}"
                                                 data-nombre="{{ $producto->descripcion }}"
-                                                data-precio="{{ $producto->precio_compra }}">
+                                                data-precio-unidad="{{ $producto->precio_compra ?? '' }}"
+                                                data-precio-blister="{{ $producto->precio_compra_blister ?? '' }}"
+                                                data-precio-caja="{{ $producto->precio_compra_caja ?? '' }}"
+                                                data-lote="{{ $producto->lote }}"
+                                                data-laboratorio="{{ $producto->laboratorio }}"
+                                                data-vencimiento="{{ $producto->fecha_vencimiento }}">
                                                 <i class="fas fa-plus"></i> Agregar
                                             </button>
-
                                         </td>
                                     </tr>
                                 @endforeach
@@ -196,99 +266,307 @@
         </div>
     </div>
 
-
 @endsection
 
 @section('scripts')
     <script>
-        // Elementos base
+        // ====== Base ======
         const tabla = document.querySelector("#tablaCompra tbody");
 
-        // Calcular totales
+        function toMoney(n) {
+            return `S/ ${(Number(n)||0).toFixed(2)}`;
+        }
+
+        // ====== Totales (total= suma subtotales; IGV=18% del total; subtotal=total-IGV) ======
         function calcularTotales() {
             let total = 0;
-            document.querySelectorAll(".subtotal").forEach(span => {
-                total += parseFloat(span.textContent.replace("S/", "")) || 0;
+            document.querySelectorAll(".subtotal-fila").forEach(span => {
+                total += parseFloat(span.dataset.raw || "0");
             });
             const igv = total * 0.18;
             const subtotal = total - igv;
-            document.getElementById("subtotal").textContent = `S/ ${subtotal.toFixed(2)}`;
-            document.getElementById("igv").textContent = `S/ ${igv.toFixed(2)}`;
-            document.getElementById("total").textContent = `S/ ${total.toFixed(2)}`;
+            document.getElementById("subtotal").textContent = toMoney(subtotal);
+            document.getElementById("igv").textContent = toMoney(igv);
+            document.getElementById("total").textContent = toMoney(total);
         }
 
-        // Escucha eventos generales
+        // ====== Helpers ======
+        function intOr0(v) {
+            const x = parseInt((v ?? '').toString().trim(), 10);
+            return isNaN(x) ? 0 : x;
+        }
+
+        function qtyValidOrEmpty(v) {
+            if (v === '' || v === null || v === undefined) return true;
+            return /^\d+$/.test(v) && parseInt(v, 10) >= 0;
+        }
+
+        function refreshGuardarState() {
+            const btn = document.querySelector("#formCompra button[type='submit']");
+            if (!btn) return;
+
+            let ok = true,
+                tieneFilas = document.querySelectorAll("#tablaCompra tbody tr").length > 0;
+
+            // cada fila debe tener al menos una cantidad > 0 y todas las cantidades deben ser enteros >=0
+            document.querySelectorAll("#tablaCompra tbody tr").forEach(tr => {
+                const qU = tr.querySelector(".qty-unidad")?.value ?? '';
+                const qB = tr.querySelector(".qty-blister")?.value ?? '';
+                const qC = tr.querySelector(".qty-caja")?.value ?? '';
+
+                if (!(qtyValidOrEmpty(qU) && qtyValidOrEmpty(qB) && qtyValidOrEmpty(qC))) ok = false;
+
+                const nU = intOr0(qU),
+                    nB = intOr0(qB),
+                    nC = intOr0(qC);
+                if ((nU + nB + nC) === 0) ok = false;
+            });
+
+            btn.disabled = !(ok && tieneFilas);
+        }
+
+        function recalcFila(tr) {
+            const pU = parseFloat(tr.dataset.pUnidad || "0");
+            const pB = tr.dataset.pBlister === '' ? null : parseFloat(tr.dataset.pBlister);
+            const pC = tr.dataset.pCaja === '' ? null : parseFloat(tr.dataset.pCaja);
+
+            const nU = intOr0(tr.querySelector(".qty-unidad")?.value);
+            const nB = intOr0(tr.querySelector(".qty-blister")?.value);
+            const nC = intOr0(tr.querySelector(".qty-caja")?.value);
+
+            const subU = (pU || 0) * nU;
+            const subB = (pB || 0) * nB;
+            const subC = (pC || 0) * nC;
+
+            const totalFila = subU + subB + subC;
+
+            // mostrar desglose
+            const cellBreak = tr.querySelector(".breakdown");
+            cellBreak.innerHTML = `
+                <div class="small lh-sm">
+                    <div>U: ${toMoney(subU)}</div>
+                    <div>B: ${toMoney(subB)}</div>
+                    <div>C: ${toMoney(subC)}</div>
+                </div>
+            `;
+
+            const cellTotal = tr.querySelector(".subtotal-fila");
+            cellTotal.textContent = toMoney(totalFila);
+            cellTotal.dataset.raw = String(totalFila);
+
+            calcularTotales();
+            refreshGuardarState();
+        }
+
+        // ====== Clicks ======
         document.addEventListener("click", function(e) {
             // Agregar producto desde el modal
             const btn = e.target.closest(".seleccionar-producto");
             if (btn) {
                 const id = btn.dataset.id;
                 const nombre = btn.dataset.nombre;
-                const precio = parseFloat(btn.dataset.precio || 0).toFixed(2);
+
+                // precios
+                const pU = parseFloat(btn.dataset.precioUnidad ?? btn.dataset.precio ?? 0);
+                const pB = (btn.dataset.precioBlister === undefined || btn.dataset.precioBlister === '' || btn
+                        .dataset.precioBlister === null) ?
+                    null : parseFloat(btn.dataset.precioBlister);
+                const pC = (btn.dataset.precioCaja === undefined || btn.dataset.precioCaja === '' || btn.dataset
+                        .precioCaja === null) ?
+                    null : parseFloat(btn.dataset.precioCaja);
+
+                // datos visuales
+                const lote = btn.dataset.lote || '';
+                const lab = btn.dataset.laboratorio || '';
+                const vencRaw = btn.dataset.vencimiento || '';
+                const venc = vencRaw ? new Date(vencRaw).toLocaleDateString('es-PE') : '—';
 
                 if (!id || document.querySelector(`#tablaCompra tbody tr[data-id="${id}"]`)) return;
 
-                const fila = `
-                <tr data-id="${id}">
-                    <td>
-                        <input type="hidden" name="productos[${id}][id_producto]" value="${id}">
-                        ${nombre}
-                    </td>
-                    <td>
-                        <input type="number" name="productos[${id}][cantidad]" class="form-control cantidad" value="1" min="1">
-                    </td>
-                    <td>
-                        <input type="number" name="productos[${id}][precio_unitario]" class="form-control precio" value="${precio}" step="0.01">
-                    </td>
-                    <td><span class="subtotal">S/ ${precio}</span></td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger eliminar-producto">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                </tr>`;
-                tabla.insertAdjacentHTML("beforeend", fila);
-                calcularTotales();
+                // Inputs habilitados solo si hay precio
+                const enableU = isFinite(pU);
+                const enableB = (pB !== null && isFinite(pB));
+                const enableC = (pC !== null && isFinite(pC));
 
-                // Cierra el modal
+                const fila = `
+                    <tr data-id="${id}" data-p-unidad="${isFinite(pU)?pU:''}" data-p-blister="${enableB?pB:''}" data-p-caja="${enableC?pC:''}">
+                        <td>
+                            <input type="hidden" name="productos[${id}][id_producto]" value="${id}">
+                            ${nombre}
+                        </td>
+                        <td>${lote || '—'}</td>
+                        <td>${lab || '—'}</td>
+                        <td>${venc}</td>
+
+                        <td style="min-width:220px">
+                            <div class="d-grid gap-1">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">U</span>
+                                    <input type="number" class="form-control qty-unidad" min="0" value="0" ${enableU? '' : 'disabled'}>
+                                    <span class="input-group-text price-u">${enableU ? toMoney(pU) : '—'}</span>
+                                    <input type="hidden" name="productos[${id}][precio_unidad]" value="${enableU ? pU.toFixed(2) : ''}">
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">B</span>
+                                    <input type="number" class="form-control qty-blister" min="0" value="0" ${enableB? '' : 'disabled'}>
+                                    <span class="input-group-text price-b">${enableB ? toMoney(pB) : '—'}</span>
+                                    <input type="hidden" name="productos[${id}][precio_blister]" value="${enableB ? pB.toFixed(2) : ''}">
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">C</span>
+                                    <input type="number" class="form-control qty-caja" min="0" value="0" ${enableC? '' : 'disabled'}>
+                                    <span class="input-group-text price-c">${enableC ? toMoney(pC) : '—'}</span>
+                                    <input type="hidden" name="productos[${id}][precio_caja]" value="${enableC ? pC.toFixed(2) : ''}">
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="productos[${id}][cantidad_unidad]"  class="hid-unidad"  value="0">
+                            <input type="hidden" name="productos[${id}][cantidad_blister]" class="hid-blister" value="0">
+                            <input type="hidden" name="productos[${id}][cantidad_caja]"    class="hid-caja"    value="0">
+                        </td>
+
+                        <td class="breakdown align-middle"></td>
+                        <td class="subtotal-fila align-middle" data-raw="0">S/ 0.00</td>
+
+                        <td class="align-middle">
+                            <button type="button" class="btn btn-sm btn-danger eliminar-producto">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                tabla.insertAdjacentHTML("beforeend", fila);
+
+                // Recalc inicial
+                const tr = tabla.querySelector(`tr[data-id="${id}"]`);
+                recalcFila(tr);
+
+                // Cierra modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById("modalProductos"));
-                modal.hide();
+                modal && modal.hide();
+
                 return;
             }
 
-            // Eliminar producto de la tabla
-            const botonEliminar = e.target.closest(".eliminar-producto");
-            if (botonEliminar) {
-                const fila = botonEliminar.closest("tr");
-                if (fila) {
-                    fila.remove();
-                    calcularTotales();
-                }
-            }
-        });
-
-        // Detectar cambios en cantidad o precio
-        document.addEventListener("input", function(e) {
-            if (e.target.classList.contains("cantidad") || e.target.classList.contains("precio")) {
-                const fila = e.target.closest("tr");
-                const cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
-                const precio = parseFloat(fila.querySelector(".precio").value) || 0;
-                const subtotal = cantidad * precio;
-                fila.querySelector(".subtotal").textContent = `S/ ${subtotal.toFixed(2)}`;
+            // Eliminar fila
+            const del = e.target.closest(".eliminar-producto");
+            if (del) {
+                const tr = del.closest("tr");
+                tr?.remove();
                 calcularTotales();
+                refreshGuardarState();
             }
         });
 
-        // Filtro de búsqueda en tiempo real en el modal
-        document.getElementById("buscadorProducto").addEventListener("input", function() {
-            const filtro = this.value.toLowerCase();
-            const filas = document.querySelectorAll("#modalProductos tbody tr");
+        // ====== Entrada de cantidades ======
+        document.addEventListener("input", function(e) {
+            const el = e.target;
+            if (!el.classList) return;
 
-            filas.forEach(fila => {
-                const nombreProducto = fila.children[0].textContent.toLowerCase();
-                fila.style.display = nombreProducto.includes(filtro) ? "" : "none";
-            });
+            if (el.classList.contains("qty-unidad") || el.classList.contains("qty-blister") || el.classList
+                .contains("qty-caja")) {
+                // Validar entero >=0
+                let v = el.value.trim();
+                if (!qtyValidOrEmpty(v)) {
+                    el.classList.add("is-invalid");
+                } else {
+                    el.classList.remove("is-invalid");
+                }
+
+                // sincronizar al hidden correspondiente
+                const tr = el.closest("tr");
+                if (el.classList.contains("qty-unidad")) tr.querySelector(".hid-unidad").value = String(intOr0(v));
+                if (el.classList.contains("qty-blister")) tr.querySelector(".hid-blister").value = String(intOr0(
+                    v));
+                if (el.classList.contains("qty-caja")) tr.querySelector(".hid-caja").value = String(intOr0(v));
+
+                recalcFila(tr);
+            }
         });
+
+        // Bloquear teclas no numéricas en qty
+        document.addEventListener("keydown", function(e) {
+            const el = e.target;
+            if (el.classList && (el.classList.contains("qty-unidad") || el.classList.contains("qty-blister") || el
+                    .classList.contains("qty-caja"))) {
+                const invalid = ["-", "+", "e", "E", ".", ","];
+                if (invalid.includes(e.key)) e.preventDefault();
+            }
+        });
+
+        // Normalizar al salir
+        document.addEventListener("blur", function(e) {
+            const el = e.target;
+            if (el.classList && (el.classList.contains("qty-unidad") || el.classList.contains("qty-blister") || el
+                    .classList.contains("qty-caja"))) {
+                let v = el.value.trim();
+                if (!qtyValidOrEmpty(v)) v = "0";
+                el.value = String(intOr0(v));
+                // disparar input para recalc
+                el.dispatchEvent(new Event("input", {
+                    bubbles: true
+                }));
+            }
+        }, true);
+
+        // ====== Submit: validar que cada fila tenga al menos una cantidad > 0 ======
+        document.getElementById("formCompra").addEventListener("submit", function(e) {
+            let ok = true,
+                firstBad = null;
+
+            const filas = document.querySelectorAll("#tablaCompra tbody tr");
+            if (filas.length === 0) {
+                ok = false;
+            }
+
+            filas.forEach(tr => {
+                const qU = tr.querySelector(".qty-unidad")?.value ?? '';
+                const qB = tr.querySelector(".qty-blister")?.value ?? '';
+                const qC = tr.querySelector(".qty-caja")?.value ?? '';
+
+                // validaciones básicas
+                if (!(qtyValidOrEmpty(qU) && qtyValidOrEmpty(qB) && qtyValidOrEmpty(qC))) {
+                    ok = false;
+                    if (!firstBad) firstBad = tr.querySelector(".qty-unidad") || tr.querySelector(
+                        ".qty-blister") || tr.querySelector(".qty-caja");
+                }
+
+                const nU = intOr0(qU),
+                    nB = intOr0(qB),
+                    nC = intOr0(qC);
+                if ((nU + nB + nC) === 0) {
+                    ok = false;
+                    if (!firstBad) firstBad = tr.querySelector(".qty-unidad");
+                }
+            });
+
+            if (!ok) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Datos incompletos',
+                    text: filas.length === 0 ? 'Agrega al menos un producto.' :
+                        'Cada producto debe tener al menos una cantidad > 0 (U, B o C) y las cantidades deben ser enteros ≥ 0.'
+                });
+                firstBad && firstBad.focus();
+                refreshGuardarState();
+            }
+        });
+
+        // ====== Filtro del modal ======
+        (function() {
+            const buscador = document.getElementById("buscadorProducto");
+            if (!buscador) return;
+            buscador.addEventListener("input", function() {
+                const filtro = this.value.toLowerCase();
+                const filas = document.querySelectorAll("#modalProductos tbody tr");
+                filas.forEach(fila => {
+                    const nombre = fila.children[0].textContent.toLowerCase();
+                    fila.style.display = nombre.includes(filtro) ? "" : "none";
+                });
+            });
+        })();
     </script>
 
     <script>
@@ -296,7 +574,6 @@
         (() => {
             'use strict';
             const forms = document.querySelectorAll('.needs-validation');
-
             Array.from(forms).forEach(form => {
                 form.addEventListener('submit', event => {
                     if (!form.checkValidity()) {
@@ -321,6 +598,4 @@
             });
         </script>
     @endif
-
-
 @endsection
