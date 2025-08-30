@@ -21,12 +21,13 @@
             color: #000;
         }
 
-        .center {
-            text-align: center;
+        body, p, div, table, td, th, span {
+            font-weight: bold !important;
+            color: #000 !important;
         }
 
-        .bold {
-            font-weight: bold;
+        .center {
+            text-align: center;
         }
 
         .separator {
@@ -59,18 +60,18 @@
 <body>
 
     <div class="center">
-        <p class="bold">BOTICAS D'TOTY FARMA</p>
+        <p>BOTICAS D'TOTY FARMA</p>
         <p>AV 7 DE JUNIO 361 LOS FICUS</p>
         <p>SANTA ANITA - LIMA - LIMA</p>
         <div class="separator"></div>
-        <p class="bold">VOUCHER DE VENTA</p>
+        <p>VOUCHER DE VENTA</p>
         <p>N°: {{ $venta->codigo }}</p>
         <p>Fecha Emision: {{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</p>
         <div class="separator"></div>
     </div>
 
-    <p><span class="bold">Cliente:</span> {{ $venta->cliente->nombre }} {{ $venta->cliente->apellidos }}</p>
-    <p><span class="bold">DNI:</span> {{ $venta->cliente->dni }}</p>
+    <p>Cliente: {{ $venta->cliente->nombre }} {{ $venta->cliente->apellidos }}</p>
+    <p>DNI: {{ $venta->cliente->dni }}</p>
 
     <div class="separator"></div>
 
@@ -97,33 +98,31 @@
 
     <table>
         <tr>
-            <td class="bold">Subtotal:</td>
+            <td>Subtotal:</td>
             <td class="right">S/ {{ number_format($venta->total + $venta->descuento_total, 2) }}</td>
         </tr>
         <tr>
-            <td class="bold">Descuento:</td>
+            <td>Descuento:</td>
             <td class="right">S/ {{ number_format($venta->descuento_total, 2) }}</td>
         </tr>
         <tr>
-            <td class="bold right" colspan="2">TOTAL: S/ {{ number_format($venta->total, 2) }}</td>
+            <td class="right" colspan="2">TOTAL: S/ {{ number_format($venta->total, 2) }}</td>
         </tr>
     </table>
 
     <div class="separator"></div>
 
     <p>
-        <span class="bold">CAJA:</span> {{ $venta->caja_id ?? '1' }}
-        <span class="bold" style="margin-left: 10px;">USU:</span> {{ strtoupper(auth()->user()->name) }}
-        <span class="bold" style="margin-left: 10px;">IMP:</span> {{ strtoupper(auth()->user()->name) }}
+        CAJA: {{ $venta->caja_id ?? '1' }}
+        <span style="margin-left: 10px;">USU:</span> {{ strtoupper(auth()->user()->name) }}
+        <span style="margin-left: 10px;">IMP:</span> {{ strtoupper(auth()->user()->name) }}
     </p>
 
     <div class="separator"></div>
 
-    <p class="center bold">*NO ACEPTAMOS CAMBIOS - DEVOLUCIONES*</p>
-
+    <p class="center">*NO ACEPTAMOS CAMBIOS - DEVOLUCIONES*</p>
 
 </body>
-
 </html>
 
 <script>
