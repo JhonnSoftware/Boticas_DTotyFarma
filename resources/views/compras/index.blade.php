@@ -30,6 +30,31 @@
             /* ocupa el 95% del ancho de la pantalla */
         }
 
+        /* Toast éxito estilo verde suave (igual que Ventas) */
+        .colored-toast.swal2-popup {
+            background: #f0fdf4;
+            /* verde muy claro */
+            color: #14532d;
+            /* texto verde oscuro */
+            border: 1px solid #bbf7d0;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, .15);
+        }
+
+        .colored-toast .swal2-title {
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+
+        .colored-toast .swal2-timer-progress-bar {
+            background: #86efac;
+        }
+
+        .boton-agregar-producto {
+            background: linear-gradient(135deg, #6EBF49, #8BBF65);
+            border: none;
+            border-radius: .6rem;
+            color: #fff;
+        }
     </style>
 
     <div class="container-fluid py-4">
@@ -83,11 +108,12 @@
                         <!-- Botón para abrir modal -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-primary">Agregar Producto</label><br>
-                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#modalProductos">
-                                <i class="fas fa-search me-1"></i> Buscar Producto
+                            <button type="button" class="btn btn-success fw-bold px-4 shadow-sm boton-agregar-producto"
+                                data-bs-toggle="modal" data-bs-target="#modalProductos">
+                                <i class="fas fa-plus-circle me-2"></i> Buscar Producto
                             </button>
                         </div>
+
 
                         <!-- Campo archivo factura -->
                         <div class="col-md-6">
@@ -96,8 +122,6 @@
                                 accept=".pdf,.jpg,.jpeg,.png">
                         </div>
                     </div>
-
-
 
                     <!-- Tabla productos -->
                     <div class="table-responsive mb-4">
@@ -270,6 +294,39 @@
 
 @section('scripts')
     <script>
+        // Instancia global para toasts de éxito (idéntico a Ventas)
+        const ToastSuccess = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2200,
+            timerProgressBar: true,
+            iconColor: '#16a34a',
+            customClass: {
+                popup: 'colored-toast'
+            },
+            didOpen: (t) => {
+                t.addEventListener('mouseenter', Swal.stopTimer);
+                t.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        function showAddedToast(msg) {
+            ToastSuccess.fire({
+                icon: 'success',
+                title: msg
+            });
+        }
+
+        function showInfoToast(msg) {
+            ToastSuccess.fire({
+                icon: 'info',
+                title: msg
+            });
+        }
+    </script>
+
+    <script>
         // ====== Base ======
         const tabla = document.querySelector("#tablaCompra tbody");
 
@@ -303,27 +360,9 @@
 
         function refreshGuardarState() {
             const btn = document.querySelector("#formCompra button[type='submit']");
-            if (!btn) return;
-
-            let ok = true,
-                tieneFilas = document.querySelectorAll("#tablaCompra tbody tr").length > 0;
-
-            // cada fila debe tener al menos una cantidad > 0 y todas las cantidades deben ser enteros >=0
-            document.querySelectorAll("#tablaCompra tbody tr").forEach(tr => {
-                const qU = tr.querySelector(".qty-unidad")?.value ?? '';
-                const qB = tr.querySelector(".qty-blister")?.value ?? '';
-                const qC = tr.querySelector(".qty-caja")?.value ?? '';
-
-                if (!(qtyValidOrEmpty(qU) && qtyValidOrEmpty(qB) && qtyValidOrEmpty(qC))) ok = false;
-
-                const nU = intOr0(qU),
-                    nB = intOr0(qB),
-                    nC = intOr0(qC);
-                if ((nU + nB + nC) === 0) ok = false;
-            });
-
-            btn.disabled = !(ok && tieneFilas);
+            if (btn) btn.disabled = false; // siempre habilitado
         }
+
 
         function recalcFila(tr) {
             const pU = parseFloat(tr.dataset.pUnidad || "0");
@@ -358,6 +397,20 @@
             refreshGuardarState();
         }
 
+        // util: normaliza la fecha para <input type="date">
+        function toInputDate(v) {
+            // si viene 'YYYY-MM-DD' sirve directo; si viene vacío, devuelve ''.
+            if (!v) return '';
+            // intenta parsear por seguridad
+            const d = new Date(v);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+
         // ====== Clicks ======
         document.addEventListener("click", function(e) {
             // Agregar producto desde el modal
@@ -391,50 +444,66 @@
                 const fila = `
                     <tr data-id="${id}" data-p-unidad="${isFinite(pU)?pU:''}" data-p-blister="${enableB?pB:''}" data-p-caja="${enableC?pC:''}">
                         <td>
-                            <input type="hidden" name="productos[${id}][id_producto]" value="${id}">
-                            ${nombre}
+                        <input type="hidden" name="productos[${id}][id_producto]" value="${id}">
+                        ${nombre}
                         </td>
-                        <td>${lote || '—'}</td>
-                        <td>${lab || '—'}</td>
-                        <td>${venc}</td>
+
+                        <!-- Lote editable -->
+                        <td style="min-width:160px">
+                        <input type="text" class="form-control form-control-sm" 
+                                name="productos[${id}][lote]" value="${(lote||'')}" placeholder="Lote">
+                        </td>
+
+                        <!-- Laboratorio editable -->
+                        <td style="min-width:200px">
+                        <input type="text" class="form-control form-control-sm" 
+                                name="productos[${id}][laboratorio]" value="${(lab||'')}" placeholder="Laboratorio">
+                        </td>
+
+                        <!-- F. Venc. editable -->
+                        <td style="min-width:170px">
+                        <input type="date" class="form-control form-control-sm"
+                                name="productos[${id}][fecha_vencimiento]" value="${toInputDate(vencRaw)}">
+                        </td>
 
                         <td style="min-width:220px">
-                            <div class="d-grid gap-1">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">U</span>
-                                    <input type="number" class="form-control qty-unidad" min="0" value="0" ${enableU? '' : 'disabled'}>
-                                    <span class="input-group-text price-u">${enableU ? toMoney(pU) : '—'}</span>
-                                    <input type="hidden" name="productos[${id}][precio_unidad]" value="${enableU ? pU.toFixed(2) : ''}">
-                                </div>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">B</span>
-                                    <input type="number" class="form-control qty-blister" min="0" value="0" ${enableB? '' : 'disabled'}>
-                                    <span class="input-group-text price-b">${enableB ? toMoney(pB) : '—'}</span>
-                                    <input type="hidden" name="productos[${id}][precio_blister]" value="${enableB ? pB.toFixed(2) : ''}">
-                                </div>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">C</span>
-                                    <input type="number" class="form-control qty-caja" min="0" value="0" ${enableC? '' : 'disabled'}>
-                                    <span class="input-group-text price-c">${enableC ? toMoney(pC) : '—'}</span>
-                                    <input type="hidden" name="productos[${id}][precio_caja]" value="${enableC ? pC.toFixed(2) : ''}">
-                                </div>
+                        <!-- (resto igual: cantidades U/B/C) -->
+                        <div class="d-grid gap-1">
+                            <div class="input-group input-group-sm">
+                            <span class="input-group-text">U</span>
+                            <input type="number" class="form-control qty-unidad" min="0" value="0" ${enableU? '' : 'disabled'}>
+                            <span class="input-group-text price-u">${enableU ? toMoney(pU) : '—'}</span>
+                            <input type="hidden" name="productos[${id}][precio_unidad]" value="${enableU ? pU.toFixed(2) : ''}">
                             </div>
+                            <div class="input-group input-group-sm">
+                            <span class="input-group-text">B</span>
+                            <input type="number" class="form-control qty-blister" min="0" value="0" ${enableB? '' : 'disabled'}>
+                            <span class="input-group-text price-b">${enableB ? toMoney(pB) : '—'}</span>
+                            <input type="hidden" name="productos[${id}][precio_blister]" value="${enableB ? pB.toFixed(2) : ''}">
+                            </div>
+                            <div class="input-group input-group-sm">
+                            <span class="input-group-text">C</span>
+                            <input type="number" class="form-control qty-caja" min="0" value="0" ${enableC? '' : 'disabled'}>
+                            <span class="input-group-text price-c">${enableC ? toMoney(pC) : '—'}</span>
+                            <input type="hidden" name="productos[${id}][precio_caja]" value="${enableC ? pC.toFixed(2) : ''}">
+                            </div>
+                        </div>
 
-                            <input type="hidden" name="productos[${id}][cantidad_unidad]"  class="hid-unidad"  value="0">
-                            <input type="hidden" name="productos[${id}][cantidad_blister]" class="hid-blister" value="0">
-                            <input type="hidden" name="productos[${id}][cantidad_caja]"    class="hid-caja"    value="0">
+                        <input type="hidden" name="productos[${id}][cantidad_unidad]"  class="hid-unidad"  value="0">
+                        <input type="hidden" name="productos[${id}][cantidad_blister]" class="hid-blister" value="0">
+                        <input type="hidden" name="productos[${id}][cantidad_caja]"    class="hid-caja"    value="0">
                         </td>
 
                         <td class="breakdown align-middle"></td>
                         <td class="subtotal-fila align-middle" data-raw="0">S/ 0.00</td>
 
                         <td class="align-middle">
-                            <button type="button" class="btn btn-sm btn-danger eliminar-producto">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <button type="button" class="btn btn-sm btn-danger eliminar-producto">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                         </td>
                     </tr>
-                `;
+                    `;
 
                 tabla.insertAdjacentHTML("beforeend", fila);
 
@@ -443,10 +512,33 @@
                 recalcFila(tr);
 
                 // Cierra modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById("modalProductos"));
-                modal && modal.hide();
+                // Cerrar modal de forma segura (sin reventar si 'bootstrap' no está global)
+                (function() {
+                    const modalEl = document.getElementById("modalProductos");
+                    try {
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                            // Usa instancia existente o crea una y ocúltala
+                            const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                            inst.hide();
+                        } else {
+                            // Fallback: intenta cerrar con el botón o quitando clases
+                            const closeBtn = modalEl?.querySelector('[data-bs-dismiss="modal"]');
+                            closeBtn && closeBtn.click();
+                            modalEl?.classList.remove('show');
+                            document.body.classList.remove('modal-open');
+                            const backdrop = document.querySelector('.modal-backdrop');
+                            backdrop && backdrop.remove();
+                        }
+                    } catch (e) {
+                        // No bloquees el flujo si falla
+                        console.warn('No se pudo cerrar el modal:', e);
+                    }
+                })();
 
+                // ✅ Toast: producto agregado (siempre)
+                showAddedToast(`"${nombre}" agregado a la compra`);
                 return;
+
             }
 
             // Eliminar fila
@@ -598,4 +690,5 @@
             });
         </script>
     @endif
+
 @endsection

@@ -15,6 +15,7 @@ use App\Models\Movimientos;
 use App\Exports\ComprasExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Schema; 
 
 class ComprasController extends Controller
 {
@@ -38,27 +39,32 @@ class ComprasController extends Controller
 
     public function store(Request $request)
     {
+        // 1) Validación
         $request->validate([
             'id_proveedor' => 'required|exists:proveedores,id',
             'id_documento' => 'required|exists:documento,id',
-            'id_pago' => 'required|exists:tipopago,id',
-            'productos' => 'required|array|min:1',
-            'productos.*.id_producto' => 'required|exists:productos,id',
-            'productos.*.cantidad' => 'required|numeric|min:1',
-            'productos.*.precio_unitario' => 'required|numeric|min:0.01',
-            'archivo_factura' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048', // Validación de archivo
+            'id_pago'      => 'required|exists:tipopago,id',
+
+            'productos'    => 'required|array|min:1',
+
+            // por ítem:
+            'productos.*.id_producto'        => 'required|exists:productos,id',
+            'productos.*.cantidad_unidad'    => 'nullable|integer|min:0',
+            'productos.*.cantidad_blister'   => 'nullable|integer|min:0',
+            'productos.*.cantidad_caja'      => 'nullable|integer|min:0',
+
+            'productos.*.precio_unidad'      => 'nullable|numeric|min:0',
+            'productos.*.precio_blister'     => 'nullable|numeric|min:0',
+            'productos.*.precio_caja'        => 'nullable|numeric|min:0',
+
+            'productos.*.lote'               => 'nullable|string|max:100',
+            'productos.*.laboratorio'        => 'nullable|string|max:150',
+            'productos.*.fecha_vencimiento'  => 'nullable|date',
+
+            'archivo_factura' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // Calcular totales
-        $subtotal = 0;
-        foreach ($request->productos as $item) {
-            $subtotal += $item['cantidad'] * $item['precio_unitario'];
-        }
-
-        $igv = 0; // O reemplaza por cálculo de IGV si es necesario
-        $total = $subtotal;
-
-        // Subir archivo si existe
+        // 2) Subir archivo si existe
         $archivoNombre = null;
         if ($request->hasFile('archivo_factura')) {
             $archivo = $request->file('archivo_factura');
@@ -66,55 +72,151 @@ class ComprasController extends Controller
             $archivo->storeAs('public/orden_compra', $archivoNombre);
         }
 
-        // Crear la compra
+        // 3) Calcular totales a partir del desglose U/B/C
+        $total = 0;
+
+        foreach ($request->productos as $item) {
+            $nU = (int)($item['cantidad_unidad']  ?? 0);
+            $nB = (int)($item['cantidad_blister'] ?? 0);
+            $nC = (int)($item['cantidad_caja']    ?? 0);
+
+            $pU = (float)($item['precio_unidad']  ?? 0);
+            $pB = (float)($item['precio_blister'] ?? 0);
+            $pC = (float)($item['precio_caja']    ?? 0);
+
+            $subU = $nU * $pU;
+            $subB = $nB * $pB;
+            $subC = $nC * $pC;
+
+            $total += ($subU + $subB + $subC);
+        }
+
+        // Si quieres IGV=18%:
+        $igv = 0; // cámbialo si corresponde
+        $subtotal = $total - $igv;
+
+        // 4) Crear la compra
         $compra = Compras::create([
-            'codigo' => 'COMP-' . str_pad(Compras::max('id') + 1, 5, '0', STR_PAD_LEFT),
-            'id_proveedor' => $request->id_proveedor,
-            'id_documento' => $request->id_documento,
-            'id_pago' => $request->id_pago,
-            'fecha' => Carbon::now(),
-            'estado' => 'Activo',
-            'usuario_id' => Auth::id(),
-            'total' => $total,
-            'igv' => $igv,
+            'codigo'         => 'COMP-' . str_pad(Compras::max('id') + 1, 5, '0', STR_PAD_LEFT),
+            'id_proveedor'   => $request->id_proveedor,
+            'id_documento'   => $request->id_documento,
+            'id_pago'        => $request->id_pago,
+            'fecha'          => Carbon::now(),
+            'estado'         => 'Activo',
+            'usuario_id'     => Auth::id(),
+            'total'          => $total,
+            'igv'            => $igv,
             'archivo_factura' => $archivoNombre,
         ]);
 
-        // Crear detalles
+        // 5) Crear detalles + actualizar producto + movimientos
         foreach ($request->productos as $item) {
+            $producto = Productos::find($item['id_producto']);
+            if (!$producto) {
+                // si por alguna razón no existe, saltamos
+                continue;
+            }
+
+            $nU = (int)($item['cantidad_unidad']  ?? 0);
+            $nB = (int)($item['cantidad_blister'] ?? 0);
+            $nC = (int)($item['cantidad_caja']    ?? 0);
+
+            $pU = is_numeric($item['precio_unidad']  ?? null)  ? (float)$item['precio_unidad']  : null;
+            $pB = is_numeric($item['precio_blister'] ?? null)  ? (float)$item['precio_blister'] : null;
+            $pC = is_numeric($item['precio_caja']    ?? null)  ? (float)$item['precio_caja']    : null;
+
+            $subU = ($pU ?? 0) * $nU;
+            $subB = ($pB ?? 0) * $nB;
+            $subC = ($pC ?? 0) * $nC;
+
+            $subTotalLinea = $subU + $subB + $subC;
+
+            // Cantidad total: si tu detalle guarda una sola "cantidad", usamos la suma
+            $cantidadTotal = $nU + $nB + $nC;
+
+            // Precio unitario promedio para dejar consistente (subTotal / cantidad)
+            $precioPromedio = $cantidadTotal > 0 ? ($subTotalLinea / $cantidadTotal) : 0;
+
+            // 5.1) Guardar/actualizar atributos editables del producto
+            // Solo si vienen informados (no pisamos con vacío)
+            if (!empty($item['lote'])) {
+                $producto->lote = $item['lote'];
+            }
+            if (!empty($item['laboratorio'])) {
+                $producto->laboratorio = $item['laboratorio'];
+            }
+            if (!empty($item['fecha_vencimiento'])) {
+                // Normalizamos a Y-m-d
+                try {
+                    $producto->fecha_vencimiento = Carbon::parse($item['fecha_vencimiento'])->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    // si falla el parseo, lo ignoramos
+                }
+            }
+
+            // 5.2) Actualizar stock
+            $stockAnterior = $producto->cantidad ?? 0;
+
+            // Si tu tabla tiene columnas por presentación:
+            $tieneBlister = Schema::hasColumn('productos', 'cantidad_blister');
+            $tieneCaja    = Schema::hasColumn('productos', 'cantidad_caja');
+
+            if ($tieneBlister || $tieneCaja) {
+                // sumamos por presentación si existen
+                if ($tieneBlister) {
+                    $producto->cantidad_blister = ($producto->cantidad_blister ?? 0) + $nB;
+                }
+                if ($tieneCaja) {
+                    $producto->cantidad_caja = ($producto->cantidad_caja ?? 0) + $nC;
+                }
+                // mantenemos 'cantidad' para unidades sueltas
+                $producto->cantidad = ($producto->cantidad ?? 0) + $nU;
+            } else {
+                // Sin columnas B/C: convertimos a unidades
+                $uxb = (int)($producto->unidades_por_blister ?? 0);
+                $uxc = (int)($producto->unidades_por_caja ?? 0);
+
+                $unidadesDesdeB = ($uxb > 0) ? ($nB * $uxb) : 0;
+                $unidadesDesdeC = ($uxc > 0) ? ($nC * $uxc) : 0;
+
+                $producto->cantidad = ($producto->cantidad ?? 0) + $nU + $unidadesDesdeB + $unidadesDesdeC;
+            }
+
+            $producto->save();
+
+            // 5.3) Detalle (compatibilidad con tu esquema actual)
             DetalleCompras::create([
-                'id_compra' => $compra->id,
-                'id_producto' => $item['id_producto'],
-                'cantidad' => $item['cantidad'],
-                'precio_unitario' => $item['precio_unitario'],
-                'sub_total' => $item['cantidad'] * $item['precio_unitario'],
+                'id_compra'      => $compra->id,
+                'id_producto'    => $producto->id,
+                'cantidad'       => $cantidadTotal,
+                'precio_unitario' => $precioPromedio,
+                'sub_total'      => $subTotalLinea,
             ]);
 
-            // Actualizar stock
-            $producto = Productos::find($item['id_producto']);
-            if ($producto) {
-                $stockAnterior = $producto->cantidad;
-                $producto->cantidad += $item['cantidad'];
-                $producto->save();
+            // 5.4) Movimiento
+            $desglose = "U: {$nU}";
+            if ($nB > 0) $desglose .= " | B: {$nB}";
+            if ($nC > 0) $desglose .= " | C: {$nC}";
 
-                // Registrar movimiento tipo Entrada
-                Movimientos::create([
-                    'id_producto'     => $producto->id,
-                    'tipo_movimiento' => 'Entrada',
-                    'origen'          => 'Compra',
-                    'documento_ref'   => $compra->codigo,
-                    'fecha'           => now(),
-                    'cantidad'        => $item['cantidad'], // positivo porque es entrada
-                    'stock_anterior'  => $stockAnterior,
-                    'stock_actual'    => $producto->cantidad,
-                    'observacion'     => 'Compra registrada',
-                    'usuario_id'      => Auth::id(),
-                ]);
-            }
+            Movimientos::create([
+                'id_producto'     => $producto->id,
+                'tipo_movimiento' => 'Entrada',
+                'origen'          => 'Compra',
+                'documento_ref'   => $compra->codigo,
+                'fecha'           => now(),
+                'cantidad'        => $cantidadTotal, // para el registro; si usas unidades netas, puedes adaptar
+                'stock_anterior'  => $stockAnterior,
+                'stock_actual'    => $producto->cantidad,
+                'observacion'     => "Compra registrada ({$desglose})",
+                'usuario_id'      => Auth::id(),
+            ]);
         }
 
-        return redirect()->route('compras.index')->with('success', 'Compra registrada correctamente.');
+        return redirect()
+            ->route('compras.index')
+            ->with('success', 'Compra registrada correctamente.');
     }
+
 
     public function historial()
     {
