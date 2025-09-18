@@ -92,6 +92,7 @@ Route::middleware('auth')->group(function () {
         Route::put('genericos/{id}/desactivar', 'desactivar')->name('genericos.desactivar');
         Route::put('genericos/{id}/activar', 'activar')->name('genericos.activar');
         Route::put('genericos/{id}', 'actualizar')->name('genericos.actualizar');
+        Route::get('genericos/{id}/edit-partial', 'editPartial')->name('genericos.edit-partial');
     });
 
     Route::middleware('permiso:proveedores')->controller(ProveedorController::class)->group(function () {

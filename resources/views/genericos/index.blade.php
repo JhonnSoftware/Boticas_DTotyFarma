@@ -103,7 +103,8 @@
                                                 <div class="d-flex no-block align-items-center">
                                                     <div class="mr-3">
                                                         <img src="{{ url('imagenes/categoria_icon3.png') }}" alt="user"
-                                                            class="rounded-circle" width="45" height="45" />
+                                                            class="rounded-circle" width="45" height="45"
+                                                            loading="lazy" />
                                                     </div>
                                                     <div class="">
                                                         <h5 class="text-dark mb-0 font-16 font-weight-medium">
@@ -121,11 +122,10 @@
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
 
-                                                <a href="#" class="text-success" data-bs-toggle="modal"
-                                                    data-bs-target="#editarGenerico{{ $generico->id }}">
+                                                <a href="#" class="text-success btn-editar-generico"
+                                                    data-id="{{ $generico->id }}">
                                                     <i data-feather="edit"></i>
                                                 </a>
-
 
                                                 @if ($generico->estado === 'Activo')
                                                     <form action="{{ route('genericos.desactivar', $generico->id) }}"
@@ -215,7 +215,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
                                     @endforeach
                                 </tbody>
 
@@ -239,8 +238,7 @@
     </div>
 
     <!-- Modal: Registrar nueva categoría -->
-    <div class="modal fade" id="nuevoGenerico" tabindex="-1" aria-labelledby="nuevoGenericoLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="nuevoGenerico" tabindex="-1" aria-labelledby="nuevoGenericoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
 
@@ -287,6 +285,15 @@
                     </form>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal único reutilizable para EDITAR --}}
+    <div class="modal fade" id="modalEditarGenerico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="modalEditarGenericoContent">
+                {{-- Aquí se inyectará el partial por AJAX --}}
             </div>
         </div>
     </div>
@@ -386,26 +393,6 @@
     </script>
 
     <script>
-        $(document).ready(function() {
-            $('#inputBusqueda').on('keyup', function() {
-                var buscar = $(this).val();
-
-                $.ajax({
-                    url: "{{ route('genericos.buscar') }}",
-                    type: "GET",
-                    data: {
-                        buscar: buscar
-                    },
-                    success: function(data) {
-                        $('#tablaGenericos').html(data);
-                        feather.replace();
-                    }
-                });
-            });
-        });
-    </script>
-
-    <script>
         function confirmarDesactivacion(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
@@ -438,6 +425,76 @@
             });
         }
     </script>
+
+    <script>
+        document.addEventListener('click', async (ev) => {
+            const btn = ev.target.closest('.btn-editar-generico');
+            if (!btn) return;
+
+            ev.preventDefault();
+            const id = btn.dataset.id;
+
+            const modalEl = document.getElementById('modalEditarGenerico');
+            const modalContent = document.getElementById('modalEditarGenericoContent');
+
+            // Spinner mientras carga
+            modalContent.innerHTML = `
+                    <div class="p-5 d-flex align-items-center justify-content-center">
+                    <div class="spinner-border" role="status" aria-label="Cargando"></div>
+                    <span class="ms-3">Cargando...</span>
+                    </div>
+                    `;
+            let modal;
+            if (window.bootstrap && bootstrap.Modal) {
+                // BS5
+                modal = (bootstrap.Modal.getInstance && bootstrap.Modal.getInstance(modalEl)) || new bootstrap
+                    .Modal(modalEl);
+                modal.show();
+            } else if (window.$ && typeof $('#modalEditarGenerico').modal === 'function') {
+                // BS4
+                $('#modalEditarGenerico').modal('show');
+            } else {
+                // Fallback muy básico (por si acaso)
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.removeAttribute('aria-hidden');
+            }
+
+            try {
+                const url = `{{ route('genericos.edit-partial', ':id') }}`.replace(':id', id);
+                const res = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!res.ok) throw new Error('Error al cargar el formulario');
+                const html = await res.text();
+                modalContent.innerHTML = html;
+
+                if (window.feather) feather.replace();
+
+                const form = modalContent.querySelector('form.needs-validation');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        if (!form.checkValidity()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, {
+                        once: true
+                    });
+                }
+            } catch (err) {
+                modalContent.innerHTML = `
+                <div class="p-4">
+                    <div class="alert alert-danger mb-0">No se pudo cargar el formulario. ${err.message}</div>
+                </div>
+                `;
+            }
+        });
+    </script>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

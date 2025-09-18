@@ -98,6 +98,12 @@
             color: #374151;
             /* gris oscuro para contraste */
         }
+
+        /* Fila enfocada por navegación con teclado */
+        #tablaProductosModal tbody tr.row-active {
+            outline: 2px solid #0A7ABF;
+            box-shadow: inset 0 0 0 9999px rgba(10, 122, 191, 0.08);
+        }
     </style>
 
     <div class="container-fluid py-4">
@@ -159,18 +165,21 @@
                             </div>
 
 
-                            <div class="d-flex justify-content-start mb-3 gap-2">
+                            <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3">
                                 <button type="button" class="btn btn-success fw-bold px-4 shadow-sm boton-agregar-producto"
                                     data-bs-toggle="modal" data-bs-target="#modalBuscarProducto">
                                     <i class="fas fa-plus-circle me-2"></i> Agregar producto
                                 </button>
-                                <!-- Botón predeterminado -->
+
+                                <!-- Predeterminado -->
                                 <button type="button" id="btnPredeterminado"
                                     class="btn btn-primary fw-bold px-4 shadow-sm">
                                     <i class="fas fa-magic me-2"></i> Predeter.
                                 </button>
-                            </div>
 
+                                <span class="w-100 d-block d-sm-none"></span>
+
+                            </div>
 
                             <!-- Tabla de productos seleccionados -->
                             <div class="table-responsive mb-3">
@@ -182,6 +191,8 @@
                                             <th>Laboratorio</th>
                                             <th>F. Venc.</th>
                                             <th>Presentación</th>
+                                            <th>U/Blíster</th>
+                                            <th>U/Caja</th>
                                             <th>Cant.</th>
                                             <th>Precio</th>
                                             <th>Desc.</th>
@@ -343,10 +354,10 @@
                                                 data-stock-c="{{ $dispC ? $cajas : '' }}"
                                                 data-lab="{{ $producto->laboratorio ?? '' }}"
                                                 data-fv="{{ \Carbon\Carbon::parse($producto->fecha_vencimiento)->format('d/m/Y') }}"
+                                                data-upb="{{ $upb ?? '' }}" data-uxc="{{ $uxc ?? '' }}"
                                                 {{ $sinStockTotal ? 'disabled' : '' }}>
                                                 <i data-feather="plus-circle"></i>
                                             </button>
-
                                         </td>
                                         <td class="info-producto">{{ $producto->descripcion }}</td>
                                         <td>{{ $producto->laboratorio ?? '—' }}</td>
@@ -438,9 +449,199 @@
         </script>
     @endif
 
+    <!-- ===========================
+                 Borrador persistente de venta
+                 =========================== -->
+    <script>
+        window.addEventListener('load', () => {
+            const DRAFT_KEY = 'ventaDraft_v1';
+
+            function saveDraft() {
+                const filas = Array.from(document.querySelectorAll('#tablaVenta tbody tr')).map(fila => {
+                    const id = fila.getAttribute('data-id');
+                    const sel = fila.querySelector('.presentacion');
+                    const qty = fila.querySelector('.cantidad');
+                    const btnModal = document.querySelector(`.agregar-producto[data-id='${id}']`);
+
+                    return {
+                        id,
+                        // Nombre/lab/fv desde dataset del botón
+                        nombre: btnModal?.dataset.nombre || '',
+                        laboratorio: btnModal?.dataset.lab || '—',
+                        fv: btnModal?.dataset.fv || '—',
+                        presentacion: sel?.value || 'unidad',
+                        cantidad: parseInt(qty?.value || '1', 10),
+
+                        // datasets para recalcular
+                        precioU: btnModal?.dataset.precioU || '',
+                        precioB: btnModal?.dataset.precioB || '',
+                        precioC: btnModal?.dataset.precioC || '',
+                        descU: btnModal?.dataset.descpctU || 0,
+                        descB: btnModal?.dataset.descpctB || 0,
+                        descC: btnModal?.dataset.descpctC || 0
+                        // ratios no son necesarios para persistir: se leen del botón
+                    };
+                });
+
+                const draft = {
+                    cliente: document.querySelector("select[name='id_cliente']")?.value || '',
+                    documento: document.querySelector("select[name='id_documento']")?.value || '',
+                    pago: document.querySelector("select[name='id_pago']")?.value || '',
+                    pagado: document.getElementById('pagado')?.value || '',
+                    filas
+                };
+
+                try {
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+                } catch (e) {
+                    console.warn('No se pudo guardar el borrador:', e);
+                }
+            }
+
+            function clearDraft() {
+                try {
+                    localStorage.removeItem(DRAFT_KEY);
+                } catch {}
+            }
+
+            function loadDraft() {
+                let raw = null;
+                try {
+                    raw = localStorage.getItem(DRAFT_KEY);
+                } catch {}
+                if (!raw) return;
+
+                let draft = null;
+                try {
+                    draft = JSON.parse(raw);
+                } catch {
+                    return;
+                }
+
+                // Restituir selects y pagado
+                const cSel = document.querySelector("select[name='id_cliente']");
+                const dSel = document.querySelector("select[name='id_documento']");
+                const pSel = document.querySelector("select[name='id_pago']");
+                const inpPagado = document.getElementById('pagado');
+                if (cSel && draft.cliente) cSel.value = String(draft.cliente);
+                if (dSel && draft.documento) dSel.value = String(draft.documento);
+                if (pSel && draft.pago) pSel.value = String(draft.pago);
+                if (inpPagado && draft.pagado !== undefined) inpPagado.value = draft.pagado;
+
+                const tbodyVenta = document.querySelector('#tablaVenta tbody');
+                if (!tbodyVenta) return;
+
+                (draft.filas || []).forEach(item => {
+                    const btn = document.querySelector(`.agregar-producto[data-id='${item.id}']`);
+                    if (!btn) return; // si el producto ya no existe, saltamos
+
+                    // Igual que al agregar desde el modal
+                    const presDefault = window.primeraPresentacionDisponible(btn);
+                    const precioUnit = window.getPrecio(btn, presDefault);
+                    const descPct = window.getDescPct(btn, presDefault);
+                    const cantidadIni = 1;
+                    const descLinea = cantidadIni * precioUnit * (descPct / 100);
+                    const subtotal = (cantidadIni * precioUnit) - descLinea;
+
+                    const opts = [];
+                    opts.push(
+                        `<option value="unidad"  ${window.getStock(btn,'unidad')>0?'':'disabled'}  ${presDefault==='unidad'?'selected':''}>Unidad</option>`
+                    );
+                    opts.push(
+                        `<option value="blister" ${window.getStock(btn,'blister')>0?'':'disabled'} ${presDefault==='blister'?'selected':''}>Blíster</option>`
+                    );
+                    opts.push(
+                        `<option value="caja"    ${window.getStock(btn,'caja')>0?'':'disabled'}    ${presDefault==='caja'?'selected':''}>Caja</option>`
+                    );
+
+                    // Ratios desde dataset
+                    const upb = parseInt(btn.dataset.upb || '') || null;
+                    const uxc = parseInt(btn.dataset.uxc || '') || null;
+                    const upbTxt = upb ? upb : '—';
+                    const uxcTxt = uxc ? uxc : '—';
+
+                    const filaHTML = `
+                        <tr data-id="${item.id}">
+                          <td><input type="hidden" name="productos[]" value="${item.id}">${item.nombre}</td>
+                          <td>${btn.dataset.lab || '—'}</td>
+                          <td>${btn.dataset.fv  || '—'}</td>
+                          <td>
+                            <select name="unidades_venta[]" class="form-select form-select-sm presentacion">
+                              ${opts.join('')}
+                            </select>
+                            <div class="form-text small text-muted stock-pres">Stock: ${window.getStock(btn, presDefault)}</div>
+                          </td>
+                          <td><span class="badge bg-light text-dark">${upbTxt}</span></td>
+                          <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
+                          <td><input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*"></td>
+                          <td><input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly></td>
+                          <td>
+                            <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${descLinea.toFixed(2)}" step="0.01" readonly>
+                            <div class="form-text small text-muted">(-${descPct}%)</div>
+                          </td>
+                          <td><span class="subtotal">${subtotal.toFixed(2)}</span></td>
+                          <td>
+                            <button type="button" class="btn btn-danger btn-sm eliminar-producto">
+                              <i data-feather="trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                    `;
+                    tbodyVenta.insertAdjacentHTML('beforeend', filaHTML);
+
+                    // Ajustar presentación/cantidad guardadas y recalcular
+                    const fila = tbodyVenta.querySelector(`tr[data-id='${item.id}']`);
+                    if (fila) {
+                        const sel = fila.querySelector('.presentacion');
+                        if (sel && item.presentacion) sel.value = item.presentacion;
+                        const qty = fila.querySelector('.cantidad');
+                        if (qty) qty.value = String(item.cantidad || 1);
+                        window.recalcFila(fila);
+                    }
+
+                    // Deshabilitar botón en modal para evitar duplicado
+                    btn.disabled = true;
+                });
+
+                feather.replace?.();
+                window.calcularTotales?.();
+            }
+
+            // Disparadores de guardado
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.agregar-producto') || e.target.closest('.eliminar-producto')) {
+                    setTimeout(saveDraft, 0);
+                }
+            });
+            document.addEventListener('input', (e) => {
+                if (e.target.matches('.cantidad') || e.target.id === 'pagado') saveDraft();
+            });
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('.presentacion') ||
+                    e.target.name === 'id_cliente' ||
+                    e.target.name === 'id_documento' ||
+                    e.target.name === 'id_pago') {
+                    saveDraft();
+                }
+            });
+
+            const form = document.getElementById('formVenta');
+            if (form) {
+                form.addEventListener('submit', clearDraft);
+                form.addEventListener('reset', clearDraft);
+            }
+
+            // Carga inicial
+            loadDraft();
+        });
+    </script>
+
+    <!-- ===========================
+                 Interacción UI / Helpers / Reglas
+                 =========================== -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // ====== Atajo F2 abre modal ======
+            // Atajo F2 abre modal
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'F2') {
                     e.preventDefault();
@@ -449,7 +650,7 @@
                 }
             });
 
-            // ====== Filtro en el modal ======
+            // Filtro en el modal
             const inputModal = document.getElementById('buscarProductoModal');
             if (inputModal) {
                 inputModal.addEventListener('keyup', function() {
@@ -495,20 +696,21 @@
                 return 'unidad';
             }
 
-            // ===== Agregar producto desde el modal a la tabla de venta =====
+            // Agregar producto desde el modal a la tabla de venta
             document.addEventListener('click', function(e) {
                 const trigger = e.target.closest('.agregar-producto');
                 if (!trigger) return;
 
-                const btn = trigger; // botón con data-*
+                const btn = trigger;
                 const id = btn.dataset.id;
                 const nombre = btn.dataset.nombre;
 
                 const tabla = document.querySelector('#tablaVenta tbody');
                 const filaExistente = tabla.querySelector(`tr[data-id='${id}']`);
 
-                const allZero = getStock(btn, 'unidad') === 0 && getStock(btn, 'blister') === 0 && getStock(
-                    btn, 'caja') === 0;
+                const allZero = getStock(btn, 'unidad') === 0 &&
+                    getStock(btn, 'blister') === 0 &&
+                    getStock(btn, 'caja') === 0;
                 if (allZero) {
                     Swal.fire({
                         icon: 'error',
@@ -518,7 +720,6 @@
                     return;
                 }
 
-                // Si ya existe en la tabla, aumenta cantidad respetando el stock de la presentación actual
                 if (filaExistente) {
                     const cantidadInput = filaExistente.querySelector('.cantidad');
                     const pres = filaExistente.querySelector('.presentacion').value;
@@ -558,26 +759,27 @@
                     `<option value="caja"    ${getStock(btn,'caja')>0?'':'disabled'}    ${presDefault==='caja'?'selected':''}>Caja</option>`
                 );
 
+                // Ratios
+                const upb = parseInt(btn.dataset.upb || '') || null;
+                const uxc = parseInt(btn.dataset.uxc || '') || null;
+                const upbTxt = upb ? upb : '—';
+                const uxcTxt = uxc ? uxc : '—';
+
                 const fila = `
                     <tr data-id="${id}">
-                        <td>
-                            <input type="hidden" name="productos[]" value="${id}">
-                            ${nombre}
-                        </td>
+                        <td><input type="hidden" name="productos[]" value="${id}">${nombre}</td>
                         <td>${btn.dataset.lab || '—'}</td>
                         <td>${btn.dataset.fv || '—'}</td>
                         <td>
                             <select name="unidades_venta[]" class="form-select form-select-sm presentacion">
-                            ${opts.join('')}
+                              ${opts.join('')}
                             </select>
                             <div class="form-text small text-muted stock-pres">Stock: ${getStock(btn, presDefault)}</div>
                         </td>
-                        <td>
-                            <input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*">
-                        </td>
-                        <td>
-                            <input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly>
-                        </td>
+                        <td><span class="badge bg-light text-dark">${upbTxt}</span></td>
+                        <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
+                        <td><input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*"></td>
+                        <td><input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly></td>
                         <td>
                             <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${descLinea.toFixed(2)}" step="0.01" readonly>
                             <div class="form-text small text-muted">(-${descPct}%)</div>
@@ -585,7 +787,7 @@
                         <td><span class="subtotal">${subtotal.toFixed(2)}</span></td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm eliminar-producto">
-                                <i data-feather="trash"></i>
+                              <i data-feather="trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -594,11 +796,10 @@
                 tabla.insertAdjacentHTML('beforeend', fila);
                 feather.replace();
 
-                // Deshabilita botón en el modal para evitar duplicado inmediato
+                // Deshabilita botón del modal para evitar duplicado inmediato
                 btn.disabled = true;
 
                 window.calcularTotales();
-                // ✅ Toast al agregar (solo cuando se crea la fila nueva)
                 showAddedToast(`"${nombre}" agregado a la venta`);
             });
 
@@ -618,7 +819,7 @@
 
             function recalcFila(fila) {
                 const id = fila.getAttribute('data-id');
-                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`); // en el modal
+                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
                 const pres = fila.querySelector('.presentacion').value;
 
                 const stock = getStock(btn, pres);
@@ -649,6 +850,13 @@
                 window.calcularTotales();
             }
 
+            // PUBLICAR helpers y recalc en window para el borrador
+            window.getPrecio = getPrecio;
+            window.getDescPct = getDescPct;
+            window.getStock = getStock;
+            window.primeraPresentacionDisponible = primeraPresentacionDisponible;
+            window.recalcFila = recalcFila;
+
             // Eliminar producto desde la tabla
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.eliminar-producto')) return;
@@ -656,7 +864,6 @@
                 const id = fila.getAttribute('data-id');
                 fila.remove();
 
-                // Rehabilita el botón del modal
                 const botonAgregar = document.querySelector(`.agregar-producto[data-id='${id}']`);
                 if (botonAgregar) botonAgregar.disabled = false;
 
@@ -715,9 +922,6 @@
             document.querySelectorAll('#tablaVenta tbody tr').forEach(fila => {
                 const precio = parseFloat(fila.querySelector('.precio').value) || 0;
                 const descuento = parseFloat(fila.querySelector('.descuento-linea').value) || 0;
-                // Nota: tu descuento es monto total de la línea, no porcentaje. Esta validación
-                // evita casos absurdos donde el descuento de la línea supera el precio unitario * 1.
-                // Si usas cantidades >1, esta regla puede ser más permisiva; ajústala si quieres.
                 if (descuento > precio) {
                     ok = false;
                     const inp = fila.querySelector('.descuento-linea');
@@ -781,25 +985,137 @@
             });
         })();
     </script>
+
     <script>
+        // Botón Predeterminado
         document.addEventListener('DOMContentLoaded', () => {
             const btnPred = document.getElementById('btnPredeterminado');
             if (btnPred) {
                 btnPred.addEventListener('click', () => {
-                    // Cliente id=1
                     const clienteSel = document.querySelector("select[name='id_cliente']");
                     if (clienteSel) clienteSel.value = "1";
-
-                    // Comprobante id=1
                     const docSel = document.querySelector("select[name='id_documento']");
                     if (docSel) docSel.value = "1";
-
-                    // Tipo de pago id=1
                     const pagoSel = document.querySelector("select[name='id_pago']");
                     if (pagoSel) pagoSel.value = "1";
-
                 });
             }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalEl = document.getElementById('modalBuscarProducto');
+            const tableSelector = '#tablaProductosModal tbody tr';
+            const filterInput = document.getElementById('buscarProductoModal');
+            let selIndex = -1;
+
+            function visibleRows() {
+                if (!modalEl) return [];
+                return Array.from(modalEl.querySelectorAll(tableSelector))
+                    .filter(r => getComputedStyle(r).display !== 'none');
+            }
+
+            function firstEnabledRowIndex(rows) {
+                return rows.findIndex(r => {
+                    const btn = r.querySelector('.agregar-producto');
+                    return btn && !btn.disabled;
+                });
+            }
+
+            function setActive(index) {
+                const rows = visibleRows();
+                rows.forEach(r => r.classList.remove('row-active'));
+                if (rows.length === 0) {
+                    selIndex = -1;
+                    return;
+                }
+
+                // Wrap-around
+                if (index < 0) index = rows.length - 1;
+                if (index >= rows.length) index = 0;
+
+                selIndex = index;
+                const row = rows[selIndex];
+                row.classList.add('row-active');
+                row.scrollIntoView({
+                    block: 'nearest'
+                });
+            }
+
+            function selectFirst() {
+                const rows = visibleRows();
+                if (rows.length === 0) {
+                    selIndex = -1;
+                    return;
+                }
+                const idx = firstEnabledRowIndex(rows);
+                setActive(idx >= 0 ? idx : 0);
+            }
+
+            // Al abrir el modal: enfoca el buscador y selecciona la primera fila visible/habilitada
+            modalEl?.addEventListener('shown.bs.modal', () => {
+                if (filterInput) {
+                    filterInput.focus();
+                    filterInput.select?.();
+                }
+                // pequeña espera para que se apliquen filtros iniciales si los hubiera
+                setTimeout(selectFirst, 0);
+            });
+
+            // Al cerrar, limpia el estado
+            modalEl?.addEventListener('hidden.bs.modal', () => {
+                selIndex = -1;
+                visibleRows().forEach(r => r.classList.remove('row-active'));
+            });
+
+            // Recalcular selección cuando filtras
+            filterInput?.addEventListener('input', () => {
+                // Tu filtro ya oculta/mostrar filas; aquí solo re-anclamos la selección
+                setTimeout(selectFirst, 0);
+            });
+
+            // Navegación con ↑/↓ y Enter dentro del modal
+            modalEl?.addEventListener('keydown', (e) => {
+                // Si quieres que las flechas funcionen aun cuando estás escribiendo en el input de búsqueda,
+                // dejamos esta condición como está. Si prefieres que ↑/↓ NO interfieran cuando escribes,
+                // descomenta esta línea para ignorar cuando el foco está en el input:
+                // if (e.target === filterInput) return;
+
+                if (e.key === 'ArrowDown') {
+                    const rows = visibleRows();
+                    if (!rows.length) return;
+                    e.preventDefault();
+                    setActive(selIndex + 1);
+                } else if (e.key === 'ArrowUp') {
+                    const rows = visibleRows();
+                    if (!rows.length) return;
+                    e.preventDefault();
+                    setActive(selIndex - 1);
+                } else if (e.key === 'Enter') {
+                    const rows = visibleRows();
+                    if (selIndex < 0 || !rows[selIndex]) return;
+
+                    const btn = rows[selIndex].querySelector('.agregar-producto:not([disabled])');
+                    if (btn) {
+                        e.preventDefault();
+                        btn.click(); // reutiliza tu flujo existente de "agregar producto"
+
+                        // Avanzar a la siguiente fila habilitada (opcional, mejora el flujo rápido)
+                        const updatedRows = visibleRows();
+                        let next = selIndex;
+                        // busca la próxima fila con botón habilitado
+                        for (let i = selIndex + 1; i < updatedRows.length; i++) {
+                            const b = updatedRows[i].querySelector('.agregar-producto');
+                            if (b && !b.disabled) {
+                                next = i;
+                                break;
+                            }
+                        }
+                        setActive(next);
+                    }
+                }
+            });
         });
     </script>
 @endsection

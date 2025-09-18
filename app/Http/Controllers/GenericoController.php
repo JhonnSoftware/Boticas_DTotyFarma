@@ -10,16 +10,27 @@ class GenericoController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Genericos::query();
+        $perPage  = $request->integer('per_page', 80);
+        $busqueda = trim((string) $request->get('buscar', ''));
 
-        if ($request->has('buscar') && !empty($request->buscar)) {
-            $busqueda = $request->buscar;
-            $query->where('nombre', 'LIKE', "%$busqueda%");
+        $query = Genericos::select('id', 'nombre', 'estado');
+
+        if ($busqueda !== '') {
+            $query->where('nombre', 'LIKE', '%' . $busqueda . '%');
+            // Si algún día cambias a prefijo, usa $busqueda.'%' para que el índice ayude
         }
 
-        $genericos = $query->get();
+        $genericos = $query->orderBy('nombre')->paginate($perPage)->withQueryString();
 
-        return view('genericos.index', compact('genericos'));
+        return view('genericos.index', compact('genericos', 'busqueda', 'perPage'));
+    }
+
+    public function editPartial($id)
+    {
+        $generico = Genericos::select('id', 'nombre', 'estado')->findOrFail($id);
+
+        // Renderiza SOLO el contenido del modal (header+form+footer)
+        return view('genericos.partials.modal_editar', compact('generico'));
     }
 
     public function buscar(Request $request)
@@ -49,8 +60,8 @@ class GenericoController extends Controller
     public function actualizar(Request $request, $id)
     {
         $request->validate([
-          
-            'nombre' => ['required', 'string', 'max:100' , Rule::unique('genericos', 'nombre')->ignore($id)],
+
+            'nombre' => ['required', 'string', 'max:100', Rule::unique('genericos', 'nombre')->ignore($id)],
         ]);
 
         $genericos = Genericos::findOrFail($id);
