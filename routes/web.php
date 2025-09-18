@@ -177,6 +177,7 @@ Route::middleware('auth')->group(function () {
         Route::post('cierre', 'cierreStore')->name('caja.cierre.store');
         Route::get('listarCajas', 'listarCajas')->name('caja.listado');
         Route::get('listarCajas/buscar', 'buscar')->name('caja.buscar');
+        Route::put('caja/{id}', 'update')->name('caja.update');
     });
 
     Route::middleware('permiso:alertas')->controller(AlertaController::class)->group(function () {

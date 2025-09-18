@@ -133,6 +133,51 @@ class CajaController extends Controller
     }
 
     /**
+     * NUEVO: actualizar un registro de caja
+     */
+    public function update(Request $request, $id)
+    {
+        $caja = Cajas::where('id', $id)
+            ->where('usuario_id', auth()->id()) // seguridad básica: solo tu propia caja
+            ->firstOrFail();
+
+        $request->validate([
+            'monto_apertura' => 'required|numeric|min:0',
+            'fecha_apertura' => 'required|date',
+            'monto_cierre'   => 'nullable|numeric|min:0',
+            'fecha_cierre'   => 'nullable|date',
+            'estado'         => 'required|in:abierta,cerrada',
+        ]);
+
+        // Reglas simples: si estado es cerrada, debe tener fecha_cierre (si no viene, la ponemos a now())
+        if ($request->estado === 'cerrada' && !$request->filled('fecha_cierre')) {
+            $request->merge(['fecha_cierre' => now()]);
+        }
+        // Si estado es abierta, limpiamos cierre
+        if ($request->estado === 'abierta') {
+            $request->merge(['monto_cierre' => null, 'fecha_cierre' => null]);
+        }
+
+        $caja->update([
+            'monto_apertura' => $request->monto_apertura,
+            'fecha_apertura' => $request->fecha_apertura,
+            'monto_cierre'   => $request->monto_cierre,
+            'fecha_cierre'   => $request->fecha_cierre,
+            'estado'         => $request->estado,
+        ]);
+
+        // Mantén tus alertas coherentes
+        $this->syncCajaAlerts();
+
+        // Para llamadas AJAX devolvemos un JSON simple
+        if ($request->ajax()) {
+            return response()->json(['ok' => true, 'msg' => 'Caja actualizada correctamente.']);
+        }
+
+        return back()->with('success', 'Caja actualizada correctamente.');
+    }
+
+    /**
      * Genera / limpia alertas de caja (globales) sin scheduler.
      * - Caja no aperturada (hoy): 1 alerta/día si NADIE abrió caja hoy.
      * - Caja sin cerrar: 1 alerta/día si existe alguna caja abierta sin cierre.
