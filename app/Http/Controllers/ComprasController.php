@@ -12,30 +12,55 @@ use App\Models\Productos;
 use App\Models\TipoPagos;
 use App\Models\Documentos;
 use App\Models\Movimientos;
+use App\Models\Categorias;
+use App\Models\Clases;
+use App\Models\Genericos;
 use App\Exports\ComprasExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Schema; 
+use Illuminate\Support\Facades\Schema;
 
 class ComprasController extends Controller
 {
     public function index()
     {
-        $proveedores = Proveedores::all();
-        $productos = Productos::all();
-        $tipopagos = TipoPagos::all();
-        $documentos = Documentos::all();
+        $proveedores = Proveedores::orderBy('nombre')->get();
+        $productos   = Productos::latest()->get();
+        $tipopagos   = TipoPagos::all();
+        $documentos  = Documentos::all();
 
-        // Generar el siguiente número de serie para la compra
-        $serie = 'COMP';
-        $ultimo = Compras::latest()->first();
+        //Generar el siguiente número de serie para la compra
+        $serie  = 'COMP';
+        $ultimo = Compras::latest('id')->first();
         $numero = $ultimo ? str_pad($ultimo->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
         $codigo = $serie . '-' . $numero;
 
+        //Catálogos para el modal de "nuevo producto"
+        $categorias = Categorias::select('id', 'nombre')->orderBy('nombre')->get();
+        $clases     = Clases::select('id', 'nombre')->orderBy('nombre')->get();
+        $genericos  = Genericos::select('id', 'nombre')->orderBy('nombre')->get();
+
+        // Igual que en ProductosController:
+        $ultimoProducto = Productos::latest('id')->first();
+        $nextId = $ultimoProducto ? $ultimoProducto->id + 1 : 1;
+        $nuevoCodigo = 'P000-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
         $compras = Compras::with(['proveedor', 'documento', 'pago', 'usuario'])->latest()->get();
 
-        return view('compras.index', compact('compras', 'proveedores', 'productos', 'tipopagos', 'documentos', 'codigo'));
+        return view('compras.index', compact(
+            'compras',
+            'proveedores',
+            'productos',
+            'tipopagos',
+            'documentos',
+            'codigo',
+            'categorias',
+            'clases',
+            'genericos',
+            'nuevoCodigo'
+        ));
     }
+
 
     public function store(Request $request)
     {

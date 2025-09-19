@@ -211,7 +211,7 @@ class ProductoController extends Controller
 
         $this->syncProductAlerts($producto);
 
-        return redirect()->route('productos.index')->with('success', 'Producto registrado correctamente.');
+        return back()->with('success', 'Producto registrado correctamente.');
     }
 
     public function activar($id)

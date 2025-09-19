@@ -55,6 +55,12 @@
             border-radius: .6rem;
             color: #fff;
         }
+
+        /* Fila enfocada por navegación con teclado (modal de COMPRAS) */
+        #modalProductos tbody tr.row-active {
+            outline: 2px solid #0A7ABF;
+            box-shadow: inset 0 0 0 9999px rgba(10, 122, 191, 0.08);
+        }
     </style>
 
     <div class="container-fluid py-4">
@@ -108,12 +114,21 @@
                         <!-- Botón para abrir modal -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-primary">Agregar Producto</label><br>
-                            <button type="button" class="btn btn-success fw-bold px-4 shadow-sm boton-agregar-producto"
-                                data-bs-toggle="modal" data-bs-target="#modalProductos">
-                                <i class="fas fa-plus-circle me-2"></i> Buscar Producto
-                            </button>
-                        </div>
 
+                            <div class="d-flex flex-wrap gap-2">
+                                {{-- Botón: Buscar (abre modal) --}}
+                                <button type="button" class="btn btn-success fw-bold px-4 shadow-sm boton-agregar-producto"
+                                    data-bs-toggle="modal" data-bs-target="#modalProductos">
+                                    <i class="fas fa-plus-circle me-2"></i> Buscar Producto
+                                </button>
+
+                                {{-- Agregar (abre el modal de registro rápido) --}}
+                                <button type="button" class="btn btn-outline-success fw-bold px-4 shadow-sm"
+                                    data-bs-toggle="modal" data-bs-target="#nuevoProducto">
+                                    <i class="fas fa-plus me-2"></i> Agregar Producto
+                                </button>
+                            </div>
+                        </div>
 
                         <!-- Campo archivo factura -->
                         <div class="col-md-6">
@@ -290,6 +305,13 @@
         </div>
     </div>
 
+    @include('productos.partials.modal_registrar', [
+        'categorias' => $categorias ?? collect(),
+        'clases' => $clases ?? collect(),
+        'genericos' => $genericos ?? collect(),
+        'proveedores' => $proveedores ?? collect(),
+        'nuevoCodigo' => $nuevoCodigo ?? null,
+    ])
 @endsection
 
 @section('scripts')
@@ -661,6 +683,51 @@
         })();
     </script>
 
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const $modal = $('#nuevoProducto');
+
+            function initCats() {
+                const $cats = $('#categorias_select');
+                if ($cats.length && typeof $cats.select2 === 'function') {
+                    $cats.select2({
+                        width: '100%',
+                        dropdownParent: $modal,
+                        placeholder: $cats.data('placeholder') || 'Seleccionar categorías...',
+                        allowClear: true,
+                        closeOnSelect: false
+                    });
+                }
+            }
+
+            // Al abrir: inicializa y fuerza a empezar sin selección
+            $modal.on('shown.bs.modal', function() {
+                initCats();
+                const $cats = $('#categorias_select');
+                // Si no vienes de un "old()", arrancar vacío:
+                if (!@json(old('categorias', false))) {
+                    $cats.val(null).trigger('change');
+                }
+            });
+
+            // Al cerrar: limpia y destruye para evitar duplicados
+            $modal.on('hidden.bs.modal', function() {
+                const $cats = $('#categorias_select');
+                if ($cats.length && $cats.data('select2')) {
+                    $cats.val(null).trigger('change');
+                    $cats.select2('destroy');
+                }
+                const form = this.querySelector('form');
+                if (form) {
+                    form.reset();
+                    form.classList.remove('was-validated');
+                }
+            });
+        });
+    </script>
+
+
     <script>
         // Bootstrap 5: Validación personalizada
         (() => {
@@ -678,17 +745,135 @@
         })();
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === Navegación por teclado en el modal de productos (COMPRAS) ===
+            const modalEl = document.getElementById('modalProductos');
+            const filterInput = document.getElementById('buscadorProducto');
+            const rowSelector = '#modalProductos tbody tr';
+            const btnSelector = '.seleccionar-producto'; // <- botón de tu modal de COMPRAS
+            let selIndex = -1;
+
+            function visibleRows() {
+                if (!modalEl) return [];
+                return Array.from(modalEl.querySelectorAll(rowSelector))
+                    .filter(r => getComputedStyle(r).display !== 'none');
+            }
+
+            function firstEnabledRowIndex(rows) {
+                return rows.findIndex(r => {
+                    const btn = r.querySelector(btnSelector);
+                    return btn && !btn.disabled;
+                });
+            }
+
+            function setActive(index) {
+                const rows = visibleRows();
+                rows.forEach(r => r.classList.remove('row-active'));
+
+                if (!rows.length) {
+                    selIndex = -1;
+                    return;
+                }
+
+                // wrap-around
+                if (index < 0) index = rows.length - 1;
+                if (index >= rows.length) index = 0;
+
+                selIndex = index;
+                const row = rows[selIndex];
+                row.classList.add('row-active');
+                row.scrollIntoView({
+                    block: 'nearest'
+                });
+            }
+
+            function selectFirst() {
+                const rows = visibleRows();
+                if (!rows.length) {
+                    selIndex = -1;
+                    return;
+                }
+                const idx = firstEnabledRowIndex(rows);
+                setActive(idx >= 0 ? idx : 0);
+            }
+
+            // Al abrir: enfoca el buscador y selecciona la primera fila visible/habilitada
+            modalEl?.addEventListener('shown.bs.modal', () => {
+                if (filterInput) {
+                    filterInput.focus();
+                    filterInput.select?.();
+                }
+                // pequeño delay para respetar filtros iniciales
+                setTimeout(selectFirst, 0);
+            });
+
+            // Al cerrar: limpia el estado visual
+            modalEl?.addEventListener('hidden.bs.modal', () => {
+                selIndex = -1;
+                visibleRows().forEach(r => r.classList.remove('row-active'));
+            });
+
+            // Cuando escribes en el buscador (tu otro script ya filtra filas),
+            // aquí solo re-anclamos la selección a la primera visible/habilitada:
+            filterInput?.addEventListener('input', () => {
+                // espera a que el otro filtro oculte/muestre filas
+                setTimeout(selectFirst, 0);
+            });
+
+            // Navegación con teclas dentro del modal:
+            // ↑/←: arriba | ↓/→: abajo | Enter: "seleccionar-producto"
+            modalEl?.addEventListener('keydown', (e) => {
+                const rows = visibleRows();
+                if (!rows.length) return;
+
+                // Si prefieres que ↑/↓ no interfieran cuando el foco está en el input de búsqueda,
+                // descomenta esta línea:
+                // if (e.target === filterInput) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    setActive(selIndex + 1);
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    setActive(selIndex - 1);
+                } else if (e.key === 'Enter') {
+                    if (selIndex < 0 || !rows[selIndex]) return;
+                    const btn = rows[selIndex].querySelector(`${btnSelector}:not([disabled])`);
+                    if (btn) {
+                        e.preventDefault();
+                        btn.click(); // reutiliza tu flujo de "Agregar" existente
+
+                        // Opcional: saltar automáticamente a la siguiente fila habilitada
+                        const updated = visibleRows();
+                        let next = selIndex;
+                        for (let i = selIndex + 1; i < updated.length; i++) {
+                            const b = updated[i].querySelector(btnSelector);
+                            if (b && !b.disabled) {
+                                next = i;
+                                break;
+                            }
+                        }
+                        setActive(next);
+                    }
+                }
+            });
+        });
+    </script>
+
+
     @if (session('success'))
         <script>
             Swal.fire({
-                title: '¡Compra registrada!',
-                text: "{{ session('success') }}",
                 icon: 'success',
-                confirmButtonText: 'Aceptar',
+                title: 'Éxito',
+                text: "{{ session('success') }}",
+                confirmButtonColor: '#3085d6',
                 timer: 3000,
                 timerProgressBar: true
             });
         </script>
     @endif
+
 
 @endsection
