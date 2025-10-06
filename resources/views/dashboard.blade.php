@@ -134,16 +134,16 @@
                 </div>
             </div>
             <!--
-                    <div class="col-5 align-self-center">
-                        <div class="customize-input float-right">
-                            <select
-                                class="custom-select custom-select-set form-control bg-white border-0 custom-shadow custom-radius">
-                                <option selected>Aug 19</option>
-                                <option value="1">July 19</option>
-                                <option value="2">Jun 19</option>
-                            </select>
-                        </div>
-                    </div> -->
+                            <div class="col-5 align-self-center">
+                                <div class="customize-input float-right">
+                                    <select
+                                        class="custom-select custom-select-set form-control bg-white border-0 custom-shadow custom-radius">
+                                        <option selected>Aug 19</option>
+                                        <option value="1">July 19</option>
+                                        <option value="2">Jun 19</option>
+                                    </select>
+                                </div>
+                            </div> -->
         </div>
     </div>
 
@@ -522,7 +522,7 @@
                     <div class="card-header text-white" style="background-color:#dc3545;">
                         <h5 class="mb-0">
                             <i class="fas fa-exclamation-circle me-2"></i>
-                            Top 5 Productos con Menor Stock (U / B / C)
+                            Top 5 Productos con Menor Stock (Unidades)
                         </h5>
                     </div>
 
@@ -532,24 +532,28 @@
                                 @php
                                     $img = url($p->foto ?? 'imagenes/producto_defecto.jpg');
 
-                                    // Stocks y mínimos
+                                    // Stock y mínimo (solo unidades)
                                     $u = (int) ($p->cantidad ?? 0);
-                                    $b = (int) ($p->cantidad_blister ?? 0);
-                                    $c = (int) ($p->cantidad_caja ?? 0);
-
                                     $mu = (int) ($p->stock_minimo ?? 0);
-                                    $mb = (int) ($p->stock_minimo_blister ?? 0);
-                                    $mc = (int) ($p->stock_minimo_caja ?? 0);
 
-                                    // Estados por presentación
-                                    $uCritico = $mu > 0 ? $u < $mu : false;
-                                    $bCritico = $mb > 0 ? $b < $mb : false;
-                                    $cCritico = $mc > 0 ? $c < $mc : false;
+                                    // Estado crítico por unidades
+                                    $uCritico = $mu > 0 ? $u <= $mu : false;
 
-                                    // Barra de riesgo (usa ratio_min calculado en el controlador)
-                                    $ratio = (float) ($p->ratio_min ?? 9999); // 9999 = sin mínimos definidos
-                                    $pct = $ratio === 9999 ? 100 : max(0, min(120, round($ratio * 100)));
-                                    $barColor = $pct < 60 ? '#dc3545' : ($pct < 100 ? '#ffc107' : '#28a745');
+                                    // Ratio (viene del controller como ratio_min; 9999 = sin mínimo definido)
+                                    $ratio = isset($p->ratio_min) ? (float) $p->ratio_min : null;
+                                    $ratioValido = $ratio !== null && $ratio !== 9999;
+
+                                    // Porcentaje para barra (0%–120%)
+                                    $pct = $ratioValido ? max(0, min(120, round($ratio * 100))) : 100;
+
+                                    // Color de barra según ratio
+                                    $barColor = !$ratioValido
+                                        ? '#6c757d' // gris si no hay mínimo
+                                        : ($pct < 60
+                                            ? '#dc3545' // rojo <60%
+                                            : ($pct < 100
+                                                ? '#ffc107' // ámbar <100%
+                                                : '#28a745')); // verde >=100%
 
                                     // Vencimiento (opcional)
                                     $vencTxt = null;
@@ -563,13 +567,12 @@
                                             $vencTxt = "Vence en {$dias} d";
                                         }
                                     }
-
-                                    $esCritico = $uCritico || $bCritico || $cCritico;
                                 @endphp
 
                                 <li class="list-group-item d-flex align-items-center gap-3">
                                     <img src="{{ $img }}" alt="Imagen" class="rounded" width="50"
-                                        height="50" style="object-fit:cover;border:1px solid #ccc;">
+                                        height="50" style="object-fit:cover;border:1px solid #ccc;"
+                                        onerror="this.src='{{ asset('imagenes/producto_defecto.jpg') }}'">
 
                                     <div class="flex-grow-1">
                                         <div class="d-flex align-items-center gap-2">
@@ -578,43 +581,47 @@
                                                 <span class="badge bg-danger">Vencido</span>
                                             @elseif($vencTxt)
                                                 <span class="badge bg-warning text-dark">{{ $vencTxt }}</span>
-                                            @endif
+                                            @endif>
                                         </div>
 
-                                        <!-- Badges por presentación -->
+                                        {{-- Badge de unidades --}}
                                         <div class="mt-1 d-flex flex-wrap gap-2">
                                             <span class="badge {{ $uCritico ? 'bg-danger' : 'bg-success' }}">
                                                 U: {{ $u }}@if ($mu > 0)
                                                     / Min {{ $mu }}
                                                 @endif
                                             </span>
-                                            <span class="badge {{ $bCritico ? 'bg-danger' : 'bg-success' }}">
-                                                B: {{ $b }}@if ($mb > 0)
-                                                    / Min {{ $mb }}
-                                                @endif
-                                            </span>
-                                            <span class="badge {{ $cCritico ? 'bg-danger' : 'bg-success' }}">
-                                                C: {{ $c }}@if ($mc > 0)
-                                                    / Min {{ $mc }}
-                                                @endif
-                                            </span>
                                         </div>
 
-                                        <!-- Barra de riesgo visual -->
+                                        {{-- Barra de “cobertura” del mínimo --}}
                                         <div class="mt-2"
                                             style="height:8px;background:#e9ecef;border-radius:6px;overflow:hidden;">
                                             <div
                                                 style="width: {{ $pct }}%; height:100%; background: {{ $barColor }};">
                                             </div>
                                         </div>
-                                        <small class="text-muted d-block mt-1">
-                                            Riesgo (peor ratio U/B/C):
-                                            {{ $ratio === 9999 ? '—' : number_format($ratio, 2) }}
-                                        </small>
+
+                                        @php
+                                            $ratio = $ratioValido ? round($ratio * 100) : null;
+                                            if (is_null($ratio)) {
+                                                $estado = ['Sin mínimo', 'secondary'];
+                                            } elseif ($ratio >= 100) {
+                                                $estado = ['Stock suficiente', 'success']; // verde
+                                            } elseif ($ratio >= 60) {
+                                                $estado = ['Stock bajo', 'warning']; // amarillo
+                                            } else {
+                                                $estado = ['Stock crítico', 'danger']; // rojo
+                                            }
+                                        @endphp
+
+                                        <span class="badge bg-{{ $estado[1] }}">
+                                            {{ $estado[0] }}
+                                        </span>
+
                                     </div>
 
-                                    <span class="badge {{ $esCritico ? 'bg-danger' : 'bg-success' }} rounded-pill">
-                                        {{ $esCritico ? 'Crítico' : 'OK' }}
+                                    <span class="badge {{ $uCritico ? 'bg-danger' : 'bg-success' }} rounded-pill">
+                                        {{ $uCritico ? 'Crítico' : 'OK' }}
                                     </span>
                                 </li>
                                 @empty
@@ -625,12 +632,9 @@
                     </div>
                 </div>
 
-
-
             </div>
-        </div>
 
-    @endsection
+        @endsection
 
     @section('scripts')
         <script>

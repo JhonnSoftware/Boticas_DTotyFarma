@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('laboratorio');
 
             // Lote y vencimiento
-            $table->integer('lote');
+            $table->string('lote');
             $table->date('fecha_vencimiento');
 
             // Stock 
@@ -30,10 +30,11 @@ return new class extends Migration
             $table->unsignedInteger('cantidad_blister')->nullable()->default(null);
             $table->unsignedInteger('cantidad_caja')->nullable()->default(null);
 
+            $table->unsignedInteger('unidades_por_blister')->nullable()->default(null);
+            $table->unsignedInteger('unidades_por_caja')->nullable()->default(null);
+
             //Stock Minimo
             $table->unsignedInteger('stock_minimo')->default(0);
-            $table->unsignedInteger('stock_minimo_blister')->nullable()->default(0);
-            $table->unsignedInteger('stock_minimo_caja')->nullable()->default(0);
 
             // Descuento unitario (si aplica)
             $table->decimal('descuento', 10, 2)->nullable();   // ej. 10 = 10% o S/10

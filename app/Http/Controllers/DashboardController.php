@@ -21,9 +21,9 @@ class DashboardController extends Controller
     {
         // ===== Ventas por mes (6 últimos) =====
         $ventasPorMes = Ventas::select(
-            DB::raw("DATE_FORMAT(fecha, '%Y-%m') as mes"),
-            DB::raw("SUM(total) as total")
-        )
+                DB::raw("DATE_FORMAT(fecha, '%Y-%m') as mes"),
+                DB::raw("SUM(total) as total")
+            )
             ->groupBy('mes')
             ->orderBy('mes', 'asc')
             ->take(6)
@@ -42,7 +42,7 @@ class DashboardController extends Controller
         $productosNombres    = $productosMasVendidos->map(fn($d) => $d->producto->descripcion ?? 'Producto Eliminado');
         $productosCantidades = $productosMasVendidos->pluck('total_vendidos');
 
-        // ===== Stock bajo / normal (solo unidades para mantener compatibilidad con tu UI actual) =====
+        // ===== Stock bajo / normal (solo unidades) =====
         $stockBajo   = Productos::whereColumn('cantidad', '<', 'stock_minimo')->count();
         $stockNormal = Productos::whereColumn('cantidad', '>=', 'stock_minimo')->count();
 
@@ -67,32 +67,24 @@ class DashboardController extends Controller
         $cantidadVentas      = Ventas::count();
         $cantidadCompras     = Compras::count();
 
-        // ===== NUEVO: Top 5 productos con menor stock (considerando U/B/C) =====
-        // ratio_min: peor ratio contra mínimo entre U/B/C. Si no hay mínimo definido, lo ignora (empuja al final).
+        // ===== Top 5 productos con menor stock (solo unidades) =====
+        // ratio_min = cantidad / stock_minimo (si hay mínimo; si no, 9999 para ir al final)
         $productosStockBajoTop = Productos::select(
-            'id',
-            'descripcion',
-            'foto',
-            'cantidad',
-            'cantidad_blister',
-            'cantidad_caja',
-            'stock_minimo',
-            'stock_minimo_blister',
-            'stock_minimo_caja',
-            'fecha_vencimiento'
-        )
+                'id',
+                'descripcion',
+                'foto',
+                'cantidad',
+                'stock_minimo',
+                'fecha_vencimiento'
+            )
             ->addSelect(DB::raw("
-            NULLIF(cantidad / NULLIF(stock_minimo, 0), NULL)                 as r_u,
-            NULLIF(cantidad_blister / NULLIF(stock_minimo_blister, 0), NULL) as r_b,
-            NULLIF(cantidad_caja / NULLIF(stock_minimo_caja, 0), NULL)       as r_c,
-            COALESCE(LEAST(
-                NULLIF(cantidad / NULLIF(stock_minimo, 0), NULL),
-                NULLIF(cantidad_blister / NULLIF(stock_minimo_blister, 0), NULL),
-                NULLIF(cantidad_caja / NULLIF(stock_minimo_caja, 0), NULL)
-            ), 9999) as ratio_min
-        "))
-            ->orderBy('ratio_min', 'asc')   // más críticos primero
-            ->orderBy('cantidad', 'asc')    // desempate
+                COALESCE(
+                    NULLIF(cantidad, 0) / NULLIF(stock_minimo, 0),
+                    9999
+                ) as ratio_min
+            "))
+            ->orderBy('ratio_min', 'asc') // más críticos primero
+            ->orderBy('cantidad', 'asc')
             ->take(5)
             ->get();
 
@@ -115,29 +107,26 @@ class DashboardController extends Controller
         $ventasAnuladas  = Ventas::where('estado', 'Anulado')->sum('total');
         $comprasAnuladas = Compras::where('estado', 'Anulado')->sum('total');
 
-        // ===== NUEVO: métricas extra con U/B/C =====
+        // ===== Métricas extra (sin mínimos por blíster/caja) =====
 
-        // Conteos de stock bajo por presentación (si existe mínimo)
+        // Conteo de stock bajo por unidades (único mínimo existente)
         $stockBajoU = Productos::whereNotNull('stock_minimo')
-            ->whereColumn('cantidad', '<=', 'stock_minimo')->count();
-        $stockBajoB = Productos::whereNotNull('stock_minimo_blister')
-            ->whereColumn('cantidad_blister', '<=', 'stock_minimo_blister')->count();
-        $stockBajoC = Productos::whereNotNull('stock_minimo_caja')
-            ->whereColumn('cantidad_caja', '<=', 'stock_minimo_caja')->count();
+            ->whereColumn('cantidad', '<=', 'stock_minimo')
+            ->count();
 
-        // Sumas de stock por presentación
+        // Sumas de stock por presentación (sirven aunque ya no haya mínimos por B/C)
         $stockSumU = (int) Productos::sum('cantidad');
         $stockSumB = (int) Productos::sum('cantidad_blister');
         $stockSumC = (int) Productos::sum('cantidad_caja');
 
         // Valor de inventario con precios de compra por presentación
         $valorInventario = (float) Productos::selectRaw("
-        SUM(
-            COALESCE(cantidad, 0) * COALESCE(precio_compra, 0) +
-            COALESCE(cantidad_blister, 0) * COALESCE(precio_compra_blister, 0) +
-            COALESCE(cantidad_caja, 0) * COALESCE(precio_compra_caja, 0)
-        ) as valor
-    ")->value('valor');
+            SUM(
+                COALESCE(cantidad, 0) * COALESCE(precio_compra, 0) +
+                COALESCE(cantidad_blister, 0) * COALESCE(precio_compra_blister, 0) +
+                COALESCE(cantidad_caja, 0) * COALESCE(precio_compra_caja, 0)
+            ) as valor
+        ")->value('valor');
 
         // Próximos a vencer (≤ 30 días)
         $proximosAVencer = Productos::whereNotNull('fecha_vencimiento')
@@ -146,7 +135,7 @@ class DashboardController extends Controller
             ->count();
 
         return view('dashboard', compact(
-            // existentes (no los tocamos)
+            // existentes
             'labels',
             'data',
             'productosNombres',
@@ -171,10 +160,8 @@ class DashboardController extends Controller
             'ventasAnuladas',
             'comprasAnuladas',
 
-            // nuevos (para potenciar el dashboard)
+            // nuevos (sin mínimos B/C)
             'stockBajoU',
-            'stockBajoB',
-            'stockBajoC',
             'stockSumU',
             'stockSumB',
             'stockSumC',
@@ -182,7 +169,6 @@ class DashboardController extends Controller
             'proximosAVencer'
         ));
     }
-
 
     public function datosEmpresa()
     {

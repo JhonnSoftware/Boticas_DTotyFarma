@@ -226,14 +226,14 @@
                                         <th class="border-0 font-14 font-weight-medium text-black rounded-start">Codigo</th>
                                         <th class="border-0 font-14 font-weight-medium text-black px-2">Descripcion</th>
                                         <th class="border-0 font-14 font-weight-medium text-black px-2">Stock (Unid)</th>
-                                                                                        <!-- <th class="border-0 font-14 font-weight-medium text-black">Presentacion</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Laboratorio</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Lote</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Stock Minimo</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Dscto</th>
-                                                                                                <th class="border-0 font-14 font-weight-medium text-black">Caduca</th>
-                                                                                                -->
+                                        <!-- <th class="border-0 font-14 font-weight-medium text-black">Presentacion</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Laboratorio</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Lote</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Cantidad</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Stock Minimo</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Dscto</th>
+                                                                                                                        <th class="border-0 font-14 font-weight-medium text-black">Caduca</th>
+                                                                                                                        -->
                                         <th class="border-0 font-14 font-weight-medium text-black">P. Venta</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">P. Venta (Blister)</th>
                                         <th class="border-0 font-14 font-weight-medium text-black">P. Venta (Caja)</th>
@@ -260,16 +260,16 @@
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descripcion }}</td>
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
                                             <!--
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->laboratorio }}</td>
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->lote }}</td>
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}
-                                                                                                </td>
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descuento }}</td>
-                                                                                                <td class="border-top-0 text-dark px-2 py-4">
-                                                                                                    {{ $producto->fecha_vencimiento }}
-                                                                                                </td>
-                                                                                                -->
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">{{ $producto->laboratorio }}</td>
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">{{ $producto->lote }}</td>
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">{{ $producto->cantidad }}</td>
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">{{ $producto->stock_minimo }}
+                                                                                                                        </td>
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">{{ $producto->descuento }}</td>
+                                                                                                                        <td class="border-top-0 text-dark px-2 py-4">
+                                                                                                                            {{ $producto->fecha_vencimiento }}
+                                                                                                                        </td>
+                                                                                                                        -->
                                             <td class="border-top-0 text-dark px-2 py-4">{{ $producto->precio_venta }}
                                             </td>
                                             <td class="border-top-0 text-dark px-2 py-4">
@@ -293,15 +293,14 @@
                                             </td>
                                             <td class="font-weight-medium text-dark border-top-0 px-2 py-4">
                                                 <!--
-                                                                            <a href="#" class="text-primary me-2"><i
-                                                                                    data-feather="eye"></i></a> -->
+                                                                                                    <a href="#" class="text-primary me-2"><i
+                                                                                                            data-feather="eye"></i></a> -->
 
                                                 <a href="#" class="text-success btn-edit"
-                                                    data-id="{{ $producto->id }}"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#modalEditar">
+                                                    data-id="{{ $producto->id }}">
                                                     <i data-feather="edit"></i>
                                                 </a>
+
 
                                                 @if ($producto->estado === 'Activo')
                                                     <form action="{{ route('productos.desactivar', $producto->id) }}"
@@ -342,7 +341,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                         </div>
 
                         <div class="row mt-3">
@@ -362,10 +361,10 @@
     </div>
 
     <div class="modal fade" id="nuevoProducto" tabindex="-1" aria-labelledby="nuevoProductoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:95%;">
             <div class="modal-content shadow-lg rounded-4 border-0">
 
-                <!-- Encabezado -->
+                {{-- Encabezado --}}
                 <div class="modal-header bg-success text-white rounded-top-4 py-3">
                     <h5 class="modal-title fw-semibold" id="nuevoProductoLabel">
                         <i class="bi bi-capsule-pill me-2"></i>Registrar nuevo producto
@@ -374,164 +373,272 @@
                         aria-label="Cerrar"></button>
                 </div>
 
-                <!-- Cuerpo -->
-                <div class="modal-body p-4">
+                {{-- Cuerpo --}}
+                <div class="modal-body p-3">
                     <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data"
                         class="needs-validation" novalidate>
                         @csrf
 
-                        <div class="row g-4">
-
-                            {{-- 1) Información para venta rápida --}}
-
-                            <!-- Descripción -->
-                            <div class="col-md-8">
-                                <label for="descripcion" class="form-label">Descripción</label>
-                                <input type="text" class="form-control rounded-3" id="descripcion" name="descripcion"
-                                    required>
-                                <div class="invalid-feedback">Por favor ingrese la descripción del producto.</div>
+                        {{-- Errores --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger rounded-3 mb-3">
+                                <strong>Revisa estos campos:</strong>
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
                             </div>
-                            <!-- Código -->
-                            <div class="col-md-4">
+                        @endif
+
+                        <style>
+                            #nuevoProducto .form-label {
+                                font-weight: 600;
+                                font-size: .9rem;
+                                margin-bottom: .25rem;
+                            }
+
+                            #nuevoProducto .form-control,
+                            #nuevoProducto .form-select {
+                                padding: .45rem .6rem;
+                                font-size: .92rem;
+                            }
+
+                            #nuevoProducto .input-group .form-control {
+                                padding: .45rem .6rem;
+                            }
+
+                            #nuevoProducto .form-text {
+                                margin-top: .2rem;
+                                font-size: .8rem;
+                            }
+
+                            #nuevoProducto .invalid-feedback {
+                                font-size: .8rem;
+                            }
+
+                            /* un pelín más de aire vertical */
+                            #nuevoProducto .g-compact {
+                                --bs-gutter-x: 1rem;
+                                --bs-gutter-y: 1.5rem;
+                            }
+
+                            @media (min-width:1600px) {
+                                #nuevoProducto .modal-dialog {
+                                    max-width: 85% !important;
+                                }
+                            }
+                        </style>
+
+                        {{-- ============================= --}}
+                        {{-- FILA 1 (4 campos) --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="codigo" class="form-label">Código</label>
                                 <input type="text" class="form-control rounded-3" id="codigo" name="codigo"
-                                    value="{{ $nuevoCodigo }}" readonly>
+                                    value="{{ old('codigo', $nuevoCodigo) }}" readonly>
                             </div>
 
-                            {{-- 2) Clasificación / Catálogos --}}
+                            <div class="col-12 col-sm-6 col-lg-3">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <input type="text" class="form-control rounded-3" id="descripcion" name="descripcion"
+                                    value="{{ old('descripcion') }}" required>
+                                <div class="invalid-feedback">Por favor ingrese la descripción del producto.</div>
+                            </div>
 
-                            <!-- Categoría -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label class="form-label mb-1">Categorías</label>
-                                <select class="form-select select2-categorias" name="categorias[]" id="id_categoria"
-                                    multiple required data-placeholder="Seleccionar categorias..">
+                                <select class="form-select select2-categorias" name="categorias[]" id="categorias_select"
+                                    multiple data-placeholder="Seleccionar categorías...">
+                                    <option value=""></option>
                                     @foreach ($categorias as $categoria)
-                                        <option value="{{ $categoria->id }}"
-                                            @if (collect(old('categorias'))->contains($categoria->id)) selected @endif>
+                                        <option value="{{ $categoria->id }}" @selected(collect(old('categorias', []))->contains($categoria->id))>
                                             {{ $categoria->nombre }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="invalid-feedback">Seleccione al menos una categoría.</div>
+                                <div class="form-text">Debe seleccionar al menos una (lo validamos en el servidor).</div>
                             </div>
 
-                            <!-- Clase -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="id_clase" class="form-label">Clase terapéutica</label>
                                 <select class="form-select rounded-3" id="id_clase" name="id_clase">
                                     <option value="">Seleccione clase</option>
                                     @foreach ($clases as $cl)
-                                        <option value="{{ $cl->id }}">{{ $cl->nombre }}</option>
+                                        <option value="{{ $cl->id }}" @selected(old('id_clase') == $cl->id)>
+                                            {{ $cl->nombre }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <!-- Genérico -->
-                            <div class="col-md-4">
+                        </div>
+
+                        {{-- ============================= --}}
+                        {{-- FILA 2 (4 campos) --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="id_generico" class="form-label">Genérico / Principio activo</label>
                                 <select class="form-select rounded-3" id="id_generico" name="id_generico">
                                     <option value="">Seleccione genérico</option>
                                     @foreach ($genericos as $ge)
-                                        <option value="{{ $ge->id }}">{{ $ge->nombre }}</option>
+                                        <option value="{{ $ge->id }}" @selected(old('id_generico') == $ge->id)>
+                                            {{ $ge->nombre }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            {{-- 3) Presentación comercial --}}
-
-                            <!-- Presentación -->
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="presentacion" class="form-label">Presentación</label>
                                 <input type="text" class="form-control rounded-3" id="presentacion"
-                                    name="presentacion" required>
+                                    name="presentacion" value="{{ old('presentacion') }}" required>
                                 <div class="invalid-feedback">Por favor ingrese la presentación del producto.</div>
                             </div>
-                            <!-- Laboratorio -->
-                            <div class="col-md-6">
+
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="laboratorio" class="form-label">Laboratorio</label>
                                 <input type="text" class="form-control rounded-3" id="laboratorio" name="laboratorio"
-                                    required>
+                                    value="{{ old('laboratorio') }}" required>
                                 <div class="invalid-feedback">Por favor ingrese el laboratorio del producto.</div>
                             </div>
 
-                            <!-- Lote -->
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="lote" class="form-label">Lote</label>
-                                <input type="number" class="form-control rounded-3" id="lote" name="lote"
-                                    required>
+                                <input type="text" class="form-control rounded-3" id="lote" name="lote"
+                                    value="{{ old('lote') }}" required>
                                 <div class="invalid-feedback">Por favor ingrese el lote.</div>
                             </div>
-                            <!-- Fecha de vencimiento -->
-                            <div class="col-md-6">
+                        </div>
+
+                        {{-- ============================= --}}
+                        {{-- FILA 3 (4 campos) --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="fecha_vencimiento" class="form-label">Fecha de vencimiento</label>
                                 <input type="date" class="form-control rounded-3" id="fecha_vencimiento"
-                                    name="fecha_vencimiento" required>
+                                    name="fecha_vencimiento" value="{{ old('fecha_vencimiento') }}" required>
                                 <div class="invalid-feedback">Por favor ingrese la fecha de vencimiento.</div>
                             </div>
 
-                            <!-- Ratios de conversión (opcionales) -->
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="unidades_por_blister" class="form-label">Unidades por blíster</label>
                                 <input type="number" class="form-control rounded-3 ratio-field"
                                     id="unidades_por_blister" name="unidades_por_blister" min="0"
                                     value="{{ old('unidades_por_blister') }}" placeholder="Ej: 10 (0 = sin definir)">
-                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes. (Se guardará como <strong>sin
-                                        definir</strong>)</div>
+                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes (se guardará como <strong>sin
+                                        definir</strong>).</div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="unidades_por_caja" class="form-label">Unidades por caja</label>
                                 <input type="number" class="form-control rounded-3 ratio-field" id="unidades_por_caja"
                                     name="unidades_por_caja" min="0" value="{{ old('unidades_por_caja') }}"
                                     placeholder="Ej: 100 (0 = sin definir)">
-                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes. (Se guardará como <strong>sin
-                                        definir</strong>)</div>
+                                <div class="form-text">Déjalo en 0 o vacío si no lo sabes (se guardará como <strong>sin
+                                        definir</strong>).</div>
                             </div>
 
-
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="cantidad" class="form-label">Cantidad (en unidades)</label>
                                 <input type="number" class="form-control rounded-3" id="cantidad" name="cantidad"
-                                    min="0" required>
+                                    min="0" value="{{ old('cantidad') }}" required>
                                 <div class="invalid-feedback">Ingrese la cantidad inicial (unidades).</div>
                             </div>
-                            <!-- NUEVO: Stock en blíster -->
-                            <div class="col-md-4">
+                        </div>
+
+                        {{-- ============================= --}}
+                        {{-- FILA 4 (4 campos) --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="cantidad_blister" class="form-label">Cantidad (en blíster)</label>
                                 <input type="number" class="form-control rounded-3" id="cantidad_blister"
                                     name="cantidad_blister" min="0" value="{{ old('cantidad_blister') }}">
                                 <div class="form-text">Dejar vacío si no aplica.</div>
                             </div>
 
-                            <!-- NUEVO: Stock en caja -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="cantidad_caja" class="form-label">Cantidad (en caja)</label>
                                 <input type="number" class="form-control rounded-3" id="cantidad_caja"
                                     name="cantidad_caja" min="0" value="{{ old('cantidad_caja') }}">
                                 <div class="form-text">Dejar vacío si no aplica.</div>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="stock_minimo" class="form-label">Stock mínimo (en unidades)</label>
                                 <input type="number" class="form-control rounded-3" id="stock_minimo"
-                                    name="stock_minimo" min="0" required>
+                                    name="stock_minimo" min="0" value="{{ old('stock_minimo') }}" required>
                                 <div class="invalid-feedback">Ingrese el stock mínimo.</div>
                             </div>
 
-                            <div class="col-md-4">
-                                <label for="stock_minimo_blister" class="form-label">Stock mínimo (en blister)</label>
-                                <input type="number" class="form-control rounded-3" id="stock_minimo_blister"
-                                    name="stock_minimo_blister" min="0">
-                                <div class="form-text">Dejar vacío si no aplica.</div>
+                            <div class="col-12 col-sm-6 col-lg-3">
+                                <label for="id_proveedor" class="form-label">Proveedor</label>
+                                <select class="form-select rounded-3" id="id_proveedor" name="id_proveedor" required>
+                                    <option value="" disabled {{ old('id_proveedor') ? '' : 'selected' }}>Seleccione
+                                        proveedor</option>
+                                    @foreach ($proveedores as $proveedor)
+                                        <option value="{{ $proveedor->id }}" @selected(old('id_proveedor') == $proveedor->id)>
+                                            {{ $proveedor->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione el proveedor.</div>
                             </div>
+                        </div>
 
-                            <div class="col-md-4">
-                                <label for="stock_minimo_caja" class="form-label">Stock mínimo (en caja)</label>
-                                <input type="number" class="form-control rounded-3" id="stock_minimo_caja"
-                                    name="stock_minimo_caja" min="0">
-                                <div class="form-text">Dejar vacío si no aplica.</div>
+                        {{-- ============================= --}}
+                        {{-- FILA 5 (VENTA) => 3 campos --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-md-4">
+                                <label for="precio_venta" class="form-label">Venta (unidad) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_venta"
+                                    name="precio_venta" min="0" value="{{ old('precio_venta') }}" required>
+                                <div class="invalid-feedback">Ingrese el precio de venta por unidad.</div>
                             </div>
+                            <div class="col-12 col-md-4">
+                                <label for="precio_venta_blister" class="form-label">Venta (blíster) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_venta_blister" name="precio_venta_blister" min="0"
+                                    value="{{ old('precio_venta_blister') }}">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="precio_venta_caja" class="form-label">Venta (caja) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_venta_caja" name="precio_venta_caja" min="0"
+                                    value="{{ old('precio_venta_caja') }}">
+                            </div>
+                        </div>
 
-                            <div class="col-md-4">
+                        {{-- ============================= --}}
+                        {{-- FILA 6 (COMPRA) => 3 campos --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-md-4">
+                                <label for="precio_compra" class="form-label">Compra (unidad) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_compra"
+                                    name="precio_compra" min="0" value="{{ old('precio_compra') }}" required>
+                                <div class="invalid-feedback">Ingrese el precio de compra por unidad.</div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="precio_compra_blister" class="form-label">Compra (blíster) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_compra_blister" name="precio_compra_blister" min="0"
+                                    value="{{ old('precio_compra_blister') }}">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="precio_compra_caja" class="form-label">Compra (caja) S/</label>
+                                <input type="number" step="0.01" class="form-control rounded-3"
+                                    id="precio_compra_caja" name="precio_compra_caja" min="0"
+                                    value="{{ old('precio_compra_caja') }}">
+                            </div>
+                        </div>
+
+                        {{-- ============================= --}}
+                        {{-- FILA 7 (4 campos): Descuentos + Foto --}}
+                        {{-- ============================= --}}
+                        <div class="row g-compact">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="descuento" class="form-label">Descuento por unidad (%)</label>
                                 <div class="input-group">
                                     <input type="number" step="0.01" min="0" max="100"
@@ -541,8 +648,7 @@
                                 </div>
                                 <div class="invalid-feedback">Ingrese un porcentaje entre 0 y 100.</div>
                             </div>
-
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="descuento_blister" class="form-label">Descuento por blíster (%)</label>
                                 <div class="input-group">
                                     <input type="number" step="0.01" min="0" max="100"
@@ -552,8 +658,7 @@
                                 </div>
                                 <div class="form-text">Dejar vacío si no aplica.</div>
                             </div>
-
-                            <div class="col-md-4">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="descuento_caja" class="form-label">Descuento por caja (%)</label>
                                 <div class="input-group">
                                     <input type="number" step="0.01" min="0" max="100"
@@ -563,71 +668,17 @@
                                 </div>
                                 <div class="form-text">Dejar vacío si no aplica.</div>
                             </div>
-
-                            {{-- 6) Precios de venta (lo que usarás en caja) --}}
-
-                            <div class="col-md-4">
-                                <label for="precio_venta" class="form-label">Venta (unidad) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_venta"
-                                    name="precio_venta" min="0" required>
-                                <div class="invalid-feedback">Ingrese el precio de venta por unidad.</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="precio_venta_blister" class="form-label">Venta (blíster) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3"
-                                    id="precio_venta_blister" name="precio_venta_blister" min="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="precio_venta_caja" class="form-label">Venta (caja) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3"
-                                    id="precio_venta_caja" name="precio_venta_caja" min="0">
-                            </div>
-
-                            {{-- 8) Precios de compra (para costos y kardex) --}}
-
-                            <div class="col-md-4">
-                                <label for="precio_compra" class="form-label">Compra (unidad) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3" id="precio_compra"
-                                    name="precio_compra" min="0" required>
-                                <div class="invalid-feedback">Ingrese el precio de compra por unidad.</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="precio_compra_blister" class="form-label">Compra (blíster) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3"
-                                    id="precio_compra_blister" name="precio_compra_blister" min="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="precio_compra_caja" class="form-label">Compra (caja) S/</label>
-                                <input type="number" step="0.01" class="form-control rounded-3"
-                                    id="precio_compra_caja" name="precio_compra_caja" min="0">
-                            </div>
-
-                            {{-- 9) Proveedor --}}
-
-                            <div class="col-md-6">
-                                <label for="id_proveedor" class="form-label">Proveedor</label>
-                                <select class="form-select rounded-3" id="id_proveedor" name="id_proveedor" required>
-                                    <option value="" disabled selected>Seleccione proveedor</option>
-                                    @foreach ($proveedores as $proveedor)
-                                        <option value="{{ $proveedor->id }}">{{ $proveedor->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback">Por favor seleccione el proveedor.</div>
-                            </div>
-
-                            {{-- 10) Imagen --}}
-                            <div class="col-md-6">
+                            <div class="col-12 col-sm-6 col-lg-3">
                                 <label for="foto" class="form-label">Foto del producto</label>
                                 <input type="file" class="form-control rounded-3" id="foto" name="foto"
                                     accept=".jpg,.jpeg,.png,.webp">
                             </div>
-
-                            {{-- Estado --}}
-                            <input type="hidden" name="estado" value="Activo">
                         </div>
 
-                        <!-- Footer -->
-                        <div class="modal-footer mt-4 px-0">
+                        <input type="hidden" name="estado" value="Activo">
+
+                        {{-- Footer --}}
+                        <div class="modal-footer mt-3 px-0">
                             <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </button>
@@ -820,7 +871,7 @@
 
                     // Re‑inicializar Select2 dentro del modal
                     const $modal = $('#modalEditar');
-                    $modal.find('.select2-categorias-edit').each(function() {
+                    $modal.find('.select2-categorias--edit').each(function() {
                         const $el = $(this);
                         if ($el.data('select2')) return;
                         $el.select2({
@@ -830,6 +881,7 @@
                             dropdownParent: $modal
                         });
                     });
+
 
                     // Validación Bootstrap 5 en el form del modal (una sola vez)
                     const form = $content.find('#formEditarProducto')[0];
@@ -875,7 +927,7 @@
     <script>
         $(document).on('shown.bs.modal', '.modal', function() {
             const $modal = $(this);
-            $modal.find('.select2-categorias-edit').each(function() {
+            $modal.find('.select2-categorias--edit').each(function() {
                 const $el = $(this);
                 if ($el.data('select2')) return;
                 $el.select2({
@@ -1018,6 +1070,28 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalEl = document.getElementById('modalEditar'); // el contenedor REAL del modal en index
+            if (!modalEl) return;
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                // Limpieza anti-zombies
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+
+                // Destruir instancia para evitar fugas y que no “pegue” la clase
+                if (window.bootstrap && bootstrap.Modal) {
+                    const inst = bootstrap.Modal.getInstance(modalEl);
+                    if (inst) inst.dispose();
+                }
+
+                // Si además quieres recargar la página al cerrar:
+                // location.reload();
+            });
+        });
+    </script>
+    
     {{-- ===== Validación Bootstrap 5 ===== --}}
     <script>
         (() => {

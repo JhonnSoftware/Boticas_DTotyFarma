@@ -50,7 +50,6 @@ class ProductoController extends Controller
             ->take($perBlock)
             ->get();
 
-
         $hasMore = ($offset + $productos->count()) < $total;
 
         // Catálogos (1 sola vez)
@@ -92,18 +91,29 @@ class ProductoController extends Controller
             abort(404);
         }
 
-        $producto   = Productos::with(['categorias'])->findOrFail($id);
+        $producto    = Productos::with(['categorias'])->findOrFail($id);
         $proveedores = Proveedores::orderBy('nombre')->get(['id', 'nombre']);
         $categorias  = Categorias::orderBy('nombre')->get(['id', 'nombre']);
         $clases      = Clases::orderBy('nombre')->get(['id', 'nombre']);
         $genericos   = Genericos::orderBy('nombre')->get(['id', 'nombre']);
+
+        // 👉 Unidades base = total - (blíster×ratio_blíster) - (caja×ratio_caja)
+        $uXB = (int) ($producto->unidades_por_blister ?? 0);
+        $uXC = (int) ($producto->unidades_por_caja ?? 0);
+
+        $cantidadBase = (int) ($producto->cantidad ?? 0)
+            - ((int) ($producto->cantidad_blister ?? 0)) * $uXB
+            - ((int) ($producto->cantidad_caja ?? 0)) * $uXC;
+
+        if ($cantidadBase < 0) $cantidadBase = 0;
 
         return view('productos.partials.modal_editar', compact(
             'producto',
             'proveedores',
             'categorias',
             'clases',
-            'genericos'
+            'genericos',
+            'cantidadBase' // <-- ¡importante!
         ));
     }
 
@@ -117,98 +127,123 @@ class ProductoController extends Controller
             'lote' => 'required|string',
             'unidades_por_blister' => 'nullable|integer|min:0',
             'unidades_por_caja'    => 'nullable|integer|min:0',
-            'cantidad' => 'required|integer|min:0',
-            'cantidad_blister'  => 'nullable|integer|min:0',
-            'cantidad_caja'     => 'nullable|integer|min:0',
+
+            // cantidades ingresadas por el usuario (pueden combinarse)
+            'cantidad'         => 'required|integer|min:0', // unidades
+            'cantidad_blister' => 'nullable|integer|min:0',
+            'cantidad_caja'    => 'nullable|integer|min:0',
+
             'stock_minimo' => 'required|integer|min:0',
-            'stock_minimo_blister' => 'nullable|integer|min:0',
-            'stock_minimo_caja' => 'nullable|integer|min:0',
-            'descuento' => 'required|numeric|min:0',
-            'descuento_blister' => 'nullable|numeric|min:0',
-            'descuento_caja'    => 'nullable|numeric|min:0',
+
+            'descuento'         => 'required|numeric|min:0|max:100',
+            'descuento_blister' => 'nullable|numeric|min:0|max:100',
+            'descuento_caja'    => 'nullable|numeric|min:0|max:100',
+
             'fecha_vencimiento' => 'required|date|after_or_equal:today',
-            'precio_compra' => 'required|numeric|min:0',
-            'precio_venta' => 'required|numeric|min:0',
+
+            'precio_compra'         => 'required|numeric|min:0',
             'precio_compra_blister' => 'nullable|numeric|min:0',
             'precio_compra_caja'    => 'nullable|numeric|min:0',
+            'precio_venta'          => 'required|numeric|min:0',
             'precio_venta_blister'  => 'nullable|numeric|min:0',
             'precio_venta_caja'     => 'nullable|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+
+            'foto'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'id_proveedor' => 'required|exists:proveedores,id',
             'id_clase'     => 'nullable|exists:clases,id',
             'id_generico'  => 'nullable|exists:genericos,id',
-            'estado' => 'required|in:Activo,Inactivo',
+            'estado'       => 'required|in:Activo,Inactivo',
+
             'categorias'   => ['required', 'array', 'min:1'],
             'categorias.*' => ['integer', Rule::exists('categorias', 'id')],
         ]);
 
-        // Imagen por defecto en carpeta productos
+        // ===== Foto =====
         $rutaFoto = 'imagenes/productos/producto_defecto.jpg';
         if ($request->hasFile('foto')) {
-            $fotoNombre = time() . '.' . $request->foto->extension();
-            $request->foto->move(public_path('imagenes/productos'), $fotoNombre);
+            $fotoNombre = time() . '.' . $request->file('foto')->extension();
+            $request->file('foto')->move(public_path('imagenes/productos'), $fotoNombre);
             $rutaFoto = 'imagenes/productos/' . $fotoNombre;
         }
 
-        // Ratios: si son 0 o vacíos → null
+        // ===== Ratios (0 o vacío -> null) =====
         $uXB = ($request->filled('unidades_por_blister') && (int)$request->unidades_por_blister > 0)
             ? (int)$request->unidades_por_blister : null;
         $uXC = ($request->filled('unidades_por_caja') && (int)$request->unidades_por_caja > 0)
             ? (int)$request->unidades_por_caja : null;
 
-        // Stock derivado desde UNIDADES como fuente de verdad
-        $cantidad = (int)$request->cantidad;
-        $cantBlister = $uXB ? intdiv($cantidad, $uXB) : null;
-        $cantCaja    = $uXC ? intdiv($cantidad, $uXC) : null;
+        // ===== Cantidades ingresadas =====
+        $uUni = (int) $request->input('cantidad', 0);            // unidades
+        $uBli = (int) $request->input('cantidad_blister', 0);    // blister
+        $uCaj = (int) $request->input('cantidad_caja', 0);       // caja
 
-        // Precios derivados si el usuario los dejó vacíos
-        $pvb = $request->filled('precio_venta_blister') ? (float)$request->precio_venta_blister : ($uXB ? (float)$request->precio_venta * $uXB : null);
-        $pvc = $request->filled('precio_venta_caja')    ? (float)$request->precio_venta_caja    : ($uXC ? (float)$request->precio_venta * $uXC : null);
-        $pcb = $request->filled('precio_compra_blister') ? (float)$request->precio_compra_blister : ($uXB ? (float)$request->precio_compra * $uXB : null);
-        $pcc = $request->filled('precio_compra_caja')    ? (float)$request->precio_compra_caja    : ($uXC ? (float)$request->precio_compra * $uXC : null);
+        // ===== Total en unidades base =====
+        $totalUnidades = $uUni
+            + ($uXB ? ($uBli * $uXB) : 0)
+            + ($uXC ? ($uCaj * $uXC) : 0);
 
+        // ===== Precios derivados si no se ingresaron =====
+        $pvb = $request->filled('precio_venta_blister')
+            ? (float) $request->precio_venta_blister
+            : ($uXB ? (float)$request->precio_venta * $uXB : null);
+
+        $pvc = $request->filled('precio_venta_caja')
+            ? (float) $request->precio_venta_caja
+            : ($uXC ? (float)$request->precio_venta * $uXC : null);
+
+        $pcb = $request->filled('precio_compra_blister')
+            ? (float) $request->precio_compra_blister
+            : ($uXB ? (float)$request->precio_compra * $uXB : null);
+
+        $pcc = $request->filled('precio_compra_caja')
+            ? (float) $request->precio_compra_caja
+            : ($uXC ? (float)$request->precio_compra * $uXC : null);
+
+        // ===== Crear producto =====
         $producto = Productos::create([
-            'codigo' => $request->codigo,
-            'descripcion' => $request->descripcion,
-            'presentacion' => $request->presentacion,
-            'laboratorio' => $request->laboratorio,
-            'lote' => $request->lote,
+            'codigo'            => $request->codigo,
+            'descripcion'       => $request->descripcion,
+            'presentacion'      => $request->presentacion,
+            'laboratorio'       => $request->laboratorio,
+            'lote'              => $request->lote,
             'fecha_vencimiento' => $request->fecha_vencimiento,
 
-            // NUEVO ratios
+            // ratios
             'unidades_por_blister' => $uXB,
             'unidades_por_caja'    => $uXC,
 
-            // Stock
-            'cantidad'         => $cantidad,
-            'cantidad_blister' => $cantBlister,
-            'cantidad_caja'    => $cantCaja,
-            'stock_minimo'           => $request->stock_minimo,
-            'stock_minimo_blister'   => $request->stock_minimo_blister ?: null,
-            'stock_minimo_caja'      => $request->stock_minimo_caja ?: null,
+            // stock base (total en unidades) + las cantidades tal como las ingresó el usuario
+            'cantidad'         => $totalUnidades,
+            'cantidad_blister' => ($request->filled('cantidad_blister') && $uXB) ? $uBli : null,
+            'cantidad_caja'    => ($request->filled('cantidad_caja') && $uXC) ? $uCaj : null,
 
-            // Descuentos
+            // mínimo
+            'stock_minimo' => $request->stock_minimo,
+
+            // descuentos
             'descuento'         => $request->descuento,
             'descuento_blister' => $request->descuento_blister ?: null,
             'descuento_caja'    => $request->descuento_caja ?: null,
 
-            // Precios
-            'precio_compra'          => $request->precio_compra,
-            'precio_compra_blister'  => $pcb,
-            'precio_compra_caja'     => $pcc,
-            'precio_venta'           => $request->precio_venta,
-            'precio_venta_blister'   => $pvb,
-            'precio_venta_caja'      => $pvc,
+            // precios
+            'precio_compra'         => $request->precio_compra,
+            'precio_compra_blister' => $pcb,
+            'precio_compra_caja'    => $pcc,
+            'precio_venta'          => $request->precio_venta,
+            'precio_venta_blister'  => $pvb,
+            'precio_venta_caja'     => $pvc,
 
-            'foto' => $rutaFoto,
+            'foto'         => $rutaFoto,
             'id_proveedor' => $request->id_proveedor,
             'id_clase'     => $request->id_clase ?: null,
             'id_generico'  => $request->id_generico ?: null,
-            'estado' => $request->estado,
+            'estado'       => $request->estado,
         ]);
 
+        // categorías m:n
         $producto->categorias()->sync($request->categorias);
 
+        // alertas coherentes con el stock y vencimiento
         $this->syncProductAlerts($producto);
 
         return back()->with('success', 'Producto registrado correctamente.');
@@ -249,19 +284,19 @@ class ProductoController extends Controller
             'lote'              => 'required|string|max:100',
             'fecha_vencimiento' => 'required|date',
 
-            'cantidad'               => 'required|integer|min:0',
-            'cantidad_blister'       => 'nullable|integer|min:0',
-            'cantidad_caja'          => 'nullable|integer|min:0',
-            'stock_minimo'           => 'required|integer|min:0',
-            'stock_minimo_blister'   => 'nullable|integer|min:0',
-            'stock_minimo_caja'      => 'nullable|integer|min:0',
+            // cantidades ingresadas (pueden combinarse)
+            'cantidad'         => 'required|integer|min:0', // unidades
+            'cantidad_blister' => 'nullable|integer|min:0',
+            'cantidad_caja'    => 'nullable|integer|min:0',
+
+            'stock_minimo' => 'required|integer|min:0',
 
             'unidades_por_blister'   => 'nullable|integer|min:0',
             'unidades_por_caja'      => 'nullable|integer|min:0',
 
-            'descuento'         => 'required|numeric|min:0',
-            'descuento_blister' => 'nullable|numeric|min:0',
-            'descuento_caja'    => 'nullable|numeric|min:0',
+            'descuento'         => 'required|numeric|min:0|max:100',
+            'descuento_blister' => 'nullable|numeric|min:0|max:100',
+            'descuento_caja'    => 'nullable|numeric|min:0|max:100',
 
             'precio_compra'          => 'required|numeric|min:0',
             'precio_compra_blister'  => 'nullable|numeric|min:0',
@@ -275,10 +310,12 @@ class ProductoController extends Controller
             'id_generico'  => 'nullable|exists:genericos,id',
             'categorias'   => ['required', 'array', 'min:1'],
             'categorias.*' => ['integer', Rule::exists('categorias', 'id')],
-            'estado' => 'required|in:Activo,Inactivo',
+            'estado'       => 'required|in:Activo,Inactivo',
+
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
+        // Tomamos todos los campos que se actualizan
         $datos = $request->only([
             'codigo',
             'descripcion',
@@ -292,8 +329,6 @@ class ProductoController extends Controller
             'cantidad_blister',
             'cantidad_caja',
             'stock_minimo',
-            'stock_minimo_blister',
-            'stock_minimo_caja',
             'descuento',
             'descuento_blister',
             'descuento_caja',
@@ -309,15 +344,11 @@ class ProductoController extends Controller
             'estado',
         ]);
 
-        // Normalizar 0 o vacío a null
+        // ===== Normalizar opcionales a null (PERO no toques cantidad_blister/caja aquí) =====
         foreach (
             [
                 'unidades_por_blister',
                 'unidades_por_caja',
-                'cantidad_blister',
-                'cantidad_caja',
-                'stock_minimo_blister',
-                'stock_minimo_caja',
                 'descuento_blister',
                 'descuento_caja',
                 'precio_compra_blister',
@@ -328,23 +359,45 @@ class ProductoController extends Controller
                 'id_generico'
             ] as $campo
         ) {
-            if (empty($datos[$campo]) || (int)$datos[$campo] === 0) {
+            if (!isset($datos[$campo]) || $datos[$campo] === '' || (is_numeric($datos[$campo]) && (float)$datos[$campo] == 0)) {
                 $datos[$campo] = null;
             }
         }
 
-        // Ratios como null si no tienen valor válido
+        // ===== Ratios válidos (0 o vacío -> null) =====
         $uXB = $datos['unidades_por_blister'] ? (int)$datos['unidades_por_blister'] : null;
         $uXC = $datos['unidades_por_caja']    ? (int)$datos['unidades_por_caja']    : null;
 
-        // Recalcular derivados
-        $cantidadUnidades = (int)$datos['cantidad'];
-        $datos['cantidad_blister'] = $uXB ? intdiv($cantidadUnidades, $uXB) : null;
-        $datos['cantidad_caja']    = $uXC ? intdiv($cantidadUnidades, $uXC) : null;
+        // ===== Cantidades ingresadas =====
+        $uUni = (int) $request->input('cantidad', 0);          // unidades
+        $uBli = (int) $request->input('cantidad_blister', 0);  // blister
+        $uCaj = (int) $request->input('cantidad_caja', 0);     // caja
 
-        // Foto
+        // ===== Total en unidades base a partir de lo que el usuario puso =====
+        $datos['cantidad'] = $uUni
+            + ($uXB ? ($uBli * $uXB) : 0)
+            + ($uXC ? ($uCaj * $uXC) : 0);
+
+        // ===== Guardar blister/caja tal como las ingresó el usuario (si hay ratio) =====
+        $datos['cantidad_blister'] = ($request->filled('cantidad_blister') && $uXB) ? $uBli : null;
+        $datos['cantidad_caja']    = ($request->filled('cantidad_caja') && $uXC) ? $uCaj : null;
+
+        // ===== Derivar precios si quedaron vacíos (opcional pero útil) =====
+        if (empty($datos['precio_venta_blister']) && $uXB) {
+            $datos['precio_venta_blister'] = (float)$datos['precio_venta'] * $uXB;
+        }
+        if (empty($datos['precio_venta_caja']) && $uXC) {
+            $datos['precio_venta_caja'] = (float)$datos['precio_venta'] * $uXC;
+        }
+        if (empty($datos['precio_compra_blister']) && $uXB) {
+            $datos['precio_compra_blister'] = (float)$datos['precio_compra'] * $uXB;
+        }
+        if (empty($datos['precio_compra_caja']) && $uXC) {
+            $datos['precio_compra_caja'] = (float)$datos['precio_compra'] * $uXC;
+        }
+
+        // ===== Foto =====
         if ($request->hasFile('foto')) {
-            // Borrar la foto anterior si no es la de defecto
             if ($producto->foto && $producto->foto !== 'imagenes/productos/producto_defecto.jpg') {
                 $rutaAnterior = public_path($producto->foto);
                 if (file_exists($rutaAnterior)) @unlink($rutaAnterior);
@@ -354,8 +407,11 @@ class ProductoController extends Controller
             $datos['foto'] = 'imagenes/productos/' . $nombre;
         }
 
+        // Actualizar y sync
         $producto->update($datos);
         $producto->categorias()->sync($request->categorias);
+
+        // Recalcular/limpiar alertas según nuevo stock y vencimiento
         $this->syncProductAlerts($producto);
 
         return redirect()->route('productos.index')->with('success', 'Producto actualizado correctamente.');
@@ -386,8 +442,6 @@ class ProductoController extends Controller
                 'cantidad_blister',
                 'cantidad_caja',
                 'stock_minimo',
-                'stock_minimo_blister',
-                'stock_minimo_caja',
                 'unidades_por_blister',
                 'unidades_por_caja',
                 'precio_venta',
@@ -442,7 +496,7 @@ class ProductoController extends Controller
                 $query->whereDate('fecha_vencimiento', '>', $m9);
                 break;
             case 'bajo':
-                $query->whereColumn('cantidad', '<', 'stock_minimo'); // amplía si quieres evaluar blister/caja
+                $query->whereColumn('cantidad', '<', 'stock_minimo');
                 break;
             case 'all':
             default:
@@ -550,8 +604,6 @@ class ProductoController extends Controller
                     'Cant_Blister',
                     'Cant_Caja',
                     'Min_Unid',
-                    'Min_Blister',
-                    'Min_Caja',
                     'Desc_Unid_%',
                     'Desc_Blister_%',
                     'Desc_Caja_%',
@@ -584,8 +636,6 @@ class ProductoController extends Controller
                         $p->cantidad_caja ?? '',
 
                         $p->stock_minimo ?? '',
-                        $p->stock_minimo_blister ?? '',
-                        $p->stock_minimo_caja ?? '',
 
                         $p->descuento ?? '',
                         $p->descuento_blister ?? '',
@@ -624,13 +674,10 @@ class ProductoController extends Controller
      * - Por vencer (≤30 días): 1 alerta por día.
      * - Stock bajo (cantidad <= stock_minimo): 1 alerta por día.
      */
-
     private function syncProductAlerts(Productos $p): void
     {
         $hoy = now()->toDateString();
 
-        // Si en Productos tienes: protected $casts = ['fecha_vencimiento' => 'date'];
-        // entonces $p->fecha_vencimiento ya es Carbon y no necesitas Carbon::parse().
         $fv = $p->fecha_vencimiento ? ($p->fecha_vencimiento instanceof Carbon ? $p->fecha_vencimiento : Carbon::parse($p->fecha_vencimiento)) : null;
 
         // ===== 1) Producto VENCIDO =====

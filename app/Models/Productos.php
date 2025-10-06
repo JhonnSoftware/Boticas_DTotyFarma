@@ -61,8 +61,6 @@ class Productos extends Model
         'cantidad_blister',
         'cantidad_caja',
         'stock_minimo',
-        'stock_minimo_blister',
-        'stock_minimo_caja',
 
         // precios y descuento
         'descuento',

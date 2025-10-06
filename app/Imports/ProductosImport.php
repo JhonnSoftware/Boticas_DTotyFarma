@@ -62,9 +62,11 @@ class ProductosImport implements
         $cantidad_blister  = $this->uInt($g('cantidad_blister'),  self::MAX_TINY);    // 0..255
         $cantidad_caja     = $this->uInt($g('cantidad_caja'),     self::MAX_TINY);    // 0..255
 
-        $stock_min         = $this->uInt($g('stock_minimo'),          self::MAX_SMALL);
-        $stock_min_blister = $this->uInt($g('stock_minimo_blister'),  self::MAX_SMALL);
-        $stock_min_caja    = $this->uInt($g('stock_minimo_caja'),     self::MAX_SMALL);
+        $stock_min         = $this->uInt($g('stock_minimo'), self::MAX_SMALL);
+
+        // ❌ REMOVIDOS porque ya NO existen en BD:
+        // $stock_min_blister = $this->uInt($g('stock_minimo_blister'),  self::MAX_SMALL);
+        // $stock_min_caja    = $this->uInt($g('stock_minimo_caja'),     self::MAX_SMALL);
 
         // --- Descuentos y precios ---
         $desc_uni     = $this->toDecimal($g('descuento'));
@@ -112,8 +114,9 @@ class ProductosImport implements
             'cantidad_blister'     => $cantidad_blister,
             'cantidad_caja'        => $cantidad_caja,
             'stock_minimo'         => $stock_min,
-            'stock_minimo_blister' => $stock_min_blister,
-            'stock_minimo_caja'    => $stock_min_caja,
+            // ❌ NO enviar estos campos:
+            // 'stock_minimo_blister' => $stock_min_blister,
+            // 'stock_minimo_caja'    => $stock_min_caja,
 
             'descuento'             => $desc_uni,
             'descuento_blister'     => $desc_blister,
@@ -144,7 +147,6 @@ class ProductosImport implements
     }
 
     // ===== Helpers =====
-
     private function firstNonEmpty(array $row, array|string $keys): mixed
     {
         foreach ((array)$keys as $k) {
@@ -153,7 +155,6 @@ class ProductosImport implements
         return null;
     }
 
-    /** Trata "NULL", "N/A", "-", vacío como null (NO incluye "SIN PRESENTACION") */
     private function nullIfNullish($v): ?string
     {
         if ($v === null) return null;
@@ -164,7 +165,6 @@ class ProductosImport implements
         return $s;
     }
 
-    /** Normaliza la presentación. Nunca retorna null; usa "SIN PRESENTACION" como fallback. */
     private function normPresentacion($v): string
     {
         if ($v === null) return 'SIN PRESENTACION';
@@ -179,13 +179,11 @@ class ProductosImport implements
         return $s;
     }
 
-    /** Convierte a entero no negativo y recorta al máximo permitido */
     private function uInt($v, int $max): int
     {
         if ($v === null || $v === '') return 0;
         if (is_string($v) && preg_match('/^\s*null\s*$/i', $v)) return 0;
 
-        // Mantén solo dígitos (quita separadores/decimales)
         $s = preg_replace('/\D+/', '', (string)$v);
         if ($s === '') return 0;
 
@@ -258,11 +256,6 @@ class ProductosImport implements
         return $this->cacheGenericos[$key];
     }
 
-    /**
-     * Busca el primer valor cuyo encabezado CONTENGA todos los fragmentos dados (case-insensitive),
-     * ignorando guiones, guiones bajos y espacios normales/duros (NBSP).
-     * Útil para headers “sucios”: "PRECIO VENTA ", "precio-venta", "precio_venta__".
-     */
     private function firstByContains(array $row, array $fragments): ?string
     {
         $norm = function ($k) {
