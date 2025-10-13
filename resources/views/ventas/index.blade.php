@@ -104,6 +104,38 @@
             outline: 2px solid #0A7ABF;
             box-shadow: inset 0 0 0 9999px rgba(10, 122, 191, 0.08);
         }
+
+        /* Ancho extra del modal de productos */
+        #modalBuscarProducto .modal-dialog {
+            max-width: min(95vw, 1700px);
+            /* ancho flexible y grande */
+        }
+
+        /* Opcional: encabezado pegajoso para que el thead no se pierda al hacer scroll */
+        #modalBuscarProducto thead tr th {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 2;
+        }
+
+        /* Ajustar ancho de columnas específicas del modal */
+        #tablaProductosModal th:nth-child(4),
+        #tablaProductosModal td:nth-child(4) {
+            max-width: 250px;
+            /* puedes probar 200 o 180 según se vea */
+            width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Opcional: mostrar texto completo al pasar el mouse */
+        #tablaProductosModal td:nth-child(4)[title]::after {
+            content: attr(title);
+        }
+    </style>
+
     </style>
 
     <div class="container-fluid py-4">
@@ -190,10 +222,8 @@
                                             <th>Producto</th>
                                             <th>Laboratorio</th>
                                             <th>F. Venc.</th>
-                                            <th>Presentación</th>
-                                            <th>U/Blíster</th>
                                             <th>U/Caja</th>
-                                            <th>Cant.</th>
+                                            <th>Cant. (CajasFUnid)</th>
                                             <th>Precio</th>
                                             <th>Desc.</th>
                                             <th>Subtotal</th>
@@ -279,11 +309,16 @@
                                     <th>Opción</th>
                                     <th>Nombre</th>
                                     <th>Laboratorio</th>
+                                    <th>Genérico</th>
+                                    <th>Lote</th>
+                                    <th>U/Blíster</th>
+                                    <th>U/Caja</th>
                                     <th>Fecha de venc.</th>
                                     <th>Stock</th>
                                     <th>Imagen</th>
                                 </tr>
                             </thead>
+
 
                             <tbody>
                                 @foreach ($productos as $producto)
@@ -295,7 +330,6 @@
                                             : null;
                                         $uxc = $producto->unidades_por_caja ? (int) $producto->unidades_por_caja : null;
 
-                                        // Cajas y sueltas (sin romper cajas)
                                         if ($uxc && $uxc > 0) {
                                             $cajas = intdiv($totalUnidades, $uxc);
                                             $sueltas = $totalUnidades % $uxc;
@@ -304,7 +338,6 @@
                                             $sueltas = $totalUnidades;
                                         }
 
-                                        // Blísteres desde sueltas
                                         $blisters = $upb && $upb > 0 ? intdiv($sueltas, $upb) : null;
 
                                         $dispU = $sueltas > 0;
@@ -313,32 +346,39 @@
                                         $sinStockTotal = !$dispU && !$dispB && !$dispC;
 
                                         $fv = \Carbon\Carbon::parse($producto->fecha_vencimiento);
-                                        $meses = now()->diffInMonths($fv, false); // negativo si ya venció
+                                        $meses = now()->diffInMonths($fv, false);
 
                                         if ($meses < 0) {
-                                            $claseVenc = 'vencido'; // Rojo
+                                            $claseVenc = 'vencido';
                                             $tip = 'Vencido hace ' . abs($meses) . ' mes(es)';
                                         } elseif ($meses <= 3) {
-                                            $claseVenc = 'vence-3m'; // Naranja
+                                            $claseVenc = 'vence-3m';
                                             $tip = "Vence en {$meses} mes(es)";
                                         } elseif ($meses <= 6) {
-                                            $claseVenc = 'vence-6m'; // Verde
+                                            $claseVenc = 'vence-6m';
                                             $tip = "Vence en {$meses} mes(es)";
                                         } elseif ($meses <= 9) {
-                                            $claseVenc = 'vence-9m'; // Azul
+                                            $claseVenc = 'vence-9m';
                                             $tip = "Vence en {$meses} mes(es)";
                                         } else {
-                                            $claseVenc = 'vence-10m'; // Plomo (≥10 meses)
+                                            $claseVenc = 'vence-10m';
                                             $tip = "Vence en {$meses} mes(es)";
                                         }
+
+                                        // NUEVO: lote y genérico
+                                        $lote = $producto->lote ?? '—';
+                                        $generico = optional($producto->generico)->nombre ?? '—';
                                     @endphp
+
 
                                     <tr class="{{ $totalUnidades == 0 ? 'stock-zero' : '' }} {{ $claseVenc }}"
                                         data-nombre="{{ strtolower($producto->descripcion) }}"
                                         data-presentacion="{{ strtolower($producto->presentacion) }}"
                                         data-laboratorio="{{ strtolower($producto->laboratorio) }}"
                                         data-categoria="{{ strtolower($producto->categorias->pluck('nombre')->implode(', ') ?? '') }}"
+                                        data-generico="{{ strtolower($generico) }}" data-lote="{{ strtolower($lote) }}"
                                         title="{{ $tip }}">
+
 
                                         <td>
                                             <button type="button" class="btn btn-outline-primary btn-sm agregar-producto"
@@ -355,16 +395,24 @@
                                                 data-lab="{{ $producto->laboratorio ?? '' }}"
                                                 data-fv="{{ \Carbon\Carbon::parse($producto->fecha_vencimiento)->format('d/m/Y') }}"
                                                 data-upb="{{ $upb ?? '' }}" data-uxc="{{ $uxc ?? '' }}"
+                                                data-generico="{{ $generico }}" data-lote="{{ $lote }}"
                                                 {{ $sinStockTotal ? 'disabled' : '' }}>
                                                 <i data-feather="plus-circle"></i>
                                             </button>
+
                                         </td>
                                         <td class="info-producto">{{ $producto->descripcion }}</td>
                                         <td>{{ $producto->laboratorio ?? '—' }}</td>
-                                        <td>
-                                            {{ \Carbon\Carbon::parse($producto->fecha_vencimiento)->format('d/m/Y') }}
-                                        </td>
-
+                                        <td title="{{ $generico }}">{{ Str::limit($generico, 50) }}</td>
+                                        {{-- Genérico --}}
+                                        <td>{{ $lote }}</td> {{-- Lote --}}
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark">{{ $upb ?? '—' }}</span>
+                                        </td> {{-- U/Blíster --}}
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark">{{ $uxc ?? '—' }}</span>
+                                        </td> {{-- U/Caja --}}
+                                        <td>{{ \Carbon\Carbon::parse($producto->fecha_vencimiento)->format('d/m/Y') }}</td>
                                         <td>
                                             @if ($uxc)
                                                 <div class="small">
@@ -414,24 +462,20 @@
                 icon: 'success',
                 title: '¡Éxito!',
                 text: '{{ session('success') }}',
-                confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Aceptar'
+                confirmButtonColor: '#3085d6'
             });
         </script>
     @endif
-
     @if (session('error'))
         <script>
             Swal.fire({
                 icon: 'error',
                 title: '¡Error!',
                 text: '{{ session('error') }}',
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Cerrar'
+                confirmButtonColor: '#d33'
             });
         </script>
     @endif
-
     @if (session('imprimir'))
         <script>
             Swal.fire({
@@ -449,37 +493,141 @@
         </script>
     @endif
 
-    <!-- ===========================
-                 Borrador persistente de venta
-                 =========================== -->
     <script>
+        /* ========== Utilidades de formato CajasFUnid con modo simple (uxc<=1) ========== */
+        /**
+         * MODO SIMPLE (uxc<=1): solo enteros, sin "F".
+         * - parseCantidad("1F2", 1) => { unidadesTotales: 12, simple:true, hadF:true }  (se detecta presencia de F)
+         *
+         * MODO CAJAS (uxc>1):
+         * - "3F5" -> 3 cajas y 5 unidades
+         * - "F5"  -> 0 cajas y 5 unidades
+         * - "12"  -> 12 unidades totales
+         */
+        function parseCantidad(raw, uxc) {
+            uxc = parseInt(uxc || '0', 10) || 0;
+            const txt = String(raw || '').trim().toUpperCase();
+
+            // MODO SIMPLE: uxc<=1 => solo enteros, nada de "F"
+            if (uxc <= 1) {
+                const hadF = /F/.test(txt);
+                if (!txt) return {
+                    cajas: 0,
+                    unidadesSueltas: 0,
+                    unidadesTotales: 0,
+                    vacio: true,
+                    simple: true,
+                    hadF
+                };
+                const n = parseInt(txt.replace(/[^\d]/g, ''), 10);
+                const tot = isNaN(n) ? 0 : n;
+                return {
+                    cajas: 0,
+                    unidadesSueltas: tot,
+                    unidadesTotales: tot,
+                    simple: true,
+                    hadF
+                };
+            }
+
+            // MODO CAJAS-F-UNID
+            if (!txt) return {
+                cajas: 0,
+                unidadesSueltas: 0,
+                unidadesTotales: 0,
+                vacio: true
+            };
+
+            if (/^\d+$/.test(txt)) {
+                const tot = parseInt(txt, 10);
+                return {
+                    cajas: Math.floor(tot / uxc),
+                    unidadesSueltas: tot % uxc,
+                    unidadesTotales: tot
+                };
+            }
+
+            const m = txt.match(/^(\d+)?F(\d+)?$/i);
+            if (m) {
+                const c = parseInt(m[1] || '0', 10) || 0;
+                const u = parseInt(m[2] || '0', 10) || 0;
+                const tot = c * uxc + u;
+                return {
+                    cajas: c,
+                    unidadesSueltas: u,
+                    unidadesTotales: tot
+                };
+            }
+
+            const n = parseInt(txt.replace(/[^\d]/g, ''), 10);
+            const tot = isNaN(n) ? 0 : n;
+            return {
+                cajas: Math.floor(tot / uxc),
+                unidadesSueltas: tot % uxc,
+                unidadesTotales: tot
+            };
+        }
+
+        /* Unidades totales disponibles combinando U/B/C */
+        function unidadesDisponibles(btn) {
+            const stockU = parseInt(btn.dataset.stockU || '0', 10) || 0;
+            const stockB = parseInt(btn.dataset.stockB || '0', 10) || 0;
+            const stockC = parseInt(btn.dataset.stockC || '0', 10) || 0;
+            const upb = parseInt(btn.dataset.upb || '0', 10) || 0;
+            const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
+            const viaB = (stockB > 0 && upb > 0) ? stockB * upb : 0;
+            const viaC = (stockC > 0 && uxc > 0) ? stockC * uxc : 0;
+            return stockU + viaB + viaC;
+        }
+
+        /* Precio y descuento por unidad */
+        function getPrecioUnidad(btn) {
+            return parseFloat(btn.dataset.precioU || '0') || 0;
+        }
+
+        function getDescPctUnidad(btn) {
+            return parseFloat(btn.dataset.descpctU || '0') || 0;
+        }
+
+        /* Helpers de importes */
+        function calcularImportes(btn, totU) {
+            const precioU = getPrecioUnidad(btn);
+            const descPct = getDescPctUnidad(btn);
+            const descLinea = totU * precioU * (descPct / 100);
+            const subtotal = (totU * precioU) - descLinea;
+            return {
+                precioU,
+                descPct,
+                descLinea,
+                subtotal
+            };
+        }
+
+        function pintarImportesFila(fila, metrics) {
+            fila.querySelector('.precio').value = metrics.precioU.toFixed(2);
+            fila.querySelector('.descuento-linea').value = metrics.descLinea.toFixed(2);
+            fila.querySelector('.subtotal').textContent = metrics.subtotal.toFixed(2);
+        }
+    </script>
+
+    <script>
+        /* ========== Borrador localStorage (guarda lo que el usuario tipeó tal cual) ========== */
         window.addEventListener('load', () => {
-            const DRAFT_KEY = 'ventaDraft_v1';
+            const DRAFT_KEY = 'ventaDraft_v2_cf';
 
             function saveDraft() {
                 const filas = Array.from(document.querySelectorAll('#tablaVenta tbody tr')).map(fila => {
                     const id = fila.getAttribute('data-id');
-                    const sel = fila.querySelector('.presentacion');
-                    const qty = fila.querySelector('.cantidad');
-                    const btnModal = document.querySelector(`.agregar-producto[data-id='${id}']`);
-
+                    const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
                     return {
                         id,
-                        // Nombre/lab/fv desde dataset del botón
-                        nombre: btnModal?.dataset.nombre || '',
-                        laboratorio: btnModal?.dataset.lab || '—',
-                        fv: btnModal?.dataset.fv || '—',
-                        presentacion: sel?.value || 'unidad',
-                        cantidad: parseInt(qty?.value || '1', 10),
-
-                        // datasets para recalcular
-                        precioU: btnModal?.dataset.precioU || '',
-                        precioB: btnModal?.dataset.precioB || '',
-                        precioC: btnModal?.dataset.precioC || '',
-                        descU: btnModal?.dataset.descpctU || 0,
-                        descB: btnModal?.dataset.descpctB || 0,
-                        descC: btnModal?.dataset.descpctC || 0
-                        // ratios no son necesarios para persistir: se leen del botón
+                        nombre: btn?.dataset.nombre || '',
+                        laboratorio: btn?.dataset.lab || '—',
+                        fv: btn?.dataset.fv || '—',
+                        uxc: parseInt(btn?.dataset.uxc || '0', 10) || 0,
+                        cantidadRaw: fila.querySelector('.cantidad')?.value || '',
+                        precioU: btn?.dataset.precioU || '0',
+                        descU: btn?.dataset.descpctU || '0'
                     };
                 });
 
@@ -494,7 +642,7 @@
                 try {
                     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
                 } catch (e) {
-                    console.warn('No se pudo guardar el borrador:', e);
+                    console.warn(e);
                 }
             }
 
@@ -518,7 +666,6 @@
                     return;
                 }
 
-                // Restituir selects y pagado
                 const cSel = document.querySelector("select[name='id_cliente']");
                 const dSel = document.querySelector("select[name='id_documento']");
                 const pSel = document.querySelector("select[name='id_pago']");
@@ -533,73 +680,48 @@
 
                 (draft.filas || []).forEach(item => {
                     const btn = document.querySelector(`.agregar-producto[data-id='${item.id}']`);
-                    if (!btn) return; // si el producto ya no existe, saltamos
+                    if (!btn) return;
 
-                    // Igual que al agregar desde el modal
-                    const presDefault = window.primeraPresentacionDisponible(btn);
-                    const precioUnit = window.getPrecio(btn, presDefault);
-                    const descPct = window.getDescPct(btn, presDefault);
-                    const cantidadIni = 1;
-                    const descLinea = cantidadIni * precioUnit * (descPct / 100);
-                    const subtotal = (cantidadIni * precioUnit) - descLinea;
+                    const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
+                    const precioU = getPrecioUnidad(btn);
+                    const descPct = getDescPctUnidad(btn);
 
-                    const opts = [];
-                    opts.push(
-                        `<option value="unidad"  ${window.getStock(btn,'unidad')>0?'':'disabled'}  ${presDefault==='unidad'?'selected':''}>Unidad</option>`
-                    );
-                    opts.push(
-                        `<option value="blister" ${window.getStock(btn,'blister')>0?'':'disabled'} ${presDefault==='blister'?'selected':''}>Blíster</option>`
-                    );
-                    opts.push(
-                        `<option value="caja"    ${window.getStock(btn,'caja')>0?'':'disabled'}    ${presDefault==='caja'?'selected':''}>Caja</option>`
-                    );
-
-                    // Ratios desde dataset
-                    const upb = parseInt(btn.dataset.upb || '') || null;
-                    const uxc = parseInt(btn.dataset.uxc || '') || null;
-                    const upbTxt = upb ? upb : '—';
-                    const uxcTxt = uxc ? uxc : '—';
+                    const placeholder = (uxc > 1) ? "p.ej. 3F5 o F5 o 12" : "p.ej. 12";
+                    const uxcTxt = (uxc > 1) ? uxc : '—';
+                    const cantRaw = item.cantidadRaw || '';
 
                     const filaHTML = `
-                        <tr data-id="${item.id}">
-                          <td><input type="hidden" name="productos[]" value="${item.id}">${item.nombre}</td>
-                          <td>${btn.dataset.lab || '—'}</td>
-                          <td>${btn.dataset.fv  || '—'}</td>
-                          <td>
-                            <select name="unidades_venta[]" class="form-select form-select-sm presentacion">
-                              ${opts.join('')}
-                            </select>
-                            <div class="form-text small text-muted stock-pres">Stock: ${window.getStock(btn, presDefault)}</div>
-                          </td>
-                          <td><span class="badge bg-light text-dark">${upbTxt}</span></td>
-                          <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
-                          <td><input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*"></td>
-                          <td><input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly></td>
-                          <td>
-                            <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${descLinea.toFixed(2)}" step="0.01" readonly>
-                            <div class="form-text small text-muted">(-${descPct}%)</div>
-                          </td>
-                          <td><span class="subtotal">${subtotal.toFixed(2)}</span></td>
-                          <td>
-                            <button type="button" class="btn btn-danger btn-sm eliminar-producto">
-                              <i data-feather="trash"></i>
-                            </button>
-                          </td>
-                        </tr>
-                    `;
+        <tr data-id="${item.id}">
+          <td>
+            <input type="hidden" name="productos[]" value="${item.id}">
+            <input type="hidden" name="unidades_venta[]" value="unidad"><!-- clásico -->
+            <input type="hidden" name="cantidades[]" value="0"><!-- se setea al confirmar -->
+            ${btn.dataset.nombre || ''}
+          </td>
+          <td>${btn.dataset.lab || '—'}</td>
+          <td>${btn.dataset.fv  || '—'}</td>
+          <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
+          <td>
+            <input type="text" name="cantidades_raw[]" class="form-control cantidad" value="${cantRaw}" placeholder="${placeholder}">
+            <div class="form-text small text-muted hint-cant">Total U: —</div>
+          </td>
+          <td><input type="number" name="precios[]" class="form-control precio" value="${precioU.toFixed(2)}" step="0.01" readonly></td>
+          <td>
+            <input type="number" name="descuentos[]" class="form-control descuento-linea" value="0.00" step="0.01" readonly>
+            <div class="form-text small text-muted">(-${descPct}%)</div>
+          </td>
+          <td><span class="subtotal">0.00</span></td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm eliminar-producto">
+              <i data-feather="trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
                     tbodyVenta.insertAdjacentHTML('beforeend', filaHTML);
 
-                    // Ajustar presentación/cantidad guardadas y recalcular
-                    const fila = tbodyVenta.querySelector(`tr[data-id='${item.id}']`);
-                    if (fila) {
-                        const sel = fila.querySelector('.presentacion');
-                        if (sel && item.presentacion) sel.value = item.presentacion;
-                        const qty = fila.querySelector('.cantidad');
-                        if (qty) qty.value = String(item.cantidad || 1);
-                        window.recalcFila(fila);
-                    }
-
-                    // Deshabilitar botón en modal para evitar duplicado
+                    window.previewFila(tbodyVenta.querySelector(`tr[data-id='${item.id}']`));
+                    window.commitFila(tbodyVenta.querySelector(`tr[data-id='${item.id}']`));
                     btn.disabled = true;
                 });
 
@@ -617,12 +739,8 @@
                 if (e.target.matches('.cantidad') || e.target.id === 'pagado') saveDraft();
             });
             document.addEventListener('change', (e) => {
-                if (e.target.matches('.presentacion') ||
-                    e.target.name === 'id_cliente' ||
-                    e.target.name === 'id_documento' ||
-                    e.target.name === 'id_pago') {
-                    saveDraft();
-                }
+                if (e.target.name === 'id_cliente' || e.target.name === 'id_documento' || e.target.name ===
+                    'id_pago') saveDraft();
             });
 
             const form = document.getElementById('formVenta');
@@ -631,26 +749,22 @@
                 form.addEventListener('reset', clearDraft);
             }
 
-            // Carga inicial
             loadDraft();
         });
     </script>
 
-    <!-- ===========================
-                 Interacción UI / Helpers / Reglas
-                 =========================== -->
     <script>
+        /* ========== Interacción UI / Escritura libre + validación al terminar (blur/Enter) ========== */
         document.addEventListener('DOMContentLoaded', () => {
-            // Atajo F2 abre modal
+            // F2 abre modal
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'F2') {
                     e.preventDefault();
-                    const btn = document.getElementById('btnAbrirModalProductos');
-                    if (btn) btn.click();
+                    document.getElementById('btnAbrirModalProductos')?.click();
                 }
             });
 
-            // Filtro en el modal
+            // Filtro del modal
             const inputModal = document.getElementById('buscarProductoModal');
             if (inputModal) {
                 inputModal.addEventListener('keyup', function() {
@@ -660,213 +774,245 @@
                         const presentacion = fila.dataset.presentacion || '';
                         const laboratorio = fila.dataset.laboratorio || '';
                         const categoria = fila.dataset.categoria || '';
-                        const coincide = nombre.includes(filtro) || presentacion.includes(filtro) ||
-                            laboratorio.includes(filtro) || categoria.includes(filtro);
+                        const generico = fila.dataset.generico || '';
+                        const lote = fila.dataset.lote || '';
+                        const coincide = [nombre, presentacion, laboratorio, categoria, generico,
+                            lote
+                        ].some(t => t.includes(filtro));
                         fila.style.display = coincide ? '' : 'none';
                     });
                 });
             }
 
-            // ===== Helpers =====
-            function getPrecio(btn, pres) {
-                if (pres === 'unidad') return parseFloat(btn.dataset.precioU || '0') || 0;
-                if (pres === 'blister') return parseFloat(btn.dataset.precioB || '0') || 0;
-                if (pres === 'caja') return parseFloat(btn.dataset.precioC || '0') || 0;
-                return 0;
+            // Toast éxito
+            const ToastSuccess = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2200,
+                timerProgressBar: true,
+                iconColor: '#16a34a',
+                customClass: {
+                    popup: 'colored-toast'
+                },
+                didOpen: (t) => {
+                    t.addEventListener('mouseenter', Swal.stopTimer);
+                    t.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            function showAddedToast(msg) {
+                ToastSuccess.fire({
+                    icon: 'success',
+                    title: msg
+                });
             }
 
-            function getDescPct(btn, pres) {
-                if (pres === 'unidad') return parseFloat(btn.dataset.descpctU || '0') || 0;
-                if (pres === 'blister') return parseFloat(btn.dataset.descpctB || '0') || 0;
-                if (pres === 'caja') return parseFloat(btn.dataset.descpctC || '0') || 0;
-                return 0;
-            }
+            // PREVIEW: solo hint (sin normalizar, sin errores)
+            window.previewFila = function(fila) {
+                if (!fila) return;
+                const id = fila.getAttribute('data-id');
+                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
+                const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
 
-            function getStock(btn, pres) {
-                if (pres === 'unidad') return parseInt(btn.dataset.stockU || '0', 10) || 0;
-                if (pres === 'blister') return parseInt(btn.dataset.stockB || '0', 10) || 0;
-                if (pres === 'caja') return parseInt(btn.dataset.stockC || '0', 10) || 0;
-                return 0;
-            }
+                const qtyInput = fila.querySelector('.cantidad');
+                const hint = fila.querySelector('.hint-cant');
+                const raw = qtyInput.value;
 
-            function primeraPresentacionDisponible(btn) {
-                if (getStock(btn, 'unidad') > 0) return 'unidad';
-                if (getStock(btn, 'blister') > 0) return 'blister';
-                if (getStock(btn, 'caja') > 0) return 'caja';
-                return 'unidad';
-            }
+                const parsed = parseCantidad(raw, uxc);
+                if (parsed.vacio) {
+                    hint.textContent = 'Total U: —';
+                    qtyInput.classList.remove('is-invalid');
+                    return;
+                }
 
-            // Agregar producto desde el modal a la tabla de venta
+                hint.textContent = `Total U: ${parsed.unidadesTotales}`;
+                qtyInput.classList.remove('is-invalid');
+            };
+
+            // COMMIT: normaliza, valida stock; si uxc<=1 y usó "F", alerta y normaliza a entero
+            window.commitFila = function(fila) {
+                if (!fila) return;
+                const id = fila.getAttribute('data-id');
+                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
+                const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
+
+                const qtyInput = fila.querySelector('.cantidad');
+                const hint = fila.querySelector('.hint-cant');
+                const hiddenQty = fila.querySelector('input[name="cantidades[]"]');
+
+                const parsed = parseCantidad(qtyInput.value, uxc);
+                const maxU = unidadesDisponibles(btn);
+
+                let totU = parsed.unidadesTotales;
+                let huboError = false;
+                let msgError = '';
+
+                // Regla especial: uxc<=1 NO admite "F"
+                if (uxc <= 1 && parsed.hadF) {
+                    huboError = true;
+                    msgError = 'Este producto no maneja cajas. Ingresa solo un número entero (ej. 12).';
+                }
+
+                if (parsed.vacio || totU < 1) {
+                    totU = 1;
+                    huboError = true;
+                    msgError = msgError || 'La cantidad mínima es 1 unidad.';
+                } else if (totU > maxU) {
+                    totU = maxU;
+                    huboError = true;
+                    msgError = msgError || `Stock insuficiente. Disponible: ${maxU} unidades.`;
+                }
+
+                if (huboError) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Cantidad inválida',
+                        text: msgError
+                    });
+                }
+
+                // Normalización visual
+                if (uxc > 1) {
+                    const c = Math.floor(totU / uxc);
+                    const u = totU % uxc;
+                    qtyInput.value = `${c}F${u}`;
+                } else {
+                    qtyInput.value = String(totU); // SOLO enteros cuando uxc<=1
+                }
+                hint.textContent = `Total U: ${totU}`;
+
+                // Importes + sincronización clásica
+                const metrics = calcularImportes(btn, totU);
+                pintarImportesFila(fila, metrics);
+                if (hiddenQty) hiddenQty.value = String(totU);
+
+                window.calcularTotales();
+            };
+
+            // Agregar producto desde el modal
             document.addEventListener('click', function(e) {
                 const trigger = e.target.closest('.agregar-producto');
                 if (!trigger) return;
 
                 const btn = trigger;
                 const id = btn.dataset.id;
-                const nombre = btn.dataset.nombre;
-
+                const nombre = btn.dataset.nombre || '';
                 const tabla = document.querySelector('#tablaVenta tbody');
                 const filaExistente = tabla.querySelector(`tr[data-id='${id}']`);
 
-                const allZero = getStock(btn, 'unidad') === 0 &&
-                    getStock(btn, 'blister') === 0 &&
-                    getStock(btn, 'caja') === 0;
-                if (allZero) {
+                const dispU = unidadesDisponibles(btn);
+                if (dispU <= 0) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Sin stock',
-                        text: 'Este producto está agotado en todas las presentaciones.'
+                        text: 'Este producto no tiene unidades disponibles.'
                     });
                     return;
                 }
 
                 if (filaExistente) {
-                    const cantidadInput = filaExistente.querySelector('.cantidad');
-                    const pres = filaExistente.querySelector('.presentacion').value;
-                    const stock = getStock(btn, pres);
-                    const nueva = (parseInt(cantidadInput.value || '0', 10) + 1);
-                    if (nueva > stock) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Stock insuficiente',
-                            text: `Solo hay ${stock} en stock (${pres}).`
-                        });
-                        return;
+                    // sumar +1 y confirmar
+                    const qtyInput = filaExistente.querySelector('.cantidad');
+                    const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
+                    const parsed = parseCantidad(qtyInput.value, uxc);
+                    const nuevoTot = (parsed.unidadesTotales || 0) + 1;
+
+                    if (uxc > 1) {
+                        const c = Math.floor(nuevoTot / uxc);
+                        const u = nuevoTot % uxc;
+                        qtyInput.value = `${c}F${u}`;
+                    } else {
+                        qtyInput.value = String(nuevoTot); // entero
                     }
-                    cantidadInput.value = nueva;
-                    cantidadInput.dispatchEvent(new Event('input', {
-                        bubbles: true
-                    }));
+                    window.commitFila(filaExistente);
                     return;
                 }
 
                 // Nueva fila
-                const presDefault = primeraPresentacionDisponible(btn);
-                const precioUnit = getPrecio(btn, presDefault);
-                const descPct = getDescPct(btn, presDefault);
-                const cantidadIni = 1;
-                const descLinea = cantidadIni * precioUnit * (descPct / 100);
-                const subtotal = (cantidadIni * precioUnit) - descLinea;
+                const uxc = parseInt(btn.dataset.uxc || '0', 10) || 0;
+                const precioU = getPrecioUnidad(btn);
+                const descPct = getDescPctUnidad(btn);
 
-                const opts = [];
-                opts.push(
-                    `<option value="unidad"  ${getStock(btn,'unidad')>0?'':'disabled'}  ${presDefault==='unidad'?'selected':''}>Unidad</option>`
-                );
-                opts.push(
-                    `<option value="blister" ${getStock(btn,'blister')>0?'':'disabled'} ${presDefault==='blister'?'selected':''}>Blíster</option>`
-                );
-                opts.push(
-                    `<option value="caja"    ${getStock(btn,'caja')>0?'':'disabled'}    ${presDefault==='caja'?'selected':''}>Caja</option>`
-                );
-
-                // Ratios
-                const upb = parseInt(btn.dataset.upb || '') || null;
-                const uxc = parseInt(btn.dataset.uxc || '') || null;
-                const upbTxt = upb ? upb : '—';
-                const uxcTxt = uxc ? uxc : '—';
+                const placeholder = (uxc > 1) ? "p.ej. 3F5 o F5 o 12" : "p.ej. 12";
+                const uxcTxt = (uxc > 1) ? uxc : '—';
 
                 const fila = `
-                    <tr data-id="${id}">
-                        <td><input type="hidden" name="productos[]" value="${id}">${nombre}</td>
-                        <td>${btn.dataset.lab || '—'}</td>
-                        <td>${btn.dataset.fv || '—'}</td>
-                        <td>
-                            <select name="unidades_venta[]" class="form-select form-select-sm presentacion">
-                              ${opts.join('')}
-                            </select>
-                            <div class="form-text small text-muted stock-pres">Stock: ${getStock(btn, presDefault)}</div>
-                        </td>
-                        <td><span class="badge bg-light text-dark">${upbTxt}</span></td>
-                        <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
-                        <td><input type="number" name="cantidades[]" class="form-control cantidad" value="${cantidadIni}" min="1" step="1" inputmode="numeric" pattern="\\d*"></td>
-                        <td><input type="number" name="precios[]" class="form-control precio" value="${precioUnit.toFixed(2)}" step="0.01" readonly></td>
-                        <td>
-                            <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${descLinea.toFixed(2)}" step="0.01" readonly>
-                            <div class="form-text small text-muted">(-${descPct}%)</div>
-                        </td>
-                        <td><span class="subtotal">${subtotal.toFixed(2)}</span></td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm eliminar-producto">
-                              <i data-feather="trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
+      <tr data-id="${id}">
+        <td>
+          <input type="hidden" name="productos[]" value="${id}">
+          <input type="hidden" name="unidades_venta[]" value="unidad"><!-- clásico -->
+          <input type="hidden" name="cantidades[]" value="1"><!-- inicia en 1 -->
+          ${nombre}
+        </td>
+        <td>${btn.dataset.lab || '—'}</td>
+        <td>${btn.dataset.fv  || '—'}</td>
+        <td><span class="badge bg-light text-dark">${uxcTxt}</span></td>
+        <td>
+          <input type="text" name="cantidades_raw[]" class="form-control cantidad" value="1" placeholder="${placeholder}">
+          <div class="form-text small text-muted hint-cant">Total U: 1</div>
+        </td>
+        <td><input type="number" name="precios[]" class="form-control precio" value="${precioU.toFixed(2)}" step="0.01" readonly></td>
+        <td>
+          <input type="number" name="descuentos[]" class="form-control descuento-linea" value="${(precioU*(descPct/100)).toFixed(2)}" step="0.01" readonly>
+          <div class="form-text small text-muted">(-${descPct}%)</div>
+        </td>
+        <td><span class="subtotal">${(precioU - (precioU*(descPct/100))).toFixed(2)}</span></td>
+        <td>
+          <button type="button" class="btn btn-danger btn-sm eliminar-producto">
+            <i data-feather="trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
                 tabla.insertAdjacentHTML('beforeend', fila);
                 feather.replace();
 
-                // Deshabilita botón del modal para evitar duplicado inmediato
                 btn.disabled = true;
 
-                window.calcularTotales();
+                // Confirmamos inmediatamente 1 unidad
+                const nueva = tabla.querySelector(`tr[data-id='${id}']`);
+                window.commitFila(nueva);
+
                 showAddedToast(`"${nombre}" agregado a la venta`);
             });
 
-            // Recalcular al cambiar presentación o cantidad
+            // Mientras escribe: solo hint
             document.addEventListener('input', function(e) {
                 if (e.target.matches('.cantidad')) {
                     const fila = e.target.closest('tr');
-                    recalcFila(fila);
+                    window.previewFila(fila);
                 }
             });
-            document.addEventListener('change', function(e) {
-                if (e.target.matches('.presentacion')) {
+
+            // Al salir del input: validar y normalizar
+            document.addEventListener('blur', function(e) {
+                if (e.target.matches('.cantidad')) {
                     const fila = e.target.closest('tr');
-                    recalcFila(fila);
+                    window.commitFila(fila);
+                }
+            }, true);
+
+            // Enter en el input = confirmar
+            document.addEventListener('keydown', function(e) {
+                if (e.target.matches('.cantidad') && e.key === 'Enter') {
+                    e.preventDefault();
+                    const fila = e.target.closest('tr');
+                    window.commitFila(fila);
+                    const cants = Array.from(document.querySelectorAll('#tablaVenta .cantidad'));
+                    const idx = cants.indexOf(e.target);
+                    if (idx >= 0 && idx < cants.length - 1) cants[idx + 1].focus();
                 }
             });
 
-            function recalcFila(fila) {
-                const id = fila.getAttribute('data-id');
-                const btn = document.querySelector(`.agregar-producto[data-id='${id}']`);
-                const pres = fila.querySelector('.presentacion').value;
-
-                const stock = getStock(btn, pres);
-                const qtyInp = fila.querySelector('.cantidad');
-                let qty = parseInt(qtyInp.value || '0', 10) || 0;
-
-                if (qty < 1) qty = 1;
-                if (qty > stock) {
-                    qty = stock;
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Stock insuficiente',
-                        text: `Disponible: ${stock} (${pres}).`
-                    });
-                }
-                qtyInp.value = qty;
-
-                const precioUnit = getPrecio(btn, pres);
-                const descPct = getDescPct(btn, pres);
-                const descLinea = qty * precioUnit * (descPct / 100);
-                const subtotal = (qty * precioUnit) - descLinea;
-
-                fila.querySelector('.precio').value = precioUnit.toFixed(2);
-                fila.querySelector('.descuento-linea').value = descLinea.toFixed(2);
-                fila.querySelector('.subtotal').textContent = subtotal.toFixed(2);
-                fila.querySelector('.stock-pres').textContent = `Stock: ${stock}`;
-
-                window.calcularTotales();
-            }
-
-            // PUBLICAR helpers y recalc en window para el borrador
-            window.getPrecio = getPrecio;
-            window.getDescPct = getDescPct;
-            window.getStock = getStock;
-            window.primeraPresentacionDisponible = primeraPresentacionDisponible;
-            window.recalcFila = recalcFila;
-
-            // Eliminar producto desde la tabla
+            // Eliminar producto
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.eliminar-producto')) return;
                 const fila = e.target.closest('tr');
                 const id = fila.getAttribute('data-id');
                 fila.remove();
-
-                const botonAgregar = document.querySelector(`.agregar-producto[data-id='${id}']`);
-                if (botonAgregar) botonAgregar.disabled = false;
-
+                const boton = document.querySelector(`.agregar-producto[data-id='${id}']`);
+                if (boton) boton.disabled = false;
                 window.calcularTotales();
             });
 
@@ -879,12 +1025,49 @@
                 document.getElementById('total').textContent = `S/ ${total.toFixed(2)}`;
             };
 
-            // Validación de cantidades (solo enteros)
-            document.addEventListener('keydown', function(e) {
-                const el = e.target;
-                if (el.classList && el.classList.contains('cantidad')) {
-                    const invalid = ['-', '+', 'e', 'E', '.', ','];
-                    if (invalid.includes(e.key)) e.preventDefault();
+            // Validación al enviar
+            document.getElementById('formVenta').addEventListener('submit', function(e) {
+                // Confirma todas las filas (aplica clamp y sincroniza clásicos)
+                document.querySelectorAll('#tablaVenta tbody tr').forEach(f => window.commitFila(f));
+
+                const filas = document.querySelectorAll('#tablaVenta tbody tr');
+                if (filas.length === 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Error!',
+                        text: 'Debes agregar al menos un producto a la venta.'
+                    });
+                    return;
+                }
+
+                let ok = true;
+                filas.forEach(fila => {
+                    const precio = parseFloat(fila.querySelector('.precio').value) || 0;
+                    const desc = parseFloat(fila.querySelector('.descuento-linea').value) || 0;
+                    const hiddenQty = fila.querySelector('input[name="cantidades[]"]');
+                    const unidades = parseInt(hiddenQty?.value || '0', 10) || 0;
+                    const base = (parseFloat(precio) || 0) * unidades;
+
+                    if (desc > base) {
+                        ok = false;
+                        const inp = fila.querySelector('.descuento-linea');
+                        inp.classList.add('is-invalid');
+                        if (!inp.nextElementSibling || !inp.nextElementSibling.classList.contains(
+                                'invalid-feedback')) {
+                            const fb = document.createElement('div');
+                            fb.className = 'invalid-feedback';
+                            fb.textContent =
+                            'El descuento no puede superar el importe de la línea.';
+                            inp.parentNode.appendChild(fb);
+                        }
+                    }
+                });
+
+                if (!ok) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.add('was-validated');
                 }
             });
 
@@ -898,111 +1081,41 @@
                     `S/ ${cambio >= 0 ? cambio.toFixed(2) : '0.00'}`;
             });
 
+            // Bootstrap 5: Validación personalizada
+            (() => {
+                'use strict';
+                const forms = document.querySelectorAll('.needs-validation');
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+
+            // Botón “Predeterminado”
+            (() => {
+                const btnPred = document.getElementById('btnPredeterminado');
+                if (btnPred) {
+                    btnPred.addEventListener('click', () => {
+                        const c = document.querySelector("select[name='id_cliente']");
+                        if (c) c.value = "1";
+                        const d = document.querySelector("select[name='id_documento']");
+                        if (d) d.value = "1";
+                        const p = document.querySelector("select[name='id_pago']");
+                        if (p) p.value = "1";
+                    });
+                }
+            })();
+
             feather.replace();
         });
     </script>
 
-    <script>
-        // Validación al enviar (debe haber al menos 1 producto)
-        document.getElementById('formVenta').addEventListener('submit', function(e) {
-            const filas = document.querySelectorAll('#tablaVenta tbody tr');
-            if (filas.length === 0) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: '¡Error!',
-                    text: 'Debes agregar al menos un producto a la venta.',
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'Aceptar'
-                });
-            }
-
-            // Validar que el descuento de la línea no supere el precio unitario (por línea)
-            let ok = true;
-            document.querySelectorAll('#tablaVenta tbody tr').forEach(fila => {
-                const precio = parseFloat(fila.querySelector('.precio').value) || 0;
-                const descuento = parseFloat(fila.querySelector('.descuento-linea').value) || 0;
-                if (descuento > precio) {
-                    ok = false;
-                    const inp = fila.querySelector('.descuento-linea');
-                    inp.classList.add('is-invalid');
-                    if (!inp.nextElementSibling || !inp.nextElementSibling.classList.contains(
-                            'invalid-feedback')) {
-                        const fb = document.createElement('div');
-                        fb.className = 'invalid-feedback';
-                        fb.textContent = 'El descuento no puede ser mayor que el precio unitario.';
-                        inp.parentNode.appendChild(fb);
-                    }
-                }
-            });
-            if (!ok) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.classList.add('was-validated');
-            }
-        });
-    </script>
-
-    <script>
-        // Instancia global para toasts de éxito
-        const ToastSuccess = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2200,
-            timerProgressBar: true,
-            iconColor: '#16a34a',
-            customClass: {
-                popup: 'colored-toast'
-            },
-            didOpen: (t) => {
-                t.addEventListener('mouseenter', Swal.stopTimer);
-                t.addEventListener('mouseleave', Swal.resumeTimer);
-            }
-        });
-
-        function showAddedToast(msg) {
-            ToastSuccess.fire({
-                icon: 'success',
-                title: msg
-            });
-        }
-    </script>
-
-    <script>
-        // Bootstrap 5: Validación personalizada
-        (() => {
-            'use strict';
-            const forms = document.querySelectorAll('.needs-validation');
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        })();
-    </script>
-
-    <script>
-        // Botón Predeterminado
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnPred = document.getElementById('btnPredeterminado');
-            if (btnPred) {
-                btnPred.addEventListener('click', () => {
-                    const clienteSel = document.querySelector("select[name='id_cliente']");
-                    if (clienteSel) clienteSel.value = "1";
-                    const docSel = document.querySelector("select[name='id_documento']");
-                    if (docSel) docSel.value = "1";
-                    const pagoSel = document.querySelector("select[name='id_pago']");
-                    if (pagoSel) pagoSel.value = "1";
-                });
-            }
-        });
-    </script>
-
+    {{-- Navegación por teclado en el modal (opcional) --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modalEl = document.getElementById('modalBuscarProducto');
@@ -1018,23 +1131,20 @@
 
             function firstEnabledRowIndex(rows) {
                 return rows.findIndex(r => {
-                    const btn = r.querySelector('.agregar-producto');
-                    return btn && !btn.disabled;
+                    const b = r.querySelector('.agregar-producto');
+                    return b && !b.disabled;
                 });
             }
 
             function setActive(index) {
                 const rows = visibleRows();
                 rows.forEach(r => r.classList.remove('row-active'));
-                if (rows.length === 0) {
+                if (!rows.length) {
                     selIndex = -1;
                     return;
                 }
-
-                // Wrap-around
                 if (index < 0) index = rows.length - 1;
                 if (index >= rows.length) index = 0;
-
                 selIndex = index;
                 const row = rows[selIndex];
                 row.classList.add('row-active');
@@ -1045,7 +1155,7 @@
 
             function selectFirst() {
                 const rows = visibleRows();
-                if (rows.length === 0) {
+                if (!rows.length) {
                     selIndex = -1;
                     return;
                 }
@@ -1053,35 +1163,22 @@
                 setActive(idx >= 0 ? idx : 0);
             }
 
-            // Al abrir el modal: enfoca el buscador y selecciona la primera fila visible/habilitada
             modalEl?.addEventListener('shown.bs.modal', () => {
                 if (filterInput) {
                     filterInput.focus();
                     filterInput.select?.();
                 }
-                // pequeña espera para que se apliquen filtros iniciales si los hubiera
                 setTimeout(selectFirst, 0);
             });
-
-            // Al cerrar, limpia el estado
             modalEl?.addEventListener('hidden.bs.modal', () => {
                 selIndex = -1;
                 visibleRows().forEach(r => r.classList.remove('row-active'));
             });
-
-            // Recalcular selección cuando filtras
             filterInput?.addEventListener('input', () => {
-                // Tu filtro ya oculta/mostrar filas; aquí solo re-anclamos la selección
                 setTimeout(selectFirst, 0);
             });
 
-            // Navegación con ↑/↓ y Enter dentro del modal
             modalEl?.addEventListener('keydown', (e) => {
-                // Si quieres que las flechas funcionen aun cuando estás escribiendo en el input de búsqueda,
-                // dejamos esta condición como está. Si prefieres que ↑/↓ NO interfieran cuando escribes,
-                // descomenta esta línea para ignorar cuando el foco está en el input:
-                // if (e.target === filterInput) return;
-
                 if (e.key === 'ArrowDown') {
                     const rows = visibleRows();
                     if (!rows.length) return;
@@ -1095,18 +1192,14 @@
                 } else if (e.key === 'Enter') {
                     const rows = visibleRows();
                     if (selIndex < 0 || !rows[selIndex]) return;
-
                     const btn = rows[selIndex].querySelector('.agregar-producto:not([disabled])');
                     if (btn) {
                         e.preventDefault();
-                        btn.click(); // reutiliza tu flujo existente de "agregar producto"
-
-                        // Avanzar a la siguiente fila habilitada (opcional, mejora el flujo rápido)
-                        const updatedRows = visibleRows();
+                        btn.click();
+                        const updated = visibleRows();
                         let next = selIndex;
-                        // busca la próxima fila con botón habilitado
-                        for (let i = selIndex + 1; i < updatedRows.length; i++) {
-                            const b = updatedRows[i].querySelector('.agregar-producto');
+                        for (let i = selIndex + 1; i < updated.length; i++) {
+                            const b = updated[i].querySelector('.agregar-producto');
                             if (b && !b.disabled) {
                                 next = i;
                                 break;

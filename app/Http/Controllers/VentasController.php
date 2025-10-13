@@ -22,12 +22,59 @@ class VentasController extends Controller
 {
     public function index()
     {
-        $clientes   = Clientes::all();
-        $productos  = Productos::all();
-        $pagos      = TipoPagos::all();
-        $documentos = Documentos::all();
+        $clientes   = Clientes::select('id', 'nombre', 'apellidos', 'dni')->orderBy('nombre')->get();
+        $pagos      = TipoPagos::select('id', 'nombre')->orderBy('nombre')->get();
+        $documentos = Documentos::select('id', 'nombre')->orderBy('nombre')->get();
 
-        // Generar serie/número simple (ajústalo a tu lógica)
+        // =============================
+        //   PRODUCTOS AGRUPADOS POR LOTE
+        // =============================
+
+        // === AGRUPAR POR NOMBRE Y LABORATORIO ===
+        $productos = Productos::select([
+            'productos.id',
+            'productos.descripcion',
+            'productos.presentacion',
+            'productos.laboratorio',
+            'productos.lote',
+            'productos.fecha_vencimiento',
+            'productos.cantidad',
+            'productos.unidades_por_blister',
+            'productos.unidades_por_caja',
+            'productos.precio_venta',
+            'productos.precio_venta_blister',
+            'productos.precio_venta_caja',
+            'productos.descuento',
+            'productos.descuento_blister',
+            'productos.descuento_caja',
+            'productos.foto',
+            'productos.id_generico'
+        ])
+            ->with(['generico:id,nombre', 'categorias:id,nombre'])
+            ->where('productos.cantidad', '>', 0)                 // solo con stock
+            // ->whereDate('productos.fecha_vencimiento','>=', now()) // opcional: no mostrar vencidos
+            ->orderBy('productos.descripcion')
+            ->orderBy('productos.fecha_vencimiento')              // primero los que vencen antes
+            ->get()
+            ->groupBy(function ($p) {
+                // clave estable: nombre + laboratorio (limpio/minúsculas)
+                return mb_strtolower(trim($p->descripcion)) . '|' . mb_strtolower(trim($p->laboratorio ?? ''));
+            })
+            ->map(function ($grupo) {
+                // FEFO + desempates: fecha_venc asc, luego lote asc, luego id asc
+                return $grupo->sortBy([
+                    ['fecha_vencimiento', 'asc'],
+                    ['lote', 'asc'],
+                    ['id', 'asc'],
+                ])->first();
+            })
+            ->values();
+
+
+        // =============================
+        //   SERIE / NÚMERO DE VENTA
+        // =============================
+
         $serie  = 'TI001';
         $ultimo = Ventas::latest()->first();
         $numero = $ultimo ? str_pad($ultimo->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
@@ -263,7 +310,7 @@ class VentasController extends Controller
                     $q->where('codigo', 'LIKE', "%$buscar%")
                         ->orWhereHas('cliente', function ($q) use ($buscar) {
                             $q->where('nombre', 'LIKE', "%$buscar%")
-                              ->orWhere('apellidos', 'LIKE', "%$buscar%");
+                                ->orWhere('apellidos', 'LIKE', "%$buscar%");
                         })
                         ->orWhereHas('documento', function ($q) use ($buscar) {
                             $q->where('nombre', 'LIKE', "%$buscar%");
